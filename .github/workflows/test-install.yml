@@ -33,7 +33,7 @@ jobs:
       - name: Install via npm
         run: |
           npm install -g @runagents/cli
-          runagents version
+          $(npm bin -g)/runagents version
 
   linux-curl:
     name: curl install (Linux)

@@ -1,0 +1,105 @@
+version: 2
+
+project_name: runagents
+
+before:
+  hooks:
+    - sh -c "cd cli && go mod tidy"
+
+builds:
+  - id: runagents
+    dir: cli
+    main: ./cmd/runagents
+    binary: runagents
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ignore:
+      - goos: windows
+        goarch: arm64
+    ldflags:
+      - -s -w
+      - -X github.com/runagents/runagents/cli/internal/commands.Version={{.Version}}
+
+archives:
+  - id: runagents
+    name_template: "runagents_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        formats: ["zip"]
+    files:
+      - LICENSE
+      - README.md
+
+checksum:
+  name_template: "checksums.txt"
+
+release:
+  github:
+    owner: runagents-io
+    name: runagents
+  name_template: "v{{.Version}}"
+  draft: false
+  prerelease: auto
+  footer: |
+    **Install via Homebrew:**
+    ```bash
+    brew tap runagents-io/tap && brew install runagents
+    ```
+    **Install via curl:**
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/runagents-io/runagents/main/cli/install.sh | sh
+    ```
+    **Install via npm:**
+    ```bash
+    npm install -g @runagents/cli
+    ```
+
+brews:
+  - name: runagents
+    repository:
+      owner: runagents-io
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_TOKEN }}"
+    homepage: https://runagents.io
+    description: "RunAgents CLI — deploy and manage AI agents from the terminal"
+    license: Apache-2.0
+    commit_author:
+      name: RunAgents Bot
+      email: try@runagents.io
+    install: |
+      bin.install "runagents"
+    test: |
+      system "#{bin}/runagents", "--version"
+
+blobs:
+  - provider: s3
+    region: us-east-1
+    bucket: runagents-releases
+    folder: "cli/v{{ .Version }}"
+    extra_files:
+      - glob: dist/checksums.txt
+  - provider: s3
+    region: us-east-1
+    bucket: runagents-releases
+    folder: "cli/latest"
+    extra_files:
+      - glob: dist/checksums.txt
+
+nfpms:
+  - id: runagents
+    package_name: runagents
+    homepage: https://runagents.io
+    description: "RunAgents CLI — deploy and manage AI agents from the terminal"
+    maintainer: RunAgents <try@runagents.io>
+    license: Apache-2.0
+    formats:
+      - deb
+      - rpm
+    bindir: /usr/local/bin

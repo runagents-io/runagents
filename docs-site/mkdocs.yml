@@ -1,0 +1,129 @@
+site_name: RunAgents Documentation
+site_url: https://docs.runagents.io
+site_description: Deploy and orchestrate AI agents with secure, policy-driven access to external tools and services.
+repo_url: https://github.com/runagents-io/runagents
+repo_name: runagents
+
+theme:
+  name: material
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  font:
+    text: Inter
+    code: JetBrains Mono
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.tabs
+    - navigation.top
+    - navigation.indexes
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+  logo: assets/logo.png
+  favicon: assets/logo.png
+  icon:
+    repo: fontawesome/brands/github
+
+extra:
+  version: !ENV [DOCS_VERSION, 'dev']
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/runagents-io/runagents
+  generator: false
+  analytics:
+    provider: google
+    property: !ENV [GOOGLE_ANALYTICS_ID, 'G-XXXXXXXXXX']
+    feedback:
+      title: Was this page helpful?
+      ratings:
+        - icon: material/emoticon-happy-outline
+          name: This page was helpful
+          data: 1
+          note: Thanks for your feedback!
+        - icon: material/emoticon-sad-outline
+          name: This page could be improved
+          data: 0
+          note: >-
+            Thanks for your feedback! Help us improve by
+            <a href="mailto:try@runagents.io?subject=Docs feedback: {url}" target="_blank">emailing us</a>.
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search
+  - minify:
+      minify_html: true
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.snippets
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Home: index.md
+  - Getting Started:
+    - Quickstart: getting-started/quickstart.md
+    - API Quickstart: getting-started/api-quickstart.md
+    - CLI Quickstart: getting-started/cli-quickstart.md
+  - Platform Guide:
+    - Dashboard: platform/dashboard.md
+    - Deploying Agents: platform/deploying-agents.md
+    - Registering Tools: platform/registering-tools.md
+    - Model Providers: platform/model-providers.md
+    - Identity Providers: platform/identity-providers.md
+    - Approvals: platform/approvals.md
+  - API Reference:
+    - Overview: api/overview.md
+    - Deploy: api/deploy.md
+    - Agents: api/agents.md
+    - Tools: api/tools.md
+    - Model Providers & LLM Gateway: api/model-providers.md
+    - Identity Providers: api/identity-providers.md
+    - Runs: api/runs.md
+    - Approvals: api/approvals.md
+    - Ingestion: api/ingestion.md
+    - Build: api/build.md
+  - CLI Reference:
+    - Installation: cli/installation.md
+    - Commands: cli/commands.md
+  - Concepts:
+    - Architecture: concepts/architecture.md
+    - Identity Propagation: concepts/identity-propagation.md
+    - Policy Model: concepts/policy-model.md
+    - OAuth & Consent: concepts/oauth-consent.md
+  - Operations:
+    - Run Lifecycle: operations/runs.md
+    - Troubleshooting: operations/troubleshooting.md
+  - Self-Hosted:
+    - Deployment Guide: self-hosted/deployment.md
+  - Contact & Trial: contact.md

@@ -1,0 +1,45 @@
+name: Test Install
+
+on:
+  workflow_dispatch:
+
+jobs:
+  homebrew:
+    name: Homebrew (macOS)
+    runs-on: macos-latest
+    steps:
+      - name: Install via Homebrew
+        run: |
+          brew tap runagents-io/tap
+          brew install runagents
+          runagents version
+
+  curl:
+    name: curl install (macOS)
+    runs-on: macos-latest
+    steps:
+      - name: Install via curl
+        run: |
+          curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh
+          runagents version
+
+  npm:
+    name: npm install (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install via npm
+        run: |
+          npm install -g @runagents/cli
+          runagents version
+
+  linux-curl:
+    name: curl install (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install via curl
+        run: |
+          curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh
+          runagents version

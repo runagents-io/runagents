@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 # RunAgents CLI install script
-# Usage: curl -fsSL https://raw.githubusercontent.com/runagents-io/runagents/main/cli/install.sh | sh
+# Usage: curl -fsSL https://raw.githubusercontent.com/stylesync01/runagents/main/cli/install.sh | sh
 
 set -e
 
@@ -46,4 +46,4 @@ fi
 
 rm -rf "$TMP"
 echo "runagents ${VERSION} installed to $INSTALL_DIR/runagents"
-runagents --version
+$INSTALL_DIR/runagents version

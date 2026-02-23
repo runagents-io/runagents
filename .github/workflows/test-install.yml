@@ -30,13 +30,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Install via npm
+      - name: Install and verify via npm
         run: |
-          npm install -g @runagents/cli
-          echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
-
-      - name: Verify npm install
-        run: runagents version
+          mkdir npm-test && cd npm-test
+          npm install @runagents/cli
+          node node_modules/@runagents/cli/bin/runagents version
 
   linux-curl:
     name: curl install (Linux)

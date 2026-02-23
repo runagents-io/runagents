@@ -1,6 +1,6 @@
 {
   "name": "@runagents/cli",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "binaryVersion": "1.0.0",
   "description": "RunAgents CLI — deploy and manage AI agents from the terminal",
   "keywords": [

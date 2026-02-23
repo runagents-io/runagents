@@ -26,7 +26,8 @@ if (!platform || !arch) {
 const ext = platform === 'windows' ? '.zip' : '.tar.gz';
 const assetName = `runagents_${platform}_${arch}${ext}`;
 const url = `${S3_BASE}/v${version}/${assetName}`;
-const binName = platform === 'windows' ? 'runagents.exe' : 'runagents';
+const ext = platform === 'windows' ? '.exe' : '';
+const binName = `runagents-bin${ext}`;
 const BIN_DIR = join(__dirname, 'bin');
 const binPath = join(BIN_DIR, binName);
 
@@ -55,8 +56,10 @@ download(url)
   .then(() => {
     if (ext === '.tar.gz') {
       execSync(`tar -xzf "${tmpFile}" -C "${BIN_DIR}" runagents`);
+      fs.renameSync(join(BIN_DIR, 'runagents'), binPath);
     } else {
       execSync(`unzip -o "${tmpFile}" runagents.exe -d "${BIN_DIR}"`);
+      fs.renameSync(join(BIN_DIR, 'runagents.exe'), binPath);
     }
     fs.unlinkSync(tmpFile);
     chmodSync(binPath, 0o755);

@@ -31,13 +31,9 @@ jobs:
         with:
           node-version: '20'
       - name: Install and verify via npm
-        working-directory: /tmp
         run: |
-          mkdir npm-test && cd npm-test
-          npm install @runagents/cli@1.0.5
-          ls -la node_modules/@runagents/cli/
-          ls -la node_modules/@runagents/cli/bin/ || echo "NO BIN DIR"
-          node node_modules/@runagents/cli/bin/runagents.js version
+          npm install -g @runagents/cli
+          npx --yes runagents version
 
   linux-curl:
     name: curl install (Linux)

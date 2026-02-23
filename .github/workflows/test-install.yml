@@ -37,7 +37,7 @@ jobs:
           npm install @runagents/cli@1.0.5
           ls -la node_modules/@runagents/cli/
           ls -la node_modules/@runagents/cli/bin/ || echo "NO BIN DIR"
-          node node_modules/@runagents/cli/bin/runagents version
+          node node_modules/@runagents/cli/bin/runagents.js version
 
   linux-curl:
     name: curl install (Linux)

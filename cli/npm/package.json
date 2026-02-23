@@ -1,6 +1,6 @@
 {
   "name": "@runagents/cli",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "binaryVersion": "1.0.0",
   "description": "RunAgents CLI — deploy and manage AI agents from the terminal",
   "keywords": [
@@ -17,7 +17,7 @@
   },
   "license": "Apache-2.0",
   "bin": {
-    "runagents": "./bin/runagents"
+    "runagents": "./bin/runagents.js"
   },
   "scripts": {
     "postinstall": "node install.js"

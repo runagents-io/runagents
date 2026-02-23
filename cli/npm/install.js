@@ -23,11 +23,11 @@ if (!platform || !arch) {
   process.exit(1);
 }
 
-const ext = platform === 'windows' ? '.zip' : '.tar.gz';
-const assetName = `runagents_${platform}_${arch}${ext}`;
+const archiveExt = platform === 'windows' ? '.zip' : '.tar.gz';
+const assetName = `runagents_${platform}_${arch}${archiveExt}`;
 const url = `${S3_BASE}/v${version}/${assetName}`;
-const ext = platform === 'windows' ? '.exe' : '';
-const binName = `runagents-bin${ext}`;
+const binExt = platform === 'windows' ? '.exe' : '';
+const binName = `runagents-bin${binExt}`;
 const BIN_DIR = join(__dirname, 'bin');
 const binPath = join(BIN_DIR, binName);
 
@@ -54,7 +54,7 @@ const download = (url) => new Promise((resolve, reject) => {
 
 download(url)
   .then(() => {
-    if (ext === '.tar.gz') {
+    if (archiveExt === '.tar.gz') {
       execSync(`tar -xzf "${tmpFile}" -C "${BIN_DIR}" runagents`);
       fs.renameSync(join(BIN_DIR, 'runagents'), binPath);
     } else {

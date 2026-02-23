@@ -31,6 +31,7 @@ jobs:
         with:
           node-version: '20'
       - name: Install and verify via npm
+        working-directory: /tmp
         run: |
           mkdir npm-test && cd npm-test
           npm install @runagents/cli

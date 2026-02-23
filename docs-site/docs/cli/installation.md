@@ -20,6 +20,12 @@ INSTALL_DIR=~/.local/bin curl -fsSL https://runagents-releases.s3.amazonaws.com/
 npm install -g @runagents/cli
 ```
 
+Or run without installing:
+
+```bash
+npx @runagents/cli version
+```
+
 ## Download Binary
 
 Pre-built binaries for every platform — no dependencies required.

@@ -33,7 +33,10 @@ jobs:
       - name: Install via npm
         run: |
           npm install -g @runagents/cli
-          runagents version
+          echo "$(npm prefix -g)/bin" >> $GITHUB_PATH
+
+      - name: Verify npm install
+        run: runagents version
 
   linux-curl:
     name: curl install (Linux)

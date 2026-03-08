@@ -95,8 +95,11 @@ nav:
     - Quickstart: getting-started/quickstart.md
     - API Quickstart: getting-started/api-quickstart.md
     - CLI Quickstart: getting-started/cli-quickstart.md
+    - Writing Agents: getting-started/writing-agents.md
+    - Deploy from AI Tools: getting-started/deploy-from-ai-tools.md
   - Platform Guide:
     - Dashboard: platform/dashboard.md
+    - Agent Runtime: platform/agent-runtime.md
     - Deploying Agents: platform/deploying-agents.md
     - Registering Tools: platform/registering-tools.md
     - Model Providers: platform/model-providers.md
@@ -113,6 +116,7 @@ nav:
     - Approvals: api/approvals.md
     - Ingestion: api/ingestion.md
     - Build: api/build.md
+    - Billing: api/billing.md
   - CLI Reference:
     - Installation: cli/installation.md
     - Commands: cli/commands.md
@@ -126,4 +130,5 @@ nav:
     - Troubleshooting: operations/troubleshooting.md
   - Self-Hosted:
     - Deployment Guide: self-hosted/deployment.md
+  - Pricing: pricing.md
   - Contact & Trial: contact.md

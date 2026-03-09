@@ -284,16 +284,96 @@ The key differences:
 
 ---
 
+---
+
+## Advanced: Deploy Without Leaving Your AI Tool
+
+For Claude Code, Codex, and Cursor users who want to stay in their editor, RunAgents supports an **action plan** workflow — your AI tool generates a structured JSON plan, you validate and apply it with the CLI.
+
+### 1. Export workspace context
+
+```bash
+runagents config set endpoint https://your-workspace.try.runagents.io
+runagents context export -o json > context.json
+```
+
+### 2. Ask your AI tool to generate a plan
+
+=== "Claude Code"
+
+    In Claude Code, paste `context.json` and say:
+
+    ```
+    Here is my RunAgents workspace context. I have an agent.py file that calls
+    Stripe and Slack. Generate a RunAgents action plan JSON to register both tools
+    and deploy the agent as "support-agent".
+    ```
+
+    Claude Code will produce a `plan.json` following the [Action Plan Schema](../cli/action-plans.md).
+
+=== "OpenAI Codex"
+
+    In your Codex prompt:
+
+    ```
+    Given this RunAgents context.json, create a plan.json to register
+    a Stripe tool (https://api.stripe.com, OAuth2, Critical access) and
+    deploy my agent.py as "support-agent" using gpt-4o-mini.
+    ```
+
+=== "Cursor"
+
+    Open `context.json` in Cursor and use the chat panel:
+
+    ```
+    Use this RunAgents context to create a plan.json that wires
+    my agent to its tools and deploys it.
+    ```
+
+### 3. Validate the plan
+
+```bash
+runagents action validate --file plan.json
+```
+
+```
+Plan: bootstrap-support-agent
+  ✓ tool.upsert         stripe            valid
+  ✓ tool.upsert         slack             valid
+  ✓ deploy.execute      support-agent     valid
+
+All 3 actions valid.
+```
+
+### 4. Apply
+
+```bash
+runagents action apply --file plan.json
+```
+
+```
+  ✓ tool.upsert     stripe         applied
+  ✓ tool.upsert     slack          applied
+  ✓ deploy.execute  support-agent  applied (Running)
+```
+
+!!! tip "Idempotent by design"
+    Action plans use `idempotency_key` per action. Re-running the same plan is safe — already-applied actions are skipped.
+
+See [External Assistants](../cli/external-assistants.md) and [Action Plans](../cli/action-plans.md) for the full schema and examples.
+
+---
+
 ## Next Steps
 
 | Goal | Guide |
 |------|-------|
+| Use the built-in terminal copilot | [Copilot](copilot.md) |
 | Learn agent patterns in depth | [Writing Agents](writing-agents.md) |
 | Register and configure external tools | [Registering Tools](../platform/registering-tools.md) |
 | Understand the policy and access model | [Policy Model](../concepts/policy-model.md) |
 | Set up approval workflows | [Approvals](../platform/approvals.md) |
 | Configure identity providers for your users | [Identity Providers](../platform/identity-providers.md) |
-| Use the CLI instead of the console | [CLI Quickstart](cli-quickstart.md) |
 
 !!! tip "Need help?"
 

@@ -6,16 +6,17 @@ repo_name: runagents
 
 theme:
   name: material
+  custom_dir: overrides
   palette:
     - scheme: default
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-7
         name: Switch to dark mode
     - scheme: slate
-      primary: indigo
-      accent: indigo
+      primary: custom
+      accent: custom
       toggle:
         icon: material/brightness-4
         name: Switch to light mode
@@ -23,15 +24,24 @@ theme:
     text: Inter
     code: JetBrains Mono
   features:
+    - navigation.instant
+    - navigation.instant.progress
+    - navigation.tracking
     - navigation.sections
-    - navigation.expand
     - navigation.tabs
+    - navigation.tabs.sticky
     - navigation.top
     - navigation.indexes
+    - navigation.footer
     - search.suggest
     - search.highlight
+    - search.share
     - content.code.copy
+    - content.code.annotate
     - content.tabs.link
+    - content.tooltips
+    - toc.follow
+    - announce.dismiss
   logo: assets/logo.png
   favicon: assets/logo.png
   icon:
@@ -62,6 +72,10 @@ extra:
 
 extra_css:
   - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/chat.js
+  - javascripts/crisp.js
 
 plugins:
   - search
@@ -95,6 +109,7 @@ nav:
     - Quickstart: getting-started/quickstart.md
     - API Quickstart: getting-started/api-quickstart.md
     - CLI Quickstart: getting-started/cli-quickstart.md
+    - Copilot: getting-started/copilot.md
     - Writing Agents: getting-started/writing-agents.md
     - Deploy from AI Tools: getting-started/deploy-from-ai-tools.md
   - Platform Guide:

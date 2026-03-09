@@ -1,55 +1,64 @@
 ---
 title: RunAgents — Deploy AI Agents That Act Securely
 description: Deploy AI agents that call external tools and APIs with enterprise-grade security. Identity propagation, zero-trust networking, just-in-time approvals, and OAuth consent — all managed for you.
+hide:
+  - navigation
+  - toc
 ---
 
-# RunAgents — Deploy AI Agents That Act Securely
+<div class="ra-hero" markdown>
 
-**Deploy AI agents that can call external tools, APIs, and SaaS services — with enterprise-grade security built in.**
+# Deploy AI Agents That Act Securely
 
-RunAgents is a managed platform for deploying and orchestrating AI agents. Upload your agent code, wire it to the tools and LLMs it needs, and RunAgents handles identity propagation, access control, OAuth consent, and networking. No infrastructure to manage.
+Upload your agent code. Wire it to tools. RunAgents handles identity, access control, and approvals — automatically.
 
----
+<div class="ra-hero-buttons" markdown>
+<a href="getting-started/quickstart/" class="ra-btn-primary">🚀 Get Started Free</a>
+<a href="getting-started/cli-quickstart/" class="ra-btn-secondary">⌨️ CLI Quickstart</a>
+<a href="concepts/architecture/" class="ra-btn-secondary">📐 Architecture</a>
+</div>
 
-## Why RunAgents?
+</div>
 
-AI agents are powerful when they can _act_ — call APIs, read databases, trigger workflows. But giving an agent access to external services introduces serious security concerns:
+<div class="ra-cards" markdown>
 
-- **Who is the agent acting on behalf of?** User identity must flow end-to-end.
-- **What is the agent allowed to do?** Access must be scoped and auditable.
-- **What happens when an agent requests something sensitive?** High-risk actions need human approval.
+<a href="getting-started/quickstart/" class="ra-card" markdown>
+<span class="ra-card-icon">🚀</span>
+### 5-Minute Quickstart
+Deploy your first agent from the console. No infrastructure required.
+</a>
 
-RunAgents solves all three.
+<a href="getting-started/cli-quickstart/" class="ra-card" markdown>
+<span class="ra-card-icon">⌨️</span>
+### CLI & Copilot
+`runagents copilot` — deploy agents in natural language from your terminal.
+</a>
 
----
+<a href="getting-started/deploy-from-ai-tools/" class="ra-card" markdown>
+<span class="ra-card-icon">🤖</span>
+### Claude Code / Codex
+Use the action plan workflow to deploy directly from your AI coding tool.
+</a>
 
-## Three Pillars of Secure Agent Deployment
+<a href="platform/approvals/" class="ra-card" markdown>
+<span class="ra-card-icon">🛡️</span>
+### Just-In-Time Approvals
+High-risk tool calls pause for admin review. Slack, PagerDuty, Teams integrations.
+</a>
 
-### :material-account-arrow-right: Identity Propagation
+<a href="concepts/policy-model/" class="ra-card" markdown>
+<span class="ra-card-icon">🔐</span>
+### Policy-Driven Access
+Fine-grained allow/deny rules on every outbound agent call.
+</a>
 
-User identity flows from client application to agent to external tool — automatically. When a user triggers an agent, RunAgents ensures the downstream tool knows _who_ is making the request. No identity is lost at any hop.
+<a href="api/runs/" class="ra-card" markdown>
+<span class="ra-card-icon">📊</span>
+### Run Observability
+Full audit trail per run — USER_MESSAGE events, tool calls, approvals, exports.
+</a>
 
-- Tokens validated at ingress
-- User ID extracted and forwarded as headers
-- Tools see the real end-user, not a service account
-
-### :material-shield-lock: Policy-Driven Access
-
-Fine-grained allow/deny rules control which agents can call which tools. Policies are evaluated in real time on every outbound request.
-
-- Policies define resource patterns with allow or deny effects
-- Policy bindings link agents and users to policies
-- Auto-binding creates policies automatically when you deploy an agent with its required tools
-- Capability checks enforce operation-level restrictions (e.g., only `GET /documents/*`, not `DELETE`)
-
-### :material-clipboard-check: Just-In-Time Approvals
-
-For high-risk tools, access is not automatic. The platform pauses the agent, notifies an admin, and waits for explicit approval before the agent proceeds — with a time-limited window.
-
-- Tools can be marked as requiring approval
-- When an agent tries to call a restricted tool, a request is created and the run is paused
-- Admins approve or reject from the console or API
-- Approved access expires after a configurable TTL
+</div>
 
 ---
 
@@ -63,9 +72,9 @@ For high-risk tools, access is not automatic. The platform pauses the agent, not
      |                     | with end-user identity        |
      |                     |                               |
      |                     |--- tool call ---------------->|
-     |                     |  (policy checked,             |
-     |                     |   token injected,             |
-     |                     |   identity forwarded)         |
+     |                     |  ✓ policy checked             |
+     |                     |  ✓ token injected             |
+     |                     |  ✓ identity forwarded         |
      |                     |                               |
      |                     |<-- tool response -------------|
      |<--- response -------|                               |
@@ -75,57 +84,41 @@ Every outbound call from your agent is intercepted, authorized against your poli
 
 ---
 
-## Get Started
+## Three Pillars
 
-<div class="grid cards" markdown>
+=== ":material-account-arrow-right: Identity Propagation"
 
--   :material-rocket-launch:{ .lg .middle } **Quickstart**
+    User identity flows from client → agent → external tool automatically.
+    Every downstream service sees **who** made the request, not just which service account.
 
-    ---
+    - JWT validated at ingress, user ID extracted into `X-End-User-ID` header
+    - Tools receive the real end-user identity on every call
+    - Full traceability across the entire request chain
 
-    Deploy your first agent in 5 minutes using the console.
+=== ":material-shield-lock: Policy-Driven Access"
 
-    [:octicons-arrow-right-24: Quickstart](getting-started/quickstart.md)
+    Fine-grained allow/deny rules control which agents can call which tools, at which paths.
 
--   :material-api:{ .lg .middle } **API Quickstart**
+    - Policies define resource URN patterns with allow or deny effects
+    - Auto-binding creates policies when you deploy an agent with required tools
+    - Capability checks enforce operation-level restrictions (e.g. `GET /docs/*` only)
 
-    ---
+=== ":material-clipboard-check: Just-In-Time Approvals"
 
-    Deploy an agent programmatically with curl.
+    High-risk tools pause the agent until an admin approves. No manual re-triggering needed.
 
-    [:octicons-arrow-right-24: API Quickstart](getting-started/api-quickstart.md)
+    - Admin notified via Slack, PagerDuty, Teams, or Jira
+    - Payload hash integrity ensures approved request matches what the agent will send
+    - Platform automatically resumes the agent after approval
 
--   :material-console:{ .lg .middle } **CLI Quickstart**
+---
 
-    ---
+## Ready to Try?
 
-    Manage RunAgents from your terminal.
-
-    [:octicons-arrow-right-24: CLI Quickstart](getting-started/cli-quickstart.md)
-
--   :material-book-open-variant:{ .lg .middle } **Concepts**
-
-    ---
-
-    Understand the architecture, policy model, and identity flow.
-
-    [:octicons-arrow-right-24: Concepts](concepts/architecture.md)
-
+<div style="text-align:center;margin:2rem 0" markdown>
+[🚀 Start Free Trial](https://try.runagents.io){ .cta-button }
+&nbsp;&nbsp;
+[📖 Read the Quickstart](getting-started/quickstart.md){ .md-button }
 </div>
-
----
-
-## Ready to Try RunAgents?
-
-!!! tip "Start your free trial"
-
-    RunAgents offers a free trial with full platform access. Deploy agents, register tools, and see the security model in action.
-
-    **Get started now** — email [try@runagents.io](mailto:try@runagents.io) to request access, or log in to your console if you already have an account.
-
-    [:material-email-outline: Request Trial Access](mailto:try@runagents.io){ .md-button .md-button--primary }
-    [:material-open-in-new: Open Console](https://console.runagents.io){ .md-button }
-
----
 
 <small>Built with version {{ version }}</small>

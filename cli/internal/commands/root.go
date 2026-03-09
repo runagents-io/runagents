@@ -10,8 +10,10 @@ import (
 )
 
 var (
-	// Version is set at build time via ldflags.
-	Version = "dev"
+	// Set at build time via ldflags.
+	Version   = "dev"
+	CommitSHA = "unknown"
+	BuildDate = "unknown"
 
 	// Persistent flag values.
 	flagEndpoint  string
@@ -20,10 +22,27 @@ var (
 	flagOutput    string
 )
 
+const (
+	banner = `
+  ██████╗ ██╗   ██╗███╗   ██╗ █████╗  ██████╗ ███████╗███╗   ██╗████████╗███████╗
+  ██╔══██╗██║   ██║████╗  ██║██╔══██╗██╔════╝ ██╔════╝████╗  ██║╚══██╔══╝██╔════╝
+  ██████╔╝██║   ██║██╔██╗ ██║███████║██║  ███╗█████╗  ██╔██╗ ██║   ██║   ███████╗
+  ██╔══██╗██║   ██║██║╚██╗██║██╔══██║██║   ██║██╔══╝  ██║╚██╗██║   ██║   ╚════██║
+  ██║  ██║╚██████╔╝██║ ╚████║██║  ██║╚██████╔╝███████╗██║ ╚████║   ██║   ███████║
+  ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═══╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚══════╝
+`
+	copyright = "Copyright (c) 2026 RunAgents, Inc. All rights reserved."
+	website   = "https://runagents.io"
+)
+
 var rootCmd = &cobra.Command{
-	Use:          "runagents",
-	Short:        "RunAgents CLI -- manage AI agents, tools, and runs",
-	Long:         "RunAgents CLI -- manage AI agents, tools, and runs from the terminal.\nInteracts with the RunAgents platform API to deploy agents, register tools,\nmanage model providers, monitor runs, and handle approvals.",
+	Use:   "runagents",
+	Short: "RunAgents CLI -- deploy and orchestrate AI agents with enterprise governance",
+	Long: banner + "\n" +
+		"  " + copyright + "\n" +
+		"  " + website + "\n\n" +
+		"  Deploy and orchestrate AI agents with identity propagation, policy-driven\n" +
+		"  access control, and just-in-time approval workflows.\n",
 	SilenceUsage: true,
 	RunE: func(cmd *cobra.Command, args []string) error {
 		mode, err := resolvedAssistantMode()
@@ -46,7 +65,10 @@ var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print the CLI version",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("runagents version %s\n", Version)
+		fmt.Printf("runagents %s\n", Version)
+		fmt.Printf("  commit:  %s\n", CommitSHA)
+		fmt.Printf("  built:   %s\n", BuildDate)
+		fmt.Printf("  %s\n", copyright)
 	},
 }
 

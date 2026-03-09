@@ -26,6 +26,8 @@ builds:
     ldflags:
       - -s -w
       - -X github.com/runagents/runagents/cli/internal/commands.Version={{.Version}}
+      - -X github.com/runagents/runagents/cli/internal/commands.CommitSHA={{.ShortCommit}}
+      - -X github.com/runagents/runagents/cli/internal/commands.BuildDate={{.Date}}
 
 archives:
   - id: runagents

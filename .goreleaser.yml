@@ -82,13 +82,13 @@ blobs:
   - provider: s3
     region: us-east-1
     bucket: runagents-releases
-    folder: "cli/v{{ .Version }}"
+    directory: "cli/v{{ .Version }}"
     extra_files:
       - glob: dist/checksums.txt
   - provider: s3
     region: us-east-1
     bucket: runagents-releases
-    folder: "cli/latest"
+    directory: "cli/latest"
     extra_files:
       - glob: dist/checksums.txt
 

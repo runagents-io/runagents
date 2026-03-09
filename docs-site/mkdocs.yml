@@ -120,6 +120,9 @@ nav:
   - CLI Reference:
     - Installation: cli/installation.md
     - Commands: cli/commands.md
+    - Action Plans: cli/action-plans.md
+    - Action Plan Examples: cli/plan-examples.md
+    - External Assistants: cli/external-assistants.md
   - Concepts:
     - Architecture: concepts/architecture.md
     - Identity Propagation: concepts/identity-propagation.md

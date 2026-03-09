@@ -1,0 +1,15 @@
+{
+  "plan_id": "deploy-payments-agent",
+  "continue_on_error": false,
+  "actions": [
+    {
+      "id": "deploy-run",
+      "type": "deploy.execute",
+      "idempotency_key": "deploy.payments-agent.v1",
+      "params": {
+        "agent_name": "payments-agent",
+        "draft_id": "draft-payments-01"
+      }
+    }
+  ]
+}

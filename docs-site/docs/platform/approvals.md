@@ -143,6 +143,35 @@ To enable the approval workflow on a tool, set its access control to **Critical*
 
 ---
 
+## Notification Connectors
+
+By default, approval requests appear only in the console. You can configure connectors to send notifications to external systems so reviewers are alerted immediately.
+
+### Supported Connectors
+
+| Connector | How it works |
+|-----------|-------------|
+| **Slack** | Posts an approval card to a channel with Approve / Reject buttons. Supports OIDC identity linking so the platform knows which Slack user maps to which platform identity. |
+| **PagerDuty** | Creates an incident that routes to the on-call responder. Resolution triggers approval. |
+| **Microsoft Teams** | Posts an Adaptive Card to a channel with action buttons. |
+| **Jira** | Creates an approval ticket. Transition to "Done" triggers approval. |
+
+### Configuring a Connector
+
+Navigate to **Settings > Approval Connectors** and add a connector:
+
+1. Select the connector type (Slack, PagerDuty, Teams, or Jira)
+2. Provide the webhook URL or API credentials
+3. Choose which tools or access modes route to this connector
+4. Test the connection with a health check
+
+Once configured, all new approval requests for matching tools are automatically sent to the connected service.
+
+!!! tip "Identity linking (Slack)"
+    When using Slack with OIDC identity linking, the platform can resolve which Slack user corresponds to which platform identity. This allows the approval card to show the real approver name in the audit trail.
+
+---
+
 ## Example: Approval Workflow for a Payments API
 
 Scenario: You have registered the Stripe API with **Critical** access control and a 2-hour default access window.

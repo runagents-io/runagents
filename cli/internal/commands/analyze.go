@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/olekukonko/tablewriter"
@@ -27,15 +26,14 @@ Example:
 				return fmt.Errorf("at least one --file is required")
 			}
 
-			// Read source files into a map.
-			sourceFiles := make(map[string]string)
-			for _, f := range files {
-				data, err := os.ReadFile(f)
-				if err != nil {
-					return fmt.Errorf("failed to read file %q: %w", f, err)
-				}
-				filename := filepath.Base(f)
-				sourceFiles[filename] = string(data)
+			cwd, err := os.Getwd()
+			if err != nil {
+				return fmt.Errorf("failed to determine current directory: %w", err)
+			}
+
+			sourceFiles, err := readSourceFiles(files, cwd)
+			if err != nil {
+				return err
 			}
 
 			payload := map[string]interface{}{

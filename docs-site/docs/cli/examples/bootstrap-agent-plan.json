@@ -1,0 +1,63 @@
+{
+  "plan_id": "bootstrap-payments-agent",
+  "continue_on_error": false,
+  "actions": [
+    {
+      "id": "tool-payments",
+      "type": "tool.upsert",
+      "idempotency_key": "bootstrap.tool.payments.v1",
+      "params": {
+        "name": "payments-api",
+        "spec": {
+          "description": "Payments API",
+          "connection": {
+            "topology": "External",
+            "baseUrl": "https://payments.example.com",
+            "port": 443,
+            "scheme": "HTTPS",
+            "authentication": {"type": "None"}
+          },
+          "governance": {
+            "accessControl": {"mode": "Open"}
+          }
+        }
+      }
+    },
+    {
+      "id": "model-openai",
+      "type": "model_provider.upsert",
+      "idempotency_key": "bootstrap.model.openai.v1",
+      "params": {
+        "name": "openai-prod",
+        "spec": {
+          "provider": "openai",
+          "endpoint": "https://api.openai.com",
+          "models": ["gpt-4o-mini"],
+          "auth": {"type": "None"}
+        }
+      }
+    },
+    {
+      "id": "draft-create",
+      "type": "deploy_draft.create_or_patch",
+      "idempotency_key": "bootstrap.draft.payments.v1",
+      "params": {
+        "id": "draft-payments-01",
+        "step": "connect",
+        "source_type": "code",
+        "tool_mappings": {
+          "payments": "payments-api"
+        },
+        "model_mappings": {
+          "default": {
+            "provider": "openai-prod",
+            "model": "gpt-4o-mini"
+          }
+        },
+        "agent_config": {
+          "agent_name": "payments-agent"
+        }
+      }
+    }
+  ]
+}

@@ -564,6 +564,7 @@ Here is a complete flow showing a run that gets blocked on a tool call, approved
 |-------|------|-------------|
 | `id` | string | Unique run ID (UUID) |
 | `conversation_id` | string | Conversation/session grouping ID |
+| `initial_message` | string | The user's first message in this run (set automatically by the playground) |
 | `agent_id` | string | Agent name |
 | `namespace` | string | Agent namespace |
 | `user_id` | string | User who triggered the run |

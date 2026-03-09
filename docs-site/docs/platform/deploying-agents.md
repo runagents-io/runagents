@@ -6,6 +6,31 @@ Navigate to **Agents** in the sidebar, then click **+ New Agent** to open the de
 
 ---
 
+## How Deployment Works
+
+When you deploy an agent, the platform decides how to run it based on your code:
+
+### Tier 1: Platform Runtime
+
+If your code has no custom handler function or framework imports, the platform uses its **pre-built runtime image**. No container build is needed -- deployment is instant.
+
+The runtime provides a built-in tool-calling loop: it sends your system prompt and user messages to the LLM along with tool definitions generated from your Tool CRDs, executes any tool calls the LLM makes, and returns the final response.
+
+**Best for:** Simple agents, quick demos, agents that only need LLM + tool access.
+
+### Tier 2: Custom Code
+
+If your code contains a `handler()` function, uses a framework like LangChain or LangGraph, or has custom pip dependencies, the platform **builds a container image** with your code via the build pipeline.
+
+Your custom code runs inside the same runtime, with all platform env vars injected. The runtime discovers your handler or framework objects automatically.
+
+**Best for:** Complex agents, custom logic, framework-based workflows.
+
+!!! info "Automatic detection"
+    The platform detects your tier automatically during analysis. You don't need to configure anything. See [Agent Runtime](agent-runtime.md) for the full list of detected patterns and [Writing Agents](../getting-started/writing-agents.md) for complete examples.
+
+---
+
 ## Step 1: Upload
 
 Upload your agent's source code files. The platform accepts Python, TypeScript, JavaScript, and other common languages.
@@ -128,9 +153,23 @@ No external API keys or accounts are needed.
 
 ---
 
+## Deploy Drafts
+
+The deploy wizard automatically saves your progress as a **draft**. If you close the browser or navigate away, your work is preserved.
+
+- **Recent Drafts** appear at the top of the Upload step, showing the agent name, last step reached, and when it was saved
+- Click a draft to resume exactly where you left off
+- Drafts are updated automatically as you change wiring, agent name, or other settings
+- When you go back to the Upload step and upload new files, the existing draft is updated with the new analysis (no orphan drafts)
+
+!!! tip
+    Drafts are saved per-user. Other team members cannot see your in-progress deployments.
+
+---
+
 ## Agent Detail Page
 
-After deployment, navigate to **Agents** and click on an agent to view its detail page. The detail page has two tabs:
+After deployment, navigate to **Agents** and click on an agent to view its detail page. The detail page has three tabs:
 
 ### Overview Tab
 
@@ -142,12 +181,25 @@ Shows the agent's current configuration:
 - **Model configuration** -- the LLM provider and model being used
 - **Identity provider** -- if authentication is configured
 
+### Playground Tab
+
+An interactive chat interface for testing your agent directly in the browser.
+
+- Type a message and the agent responds in real-time via streaming (SSE)
+- **Tool call cards** appear inline, showing which tools the agent called and their results
+- Each playground session creates a **run** -- visible in the Runs tab with full event history
+- A **View run** link appears in the header after the first response, linking to the run detail page
+- Click **Clear** to end the current run and start a fresh session
+
+The playground is available once the agent status is `Running`.
+
 ### Runs Tab
 
-Lists all runs for this agent. Each run shows:
+Lists all runs for this agent, including runs created from the playground. Each run shows:
 
 - Run ID and status
 - User identity (who triggered the run)
+- Initial message (first user message in the conversation)
 - Timestamp
 - Click a run to view the **Run Detail page** with a full event timeline and approval actions
 
@@ -163,10 +215,32 @@ Lists all runs for this agent. Each run shows:
 
 ---
 
+## Injected Environment Variables
+
+Every deployed agent receives these environment variables via a ConfigMap:
+
+| Variable | Description |
+|----------|-------------|
+| `SYSTEM_PROMPT` | Agent's system prompt |
+| `LLM_GATEWAY_URL` | LLM Gateway chat completions URL |
+| `LLM_MODEL` | Model name (e.g., `gpt-4o-mini`) |
+| `LLM_PROVIDER` | Provider name (e.g., `openai`) |
+| `TOOL_URL_{NAME}` | Base URL for each required tool |
+| `TOOL_DEFINITIONS_JSON` | OpenAI-format tool definitions (JSON) |
+| `TOOL_ROUTES_JSON` | Function name to HTTP route mapping (JSON) |
+| `OPENAI_BASE_URL` | Auto-set to LLM Gateway (for SDK compatibility) |
+| `OPENAI_API_KEY` | Auto-set to `platform-managed` |
+
+For the full list including multi-model variables, see the [Agent Runtime](agent-runtime.md#injected-environment-variables) reference.
+
+---
+
 ## What's Next
 
 | Goal | Where to go |
 |------|------------|
+| See code examples for each pattern | [Writing Agents](../getting-started/writing-agents.md) |
+| Understand the runtime in detail | [Agent Runtime](agent-runtime.md) |
 | Register a tool for your agent | [Registering Tools](registering-tools.md) |
 | Configure an LLM provider | [Model Providers](model-providers.md) |
 | Set up client authentication | [Identity Providers](identity-providers.md) |

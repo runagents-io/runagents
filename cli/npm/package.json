@@ -1,7 +1,7 @@
 {
   "name": "@runagents/cli",
   "version": "1.0.6",
-  "binaryVersion": "1.0.0",
+  "binaryVersion": "1.0.6",
   "description": "RunAgents CLI — deploy and manage AI agents from the terminal",
   "keywords": [
     "runagents",
@@ -10,10 +10,10 @@
     "cli"
   ],
   "homepage": "https://runagents.io",
-  "bugs": "https://github.com/stylesync01/runagents/issues",
+  "bugs": "https://github.com/runagents-io/runagents/issues",
   "repository": {
     "type": "git",
-    "url": "https://github.com/stylesync01/runagents.git"
+    "url": "https://github.com/runagents-io/runagents.git"
   },
   "license": "Apache-2.0",
   "bin": {

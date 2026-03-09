@@ -54,7 +54,7 @@ release:
     ```
     **Install via curl:**
     ```bash
-    curl -fsSL https://raw.githubusercontent.com/runagents-io/runagents/main/cli/install.sh | sh
+    curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh
     ```
     **Install via npm:**
     ```bash

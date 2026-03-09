@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -13,14 +14,16 @@ import (
 type Client struct {
 	endpoint   string
 	apiKey     string
+	namespace  string
 	httpClient *http.Client
 }
 
 // NewClient creates a new API client with the given endpoint and API key.
-func NewClient(endpoint, apiKey string) *Client {
+func NewClient(endpoint, apiKey, namespace string) *Client {
 	return &Client{
-		endpoint: endpoint,
-		apiKey:   apiKey,
+		endpoint:  endpoint,
+		apiKey:    apiKey,
+		namespace: namespace,
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -153,7 +156,13 @@ func (c *Client) Delete(path string) error {
 
 // setHeaders adds common headers to the request.
 func (c *Client) setHeaders(req *http.Request) {
+	if c.namespace != "" {
+		req.Header.Set("X-Workspace-Namespace", c.namespace)
+	}
 	if c.apiKey != "" {
 		req.Header.Set("Authorization", "Bearer "+c.apiKey)
+		if strings.HasPrefix(c.apiKey, "ra_ws_") {
+			req.Header.Set("X-RunAgents-API-Key", c.apiKey)
+		}
 	}
 }

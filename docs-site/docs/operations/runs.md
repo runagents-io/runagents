@@ -196,6 +196,47 @@ This allows you to trace from a run event back to the approval decision, and fro
 
 ---
 
+## Audit Export and Forwarding
+
+Run events form a complete audit trail. You can export or forward them to external systems for compliance, monitoring, or alerting.
+
+### Export
+
+Download a run's audit trail as a file:
+
+=== "Console"
+
+    On the run detail page, click the **Export** button and choose the output format.
+
+=== "API"
+
+    ```bash
+    # Export as JSON (default)
+    curl https://your-platform/runs/{run_id}/audit/export
+
+    # Export as NDJSON for streaming ingestion
+    curl https://your-platform/runs/{run_id}/audit/export?format=ndjson
+
+    # Export in Splunk HEC format
+    curl https://your-platform/runs/{run_id}/audit/export?schema=splunk_hec
+    ```
+
+Supported schemas: `runagents` (default), `ecs` (Elastic), `ocsf`, `splunk_hec`, `cef`, `leef`.
+
+### Forward
+
+Push events to a configured destination in real-time:
+
+```bash
+curl -X POST https://your-platform/runs/{run_id}/audit/forward \
+  -H "Content-Type: application/json" \
+  -d '{"destination_id": "datadog-prod", "schema": "ecs"}'
+```
+
+Configure forwarding destinations in **Settings > Audit Destinations**.
+
+---
+
 ## Summary
 
 | Concept | Description |

@@ -29,7 +29,7 @@ The RunAgents CLI lets you manage agents, tools, model providers, and runs from 
 
 === "Binary Download"
 
-    Download for your platform from [releases.runagents.io](https://runagents-releases.s3.amazonaws.com/cli/v1.0.0/) and add it to your `PATH`.
+    Download for your platform from [releases.runagents.io](https://runagents-releases.s3.amazonaws.com/cli/latest/) and add it to your `PATH`.
 
 Verify the installation:
 
@@ -38,7 +38,7 @@ runagents version
 ```
 
 ```
-runagents v0.8.0 (build 2026-02-20)
+runagents version 1.1.0
 ```
 
 ---
@@ -313,6 +313,61 @@ runagents approvals approve req-abc123
   Policy created: data-agent-sensitive-api-jit
   Expires: 2026-02-23T12:05:01Z (1h TTL)
 ```
+
+---
+
+## Interactive Copilot
+
+The CLI includes a built-in copilot that lets you manage the platform using natural language:
+
+```bash
+runagents copilot
+```
+
+```
+RunAgents Copilot (type "exit" to quit)
+> deploy my agent from the current folder as billing-agent
+
+Analyzing source files...
+  Detected: 2 tools (stripe, slack), 1 model (gpt-4o-mini)
+
+I'll create the following resources:
+  1. Register tool: stripe (https://api.stripe.com, OAuth2)
+  2. Register tool: slack (https://slack.com/api, API Key)
+  3. Deploy agent: billing-agent
+
+[Confirm? y/n] y
+
+ Tool created: stripe
+ Tool created: slack
+ Agent deployed: billing-agent (Running)
+```
+
+The copilot reads your project files, detects tools and models, and proposes actions. Mutations (create, deploy, approve) always require confirmation before executing.
+
+### External Assistant Mode
+
+If you prefer to use Claude Code, Codex, or another AI coding tool instead of the built-in copilot, switch to **external assistant mode**:
+
+```bash
+runagents config set assistant-mode external
+```
+
+Then use the action plan workflow:
+
+```bash
+# 1. Export workspace context for your assistant
+runagents context export -o json > context.json
+
+# 2. Your assistant generates a plan (JSON file)
+# 3. Validate the plan
+runagents action validate --file plan.json
+
+# 4. Apply the plan
+runagents action apply --file plan.json
+```
+
+See [External Assistants](../cli/external-assistants.md) and [Action Plans](../cli/action-plans.md) for details.
 
 ---
 

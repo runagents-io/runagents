@@ -24,7 +24,7 @@ func newConfigSetCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "set <key> <value>",
 		Short: "Set a configuration value",
-		Long:  "Set a configuration value. Valid keys: endpoint, api-key.",
+		Long:  "Set a configuration value. Valid keys: endpoint, api-key, namespace, assistant-mode.",
 		Args:  cobra.ExactArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			key := args[0]
@@ -40,8 +40,16 @@ func newConfigSetCmd() *cobra.Command {
 				cfg.Endpoint = value
 			case "api-key":
 				cfg.APIKey = value
+			case "namespace":
+				cfg.Namespace = value
+			case "assistant-mode":
+				mode, err := config.NormalizeAssistantMode(value)
+				if err != nil {
+					return err
+				}
+				cfg.AssistantMode = mode
 			default:
-				return fmt.Errorf("unknown config key %q; valid keys: endpoint, api-key", key)
+				return fmt.Errorf("unknown config key %q; valid keys: endpoint, api-key, namespace, assistant-mode", key)
 			}
 
 			if err := config.Save(cfg); err != nil {
@@ -67,6 +75,8 @@ func newConfigGetCmd() *cobra.Command {
 			}
 
 			fmt.Printf("Endpoint: %s\n", cfg.Endpoint)
+			fmt.Printf("Namespace: %s\n", cfg.Namespace)
+			fmt.Printf("Assistant Mode: %s\n", cfg.AssistantMode)
 			if cfg.APIKey != "" {
 				masked := maskAPIKey(cfg.APIKey)
 				fmt.Printf("API Key:  %s\n", masked)

@@ -35,48 +35,48 @@ Pre-built binaries for every platform — no dependencies required.
 === "macOS (Apple Silicon)"
 
     ```bash
-    curl -sL https://runagents-releases.s3.amazonaws.com/cli/v1.0.0/runagents_darwin_arm64.tar.gz | tar xz
+    curl -sL https://runagents-releases.s3.amazonaws.com/cli/latest/runagents_darwin_arm64.tar.gz | tar xz
     sudo mv runagents /usr/local/bin/
     ```
 
 === "macOS (Intel)"
 
     ```bash
-    curl -sL https://runagents-releases.s3.amazonaws.com/cli/v1.0.0/runagents_darwin_amd64.tar.gz | tar xz
+    curl -sL https://runagents-releases.s3.amazonaws.com/cli/latest/runagents_darwin_amd64.tar.gz | tar xz
     sudo mv runagents /usr/local/bin/
     ```
 
 === "Linux (x86_64)"
 
     ```bash
-    curl -sL https://runagents-releases.s3.amazonaws.com/cli/v1.0.0/runagents_linux_amd64.tar.gz | tar xz
+    curl -sL https://runagents-releases.s3.amazonaws.com/cli/latest/runagents_linux_amd64.tar.gz | tar xz
     sudo mv runagents /usr/local/bin/
     ```
 
 === "Linux (ARM64)"
 
     ```bash
-    curl -sL https://runagents-releases.s3.amazonaws.com/cli/v1.0.0/runagents_linux_arm64.tar.gz | tar xz
+    curl -sL https://runagents-releases.s3.amazonaws.com/cli/latest/runagents_linux_arm64.tar.gz | tar xz
     sudo mv runagents /usr/local/bin/
     ```
 
 === "Windows"
 
-    Download [`runagents_windows_amd64.zip`](https://runagents-releases.s3.amazonaws.com/cli/v1.0.0/runagents_windows_amd64.zip),
+    Download [`runagents_windows_amd64.zip`](https://runagents-releases.s3.amazonaws.com/cli/latest/runagents_windows_amd64.zip),
     extract `runagents.exe`, and place it somewhere on your `PATH`.
 
 === "Debian / Ubuntu (.deb)"
 
     ```bash
-    curl -sLO https://runagents-releases.s3.amazonaws.com/cli/v1.0.0/runagents_1.0.0_linux_amd64.deb
-    sudo dpkg -i runagents_1.0.0_linux_amd64.deb
+    curl -sLO https://runagents-releases.s3.amazonaws.com/cli/latest/runagents_latest_linux_amd64.deb
+    sudo dpkg -i runagents_latest_linux_amd64.deb
     ```
 
 === "RHEL / Fedora (.rpm)"
 
     ```bash
-    curl -sLO https://runagents-releases.s3.amazonaws.com/cli/v1.0.0/runagents_1.0.0_linux_amd64.rpm
-    sudo rpm -i runagents_1.0.0_linux_amd64.rpm
+    curl -sLO https://runagents-releases.s3.amazonaws.com/cli/latest/runagents_latest_linux_amd64.rpm
+    sudo rpm -i runagents_latest_linux_amd64.rpm
     ```
 
 ---
@@ -88,7 +88,7 @@ runagents version
 ```
 
 ```
-runagents version 1.0.0
+runagents version 1.1.0
 ```
 
 ---
@@ -100,7 +100,11 @@ Configure the CLI with your API endpoint and key:
 ```bash
 runagents config set endpoint https://api.runagents.io
 runagents config set api-key YOUR_API_KEY
+runagents config set namespace default
+runagents config set assistant-mode external
 ```
+
+Set `assistant-mode` to `runagents` only if you want built-in `runagents copilot` commands.
 
 Get your API key from the RunAgents console under **Settings**.
 
@@ -123,6 +127,8 @@ Configuration is stored in `~/.runagents/config.json`.
 |----------|-------------|
 | `RUNAGENTS_ENDPOINT` | API endpoint URL |
 | `RUNAGENTS_API_KEY` | API key for authentication |
+| `RUNAGENTS_NAMESPACE` | Workspace namespace header used by API requests |
+| `RUNAGENTS_ASSISTANT_MODE` | Assistant mode override: `external`, `runagents`, or `off` |
 
 ## Shell Completion
 

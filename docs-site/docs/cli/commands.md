@@ -15,12 +15,16 @@ Manage CLI configuration.
 ```bash
 runagents config set endpoint <url>
 runagents config set api-key <key>
+runagents config set namespace <workspace-namespace>
+runagents config set assistant-mode <external|runagents|off>
 ```
 
 | Argument | Description |
 |----------|-------------|
 | `endpoint` | RunAgents API base URL (e.g., `https://api.runagents.io`) |
 | `api-key` | Your API key from the console Settings page |
+| `namespace` | Workspace namespace used for API scoping (e.g., `default`) |
+| `assistant-mode` | CLI assistant behavior: `external` (default), `runagents` (enable Copilot shell), or `off` |
 
 ### `config get`
 
@@ -29,6 +33,124 @@ runagents config get
 ```
 
 Displays current configuration with the API key partially masked.
+
+---
+
+## `runagents context`
+
+Export workspace context for external assistants (Codex/Claude Code workflows).
+
+### `context export`
+
+```bash
+runagents context export -o json
+runagents context export --strict -o json
+```
+
+Returns a single snapshot containing:
+
+- agents
+- tools
+- model providers
+- approvals
+- deploy drafts
+
+Use `--strict` to fail if any resource endpoint is unavailable.
+
+---
+
+## `runagents action`
+
+Validate and apply deterministic action plans (for Codex/Claude Code generated automation).
+
+### `action validate`
+
+```bash
+runagents action validate --file plan.json
+runagents action validate --file plan.json -o json
+```
+
+Performs schema/semantic validation (including `idempotency_key` checks) without mutating resources.
+
+### `action apply`
+
+```bash
+runagents action apply --file plan.json
+runagents action apply --file plan.json -o json
+```
+
+Applies the plan using server-side governance handlers and returns per-action status.
+
+Command alias:
+
+```bash
+runagents actions validate --file plan.json
+runagents actions apply --file plan.json
+```
+
+See [Action Plans](action-plans.md) and [Action Plan Examples](plan-examples.md) for schema and examples.
+
+---
+
+## `runagents copilot`
+
+Natural-language assistant from your terminal.
+
+`runagents copilot` commands are available only when:
+
+```bash
+runagents config set assistant-mode runagents
+```
+
+### Interactive shell (default)
+
+```bash
+runagents
+```
+
+Starts Copilot shell when running in a terminal. In non-interactive contexts (CI, pipes), `runagents` prints help instead.
+
+Shell commands:
+
+- `/doctor`
+- `/status`
+- `/pending`
+- `/confirm <action_id>`
+- `/reject <action_id>`
+- `/reset`
+- `/exit`
+
+### Chat command mode
+
+```bash
+runagents copilot chat "deploy this folder as billing-agent"
+runagents copilot chat --yes "deploy this folder as billing-agent"
+```
+
+If the prompt targets `this folder/current folder/repo`, CLI asks for confirmation before uploading local files.  
+Use `--yes` to auto-confirm (recommended for scripts/CI).
+
+### Pending/confirm/reject command mode
+
+```bash
+runagents copilot pending
+runagents copilot confirm act_123
+runagents copilot reject act_123
+runagents copilot status
+runagents copilot status --refresh
+runagents copilot doctor
+```
+
+### Session reset
+
+```bash
+runagents copilot reset-session
+```
+
+Project-local continuity files:
+
+- `./.runagents/state.json`
+- `./.runagents/memory.md`
 
 ---
 

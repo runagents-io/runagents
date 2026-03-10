@@ -42,8 +42,8 @@ theme:
     - content.tooltips
     - toc.follow
     - announce.dismiss
-  logo: assets/logo.png
-  favicon: assets/logo.png
+  logo: assets/ionly.png
+  favicon: assets/ionly.png
   icon:
     repo: fontawesome/brands/github
 
@@ -78,8 +78,6 @@ extra_javascript:
 
 plugins:
   - search
-  - macros:
-      include_yaml: []
   - minify:
       minify_html: true
 

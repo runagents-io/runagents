@@ -1,0 +1,213 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 860 340" width="860" height="340" font-family="Inter, -apple-system, BlinkMacSystemFont, sans-serif">
+
+  <!-- Definitions: arrowheads and gradients -->
+  <defs>
+    <!-- Forward arrow (navy) -->
+    <marker id="arrow-fwd" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#1a2540" />
+    </marker>
+    <!-- Return arrow (gray) -->
+    <marker id="arrow-ret" markerWidth="8" markerHeight="8" refX="7" refY="3" orient="auto">
+      <path d="M0,0 L0,6 L8,3 z" fill="#6b7280" />
+    </marker>
+    <!-- Platform gradient -->
+    <linearGradient id="platform-grad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#3a6ad4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#5b8cf5;stop-opacity:1" />
+    </linearGradient>
+    <!-- Subtle card shadow filter -->
+    <filter id="card-shadow" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#1a2540" flood-opacity="0.10" />
+    </filter>
+    <!-- Platform card shadow -->
+    <filter id="platform-shadow" x="-4%" y="-4%" width="108%" height="116%">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#3a6ad4" flood-opacity="0.25" />
+    </filter>
+  </defs>
+
+  <!-- ─────────────────────────────────────────────────────
+       Background
+  ───────────────────────────────────────────────────────── -->
+  <rect width="860" height="340" fill="#f8faff" />
+
+  <!-- ─────────────────────────────────────────────────────
+       Bottom strip
+  ───────────────────────────────────────────────────────── -->
+  <rect x="0" y="285" width="860" height="55" fill="#f1f5f9" />
+  <line x1="0" y1="285" x2="860" y2="285" stroke="#e5e7eb" stroke-width="1" />
+  <!-- Dividers -->
+  <line x1="287" y1="291" x2="287" y2="334" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3" />
+  <line x1="573" y1="291" x2="573" y2="334" stroke="#e5e7eb" stroke-width="1" stroke-dasharray="3,3" />
+
+  <!-- Bottom labels -->
+  <text x="143" y="308" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1a2540">Stage 1: Ingress</text>
+  <text x="143" y="323" text-anchor="middle" font-size="10" fill="#6b7280">JWT validated, user identity extracted</text>
+
+  <text x="430" y="308" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1a2540">Stage 2: Runtime</text>
+  <text x="430" y="323" text-anchor="middle" font-size="10" fill="#6b7280">Agent executes, LLM calls, tool calls</text>
+
+  <text x="716" y="308" text-anchor="middle" font-size="10.5" font-weight="600" fill="#1a2540">Stage 3: Egress</text>
+  <text x="716" y="323" text-anchor="middle" font-size="10" fill="#6b7280">Policy checked, token injected, forwarded</text>
+
+  <!-- ─────────────────────────────────────────────────────
+       STAGE 1 — Client App card
+  ───────────────────────────────────────────────────────── -->
+  <rect x="28" y="52" width="158" height="188" rx="12" ry="12"
+        fill="#e8f0fe" stroke="#5b8cf5" stroke-width="1.5"
+        filter="url(#card-shadow)" />
+
+  <!-- User icon -->
+  <circle cx="107" cy="100" r="20" fill="#ffffff" stroke="#5b8cf5" stroke-width="1.5" />
+  <!-- Head -->
+  <circle cx="107" cy="95" r="9" fill="#5b8cf5" />
+  <!-- Shoulders -->
+  <path d="M85,120 Q85,108 107,108 Q129,108 129,120" fill="#5b8cf5" />
+
+  <!-- Browser bar hint -->
+  <rect x="52" y="130" width="110" height="70" rx="6" ry="6" fill="#ffffff" stroke="#c7d7f8" stroke-width="1" />
+  <rect x="52" y="130" width="110" height="16" rx="6" ry="0" fill="#dbeafe" />
+  <rect x="52" y="138" width="110" height="8" rx="0" ry="0" fill="#dbeafe" />
+  <!-- Dots in browser bar -->
+  <circle cx="62" cy="138" r="3" fill="#5b8cf5" opacity="0.6" />
+  <circle cx="72" cy="138" r="3" fill="#5b8cf5" opacity="0.4" />
+  <circle cx="82" cy="138" r="3" fill="#5b8cf5" opacity="0.25" />
+  <!-- URL bar line -->
+  <rect x="89" y="135" width="64" height="7" rx="3" fill="#c7d7f8" />
+  <!-- Content lines -->
+  <rect x="60" y="153" width="94" height="6" rx="3" fill="#e8f0fe" />
+  <rect x="60" y="164" width="74" height="6" rx="3" fill="#e8f0fe" />
+  <rect x="60" y="175" width="84" height="6" rx="3" fill="#e8f0fe" />
+  <rect x="60" y="186" width="54" height="6" rx="3" fill="#dbeafe" />
+
+  <!-- Title -->
+  <text x="107" y="221" text-anchor="middle" font-size="14" font-weight="700" fill="#1a2540">Client App</text>
+  <text x="107" y="235" text-anchor="middle" font-size="11" fill="#6b7280">Your application</text>
+
+  <!-- ─────────────────────────────────────────────────────
+       STAGE 2 — RunAgents Platform card (center, larger)
+  ───────────────────────────────────────────────────────── -->
+  <rect x="280" y="34" width="300" height="224" rx="14" ry="14"
+        fill="url(#platform-grad)"
+        filter="url(#platform-shadow)" />
+
+  <!-- Subtle inner glow border -->
+  <rect x="280" y="34" width="300" height="224" rx="14" ry="14"
+        fill="none" stroke="#7aa8fb" stroke-width="1" opacity="0.5" />
+
+  <!-- Platform title -->
+  <text x="430" y="65" text-anchor="middle" font-size="15" font-weight="700" fill="#ffffff" letter-spacing="0.3">RunAgents Platform</text>
+  <!-- Divider line under title -->
+  <line x1="305" y1="74" x2="555" y2="74" stroke="#ffffff" stroke-width="0.75" stroke-opacity="0.25" />
+
+  <!-- ① Agent row -->
+  <rect x="302" y="84" width="256" height="46" rx="8" ry="8" fill="#ffffff" fill-opacity="0.12" />
+  <circle cx="322" cy="107" r="10" fill="#ffffff" fill-opacity="0.2" />
+  <text x="322" y="112" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">①</text>
+  <text x="342" y="104" font-size="12.5" font-weight="700" fill="#ffffff">Agent</text>
+  <text x="342" y="120" font-size="10.5" fill="#c7d9fc">AI workload — LLM calls, tool use, reasoning</text>
+
+  <!-- ② Policy Engine row -->
+  <rect x="302" y="139" width="256" height="46" rx="8" ry="8" fill="#ffffff" fill-opacity="0.12" />
+  <circle cx="322" cy="162" r="10" fill="#ffffff" fill-opacity="0.2" />
+  <text x="322" y="167" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">②</text>
+  <text x="342" y="159" font-size="12.5" font-weight="700" fill="#ffffff">Policy Engine</text>
+  <text x="342" y="175" font-size="10.5" fill="#c7d9fc">Checks PolicyBindings · enforces capabilities</text>
+
+  <!-- ③ Token Vault row -->
+  <rect x="302" y="194" width="256" height="46" rx="8" ry="8" fill="#ffffff" fill-opacity="0.12" />
+  <circle cx="322" cy="217" r="10" fill="#ffffff" fill-opacity="0.2" />
+  <text x="322" y="222" text-anchor="middle" font-size="11" font-weight="700" fill="#ffffff">③</text>
+  <text x="342" y="214" font-size="12.5" font-weight="700" fill="#ffffff">Token Vault</text>
+  <text x="342" y="230" font-size="10.5" fill="#c7d9fc">Fetches &amp; injects per-user access tokens</text>
+
+  <!-- ─────────────────────────────────────────────────────
+       STAGE 3 — External Tool card
+  ───────────────────────────────────────────────────────── -->
+  <rect x="674" y="52" width="158" height="188" rx="12" ry="12"
+        fill="#e8f0fe" stroke="#5b8cf5" stroke-width="1.5"
+        filter="url(#card-shadow)" />
+
+  <!-- Tool icon — puzzle piece style stack -->
+  <rect x="714" y="68" width="78" height="58" rx="8" ry="8" fill="#ffffff" stroke="#c7d7f8" stroke-width="1.2" />
+  <!-- Plugin socket nub -->
+  <rect x="748" y="64" width="10" height="8" rx="3" ry="3" fill="#5b8cf5" />
+  <!-- Stripe-ish stripe lines -->
+  <line x1="722" y1="83" x2="784" y2="83" stroke="#dbeafe" stroke-width="2" />
+  <line x1="722" y1="91" x2="784" y2="91" stroke="#dbeafe" stroke-width="2" />
+  <line x1="722" y1="99" x2="784" y2="99" stroke="#dbeafe" stroke-width="2" />
+  <line x1="722" y1="107" x2="760" y2="107" stroke="#dbeafe" stroke-width="2" />
+  <!-- Lock icon in bottom-right of tool card -->
+  <rect x="769" y="100" width="14" height="18" rx="3" fill="#5b8cf5" opacity="0.7" />
+  <path d="M773,100 Q773,94 776,94 Q779,94 779,100" fill="none" stroke="#5b8cf5" stroke-width="1.5" opacity="0.7" />
+  <circle cx="776" cy="109" r="2.5" fill="#ffffff" />
+
+  <!-- API endpoint pills -->
+  <rect x="706" y="136" width="93" height="16" rx="8" fill="#5b8cf5" fill-opacity="0.15" />
+  <text x="752" y="148" text-anchor="middle" font-size="9.5" font-weight="600" fill="#3a6ad4">POST /charges</text>
+
+  <rect x="706" y="158" width="93" height="16" rx="8" fill="#5b8cf5" fill-opacity="0.15" />
+  <text x="752" y="170" text-anchor="middle" font-size="9.5" font-weight="600" fill="#3a6ad4">GET /messages</text>
+
+  <rect x="706" y="180" width="93" height="16" rx="8" fill="#5b8cf5" fill-opacity="0.15" />
+  <text x="752" y="192" text-anchor="middle" font-size="9.5" font-weight="600" fill="#3a6ad4">POST /issues</text>
+
+  <!-- Title -->
+  <text x="753" y="221" text-anchor="middle" font-size="14" font-weight="700" fill="#1a2540">External Tool</text>
+  <text x="753" y="235" text-anchor="middle" font-size="11" fill="#6b7280">Stripe · Slack · GitHub…</text>
+
+  <!-- ─────────────────────────────────────────────────────
+       ARROWS — forward flow (Client → Platform → Tool)
+  ───────────────────────────────────────────────────────── -->
+
+  <!-- Client → Platform (forward, top) -->
+  <line x1="189" y1="126" x2="276" y2="126"
+        stroke="#1a2540" stroke-width="1.75"
+        marker-end="url(#arrow-fwd)" />
+  <!-- Arrow label bg -->
+  <rect x="195" y="109" width="76" height="14" rx="4" fill="#f8faff" />
+  <text x="233" y="120" text-anchor="middle" font-size="9.5" font-weight="600" fill="#1a2540">request + user identity</text>
+
+  <!-- Platform → Tool (forward, top) -->
+  <line x1="583" y1="126" x2="670" y2="126"
+        stroke="#1a2540" stroke-width="1.75"
+        marker-end="url(#arrow-fwd)" />
+  <!-- Multi-line label box -->
+  <rect x="585" y="88" width="82" height="56" rx="6" fill="#f0fdf4" stroke="#22c55e" stroke-width="1" />
+  <!-- Checkmarks -->
+  <!-- line 1 -->
+  <text x="594" y="103" font-size="9" fill="#22c55e" font-weight="700">✓</text>
+  <text x="605" y="103" font-size="9" fill="#166534">policy checked</text>
+  <!-- line 2 -->
+  <text x="594" y="116" font-size="9" fill="#22c55e" font-weight="700">✓</text>
+  <text x="605" y="116" font-size="9" fill="#166534">token injected</text>
+  <!-- line 3 -->
+  <text x="594" y="129" font-size="9" fill="#22c55e" font-weight="700">✓</text>
+  <text x="605" y="129" font-size="9" fill="#166534">identity forwarded</text>
+
+  <!-- ─────────────────────────────────────────────────────
+       ARROWS — return flow (Tool → Platform → Client)
+  ───────────────────────────────────────────────────────── -->
+
+  <!-- Tool → Platform (return, bottom) -->
+  <!-- We draw right-to-left: x1=tool-left, x2=platform-right, then flip with marker -->
+  <line x1="671" y1="194" x2="584" y2="194"
+        stroke="#6b7280" stroke-width="1.5" stroke-dasharray="5,3"
+        marker-end="url(#arrow-ret)" />
+  <rect x="599" y="183" width="68" height="13" rx="4" fill="#f8faff" />
+  <text x="633" y="194" text-anchor="middle" font-size="9.5" fill="#6b7280">tool response</text>
+
+  <!-- Platform → Client (return, bottom) -->
+  <line x1="278" y1="194" x2="191" y2="194"
+        stroke="#6b7280" stroke-width="1.5" stroke-dasharray="5,3"
+        marker-end="url(#arrow-ret)" />
+  <rect x="196" y="183" width="74" height="13" rx="4" fill="#f8faff" />
+  <text x="233" y="194" text-anchor="middle" font-size="9.5" fill="#6b7280">final response</text>
+
+  <!-- ─────────────────────────────────────────────────────
+       Stage labels (top, above cards)
+  ───────────────────────────────────────────────────────── -->
+  <text x="107" y="43" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b7280" letter-spacing="1">STAGE 1</text>
+  <text x="430" y="25" text-anchor="middle" font-size="10.5" font-weight="600" fill="#5b8cf5" letter-spacing="1">STAGE 2</text>
+  <text x="753" y="43" text-anchor="middle" font-size="10.5" font-weight="600" fill="#6b7280" letter-spacing="1">STAGE 3</text>
+
+</svg>

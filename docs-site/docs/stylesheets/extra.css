@@ -139,6 +139,53 @@
 }
 .cta-button:hover { opacity: 0.9; transform: translateY(-1px); }
 
+/* ── Home page CTA row ──────────────────────────────────────────────────── */
+.ra-cta-row {
+  display: flex; gap: 1rem; justify-content: center;
+  flex-wrap: wrap; margin: 2.5rem 0 1.5rem;
+}
+.ra-btn-cta {
+  display: inline-flex; align-items: center;
+  padding: 0.8rem 2rem;
+  background: var(--ra-gradient); color: #fff !important;
+  border-radius: 9px; font-weight: 700; font-size: 1rem;
+  text-decoration: none !important;
+  box-shadow: 0 3px 16px rgba(91, 140, 245, 0.45);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.ra-btn-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(91, 140, 245, 0.55); }
+
+.ra-btn-outline {
+  display: inline-flex; align-items: center;
+  padding: 0.8rem 2rem;
+  background: transparent; color: var(--ra-blue) !important;
+  border: 2px solid var(--ra-blue);
+  border-radius: 9px; font-weight: 600; font-size: 1rem;
+  text-decoration: none !important;
+  transition: background 0.15s, color 0.15s;
+}
+.ra-btn-outline:hover { background: var(--ra-blue); color: #fff !important; }
+
+/* ── Architecture image ─────────────────────────────────────────────────── */
+.md-typeset img[alt*="architecture"] {
+  width: 100%; max-width: 860px;
+  display: block; margin: 1.5rem auto;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(26, 37, 64, 0.12);
+}
+
+/* ── Grid cards — icon size ─────────────────────────────────────────────── */
+.md-typeset .grid.cards > * .lg {
+  font-size: 2rem !important;
+}
+.md-typeset .grid.cards > * { border-radius: 12px !important; }
+.md-typeset .grid.cards > *:hover {
+  border-color: var(--ra-blue) !important;
+  box-shadow: 0 4px 20px rgba(91, 140, 245, 0.15) !important;
+  transform: translateY(-2px);
+  transition: all 0.15s;
+}
+
 /* ── AI chat widget ─────────────────────────────────────────────────────── */
 #ra-chat-fab {
   position: fixed; bottom: 24px; right: 24px;

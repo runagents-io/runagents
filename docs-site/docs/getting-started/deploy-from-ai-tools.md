@@ -1,380 +1,382 @@
 ---
-title: Deploy from AI Coding Tools
-description: Ship agents built with Claude Code, Codex, Cursor, or any AI coding tool to production with identity, policy, and approvals.
+title: Deploy from Claude Code, Codex & Cursor
+description: Deploy to RunAgents without leaving your AI coding tool. Three paths — copilot shell, action plans, or direct CLI — all from your terminal.
 ---
 
-# Deploy from AI Coding Tools
+# Deploy from Claude Code, Codex & Cursor
 
-You built an AI agent with Claude Code, OpenAI Codex, Cursor, or another AI coding tool. It works on your machine. Now deploy it to production with identity propagation, access control, and approval workflows -- in under 5 minutes.
+You wrote an agent. It works locally. Now you want it in production with identity propagation, policy enforcement, and approval workflows — **without opening a browser**.
 
----
+This guide covers three paths, all terminal-native:
 
-## What Changes When You Go to Production
+| Path | Best for | Command |
+|------|----------|---------|
+| [**Copilot shell**](#path-a-copilot-shell) | Quick interactive deploys | `runagents copilot` |
+| [**Action plans**](#path-b-action-plans-with-claude-code-or-codex) | Repeatable, version-controlled deploys | `runagents action apply` |
+| [**Direct CLI**](#path-c-direct-cli-deploy) | Simple agents, one liner | `runagents deploy` |
 
-| What | Local | Production (RunAgents) |
-|------|-------|------------------------|
-| **API keys** | Your personal keys hardcoded or in `.env` | Per-user OAuth tokens injected automatically by the platform |
-| **Access control** | None -- agent can call anything | Policy-driven, per-tool capability checks on every request |
-| **Audit trail** | None | Every tool call logged with user identity, agent, timestamp |
-| **Trust model** | You trust yourself | Approval workflows gate high-risk actions before they execute |
+!!! tip "No console required"
 
-!!! tip "No code changes required"
-
-    You do not need to rewrite your agent. The platform analyzes your code, detects what it calls, and handles the rest through infrastructure -- not code modifications.
+    Every operation in this guide works entirely from the terminal. The [console](https://try.runagents.io) is optional — it gives you a UI to view runs, approve actions, and monitor agents, but you never need it to deploy.
 
 ---
 
-## Step 1: Export Your Agent Code
+## Prerequisites
 
-Get your agent code into a `.py` file. Here is a realistic example -- an agent that looks up a customer in Stripe and sends a summary to Slack:
+**1. Get a RunAgents workspace**
 
-```python
-"""Support agent -- looks up Stripe customers and posts to Slack."""
-import os
-import json
-import openai
-import requests
+Sign up at [try.runagents.io](https://try.runagents.io). You receive a workspace URL and API key.
 
-client = openai.OpenAI()
-MODEL = os.environ.get("LLM_MODEL", "gpt-4o-mini")
-
-STRIPE_URL = os.environ.get("TOOL_URL_STRIPE", "https://api.stripe.com")
-SLACK_URL = os.environ.get("TOOL_URL_SLACK", "https://slack.com/api")
-
-
-def handler(request, context):
-    message = request["message"]
-
-    response = client.chat.completions.create(
-        model=MODEL,
-        messages=[
-            {"role": "system", "content": context.system_prompt},
-            {"role": "user", "content": message},
-        ],
-        tools=[
-            {
-                "type": "function",
-                "function": {
-                    "name": "lookup_customer",
-                    "description": "Look up a Stripe customer by email",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {"email": {"type": "string"}},
-                        "required": ["email"],
-                    },
-                },
-            },
-            {
-                "type": "function",
-                "function": {
-                    "name": "send_slack_message",
-                    "description": "Send a message to a Slack channel",
-                    "parameters": {
-                        "type": "object",
-                        "properties": {
-                            "channel": {"type": "string"},
-                            "text": {"type": "string"},
-                        },
-                        "required": ["channel", "text"],
-                    },
-                },
-            },
-        ],
-    )
-
-    choice = response.choices[0]
-    if choice.message.tool_calls:
-        for tc in choice.message.tool_calls:
-            args = json.loads(tc.function.arguments)
-            if tc.function.name == "lookup_customer":
-                resp = requests.get(
-                    f"{STRIPE_URL}/v1/customers/search",
-                    params={"query": f"email:'{args['email']}'"},
-                )
-                return {"response": f"Customer found: {resp.json()}"}
-            elif tc.function.name == "send_slack_message":
-                requests.post(
-                    f"{SLACK_URL}/chat.postMessage",
-                    json={"channel": args["channel"], "text": args["text"]},
-                )
-                return {"response": f"Message sent to {args['channel']}"}
-
-    return {"response": choice.message.content}
-```
-
-Getting this file out of your AI coding tool:
-
-=== "Claude Code"
-
-    Your agent file is already in your project directory. Copy it or point the deploy wizard at it directly.
-
-    ```bash
-    # Your file is already on disk, e.g.:
-    cp ~/projects/my-agent/agent.py .
-    ```
-
-=== "OpenAI Codex"
-
-    Save the generated agent code to a `.py` file in your working directory.
-
-    ```bash
-    # Save from the Codex output to a file:
-    # File > Save As > agent.py
-    ```
-
-=== "Cursor"
-
-    Export the file from your Cursor workspace. It is already saved to your project directory.
-
-    ```bash
-    # Your file is in the workspace, e.g.:
-    ls ~/projects/my-agent/agent.py
-    ```
-
-!!! note
-
-    The platform supports any Python file that makes HTTP calls to external services. It does not matter which tool generated it. LangChain, LangGraph, CrewAI, raw `requests`, `httpx`, `urllib` -- all are detected automatically.
-
----
-
-## Step 2: Sign Up at try.runagents.io
-
-Go to [try.runagents.io](https://try.runagents.io) and enter your email address. You will receive a magic link -- click it, and your workspace is ready in about 60 seconds.
-
-Your workspace comes with:
-
-- A **console** for managing agents, tools, and models
-- A **deploy wizard** that analyzes and deploys your code
-- A **built-in playground** for testing agents interactively
-
-!!! info "Already have an account?"
-
-    Log in at your platform URL and skip to Step 3.
-
----
-
-## Step 3: Upload to the Deploy Wizard
-
-1. Open the console and navigate to **Agents** in the sidebar
-2. Click **"+ New Agent"**
-3. Drag and drop your `.py` file onto the upload area (or click to browse)
-
-The platform analyzes your code automatically. Within seconds, the analysis results appear:
-
-| Detected | Example |
-|----------|---------|
-| **Tool calls** | `requests.get("https://api.stripe.com/...")` -- Stripe API |
-| **Tool calls** | `requests.post("https://slack.com/api/...")` -- Slack API |
-| **Model usage** | `import openai` -- OpenAI SDK (gpt-4o-mini) |
-| **Entry point** | `def handler(request, context)` -- custom handler function |
-
-!!! tip
-
-    If you have a `requirements.txt`, upload it alongside your agent file. The platform uses it to install the right pip packages in the container image.
-
----
-
-## Step 4: Wire Tools and Models
-
-The deploy wizard moves to the **Wire** step, where you connect detected tool calls and model usage to platform resources.
-
-### Register tools
-
-For each detected tool, you need a registered tool on the platform. Click **"Register new"** next to any unmatched tool to create one:
-
-| Field | What to enter | Example |
-|-------|---------------|---------|
-| **Name** | A short identifier | `stripe` |
-| **URL** | The tool's base URL | `https://api.stripe.com` |
-| **Auth type** | How the tool authenticates | OAuth2, API Key, or None |
-| **Access mode** | Who can call it | Open (auto-approved) or Approval Required |
-
-=== "Open access"
-
-    The agent gets immediate access. Good for low-risk tools like weather APIs or internal services.
-
-=== "Approval required"
-
-    Every call requires admin approval before it goes through. Use this for tools that modify data, charge money, or send messages.
-
-### Map model providers
-
-Select the model provider for your agent's LLM calls. If you do not have one registered yet, click **"Register new"** and enter:
-
-- **Provider**: OpenAI, Anthropic, AWS Bedrock, or Ollama
-- **Model**: The model name (e.g., `gpt-4o-mini`, `claude-sonnet-4-20250514`)
-- **API key**: Stored securely as a platform secret
-
-### Set the agent name
-
-Give your agent a name (e.g., `support-agent`). This becomes its identity on the platform.
-
-!!! warning
-
-    If a tool or model shows a red indicator, it means the platform could not match it to a registered resource. Register the missing resource before proceeding.
-
----
-
-## Step 5: Deploy
-
-Click **Deploy**. The platform creates everything your agent needs:
-
-| Resource | Purpose |
-|----------|---------|
-| **Agent** with service account | Identity for your agent in the platform |
-| **Tool registrations** with networking rules | Secure, policy-checked routes to external APIs |
-| **Policy bindings** | Access control rules linking your agent to its tools |
-| **Configuration** | Tool URLs, LLM gateway endpoint, model settings -- all injected as environment variables |
-
-The agent transitions from **Pending** to **Running** within a few seconds.
-
----
-
-## Step 6: Test It
-
-Once the agent is running, open the **Playground** tab on the agent detail page.
-
-Type a message like:
-
-> Look up the Stripe customer with email alice@example.com
-
-Watch the platform in action:
-
-1. Your message goes to the agent
-2. The agent asks the LLM what to do
-3. The LLM decides to call the `lookup_customer` tool
-4. The platform intercepts the outbound call to Stripe:
-    - Checks the access policy -- is this agent allowed to call Stripe?
-    - Injects the correct authentication token for the end user
-    - Forwards the request with the user's identity attached
-5. The response flows back through the agent to you
-
-The playground shows each step: tool calls with arguments, tool responses, and the final answer.
-
----
-
-## What's Different Now
-
-Here is what changed by deploying through RunAgents instead of running locally:
-
-### Before (local)
-
-```
-You → Agent → Stripe (your API key, no checks, no logs)
-```
-
-### After (RunAgents)
-
-```
-User → Agent → Platform intercepts → Policy check → Token injection → Stripe
-                                    ↓                                    ↓
-                              Access denied?                     Audit logged
-                              → Approval workflow triggered       with user identity
-```
-
-The key differences:
-
-- **Identity flows end-to-end.** The `X-End-User-ID` header travels from the client through the agent to every tool call. Stripe sees which user initiated the request, not just which agent made it.
-
-- **Every tool call is policy-checked.** The agent cannot call a tool it has not been granted access to. Capabilities are enforced at the method + path level -- an agent with read access to Stripe cannot create charges.
-
-- **High-risk actions require approval.** If Slack is registered with "Approval Required," the agent pauses, an admin reviews the action, and only then does the message get sent.
-
-- **Credentials are never in your code.** The platform injects OAuth tokens or API keys at the network layer. Your agent code has zero secrets.
-
----
-
----
-
-## Advanced: Deploy Without Leaving Your AI Tool
-
-For Claude Code, Codex, and Cursor users who want to stay in their editor, RunAgents supports an **action plan** workflow — your AI tool generates a structured JSON plan, you validate and apply it with the CLI.
-
-### 1. Export workspace context
+**2. Install the CLI**
 
 ```bash
-runagents config set endpoint https://your-workspace.try.runagents.io
-runagents context export -o json > context.json
+curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh
 ```
 
-### 2. Ask your AI tool to generate a plan
+```bash
+# Verify
+runagents version
+# runagents 1.1.1
+```
+
+**3. Configure**
+
+```bash
+runagents config set endpoint https://YOUR_WORKSPACE.try.runagents.io
+runagents config set api-key ra_YOUR_API_KEY
+runagents config set namespace default
+```
+
+Your API key is in the console under **Settings → API Keys**, or ask the copilot:
+
+```bash
+runagents copilot chat "where do I find my API key?"
+```
+
+---
+
+## Path A: Copilot Shell
+
+The fastest path. Type what you want — the copilot detects your code, proposes resources, and deploys after your confirmation.
+
+```bash
+runagents copilot
+```
+
+```
+RunAgents Copilot — type a command or describe what you want
+
+> deploy this folder as support-agent
+
+Analyzing 3 source files in ./...
+  ✓ Detected: stripe (https://api.stripe.com), slack (https://slack.com/api)
+  ✓ Detected: openai gpt-4o-mini
+
+I'll create the following:
+  1. Register tool:  stripe   (https://api.stripe.com, OAuth2, Critical)
+  2. Register tool:  slack    (https://slack.com/api, API Key, Open)
+  3. Deploy agent:   support-agent (gpt-4o-mini)
+
+Confirm? [y/n] y
+
+  ✓ Tool registered: stripe
+  ✓ Tool registered: slack
+  ✓ Agent deployed:  support-agent (Running)
+
+> test it: look up stripe customer alice@example.com
+
+Invoking support-agent...
+  → Tool call: stripe/v1/customers/search (200 OK)
+  ✓ Response: Customer found — Alice Smith, plan: Pro
+```
+
+### Using the copilot from inside Claude Code
+
+Add a `.claude/commands/deploy.md` to your project:
+
+```markdown
+Deploy the current agent to RunAgents:
+1. Run `runagents copilot` in the terminal
+2. Type: deploy this folder as [AGENT_NAME]
+3. Confirm the proposed resources
+```
+
+Or just run it directly in the Claude Code terminal panel:
+
+```bash
+# Inside your Claude Code project
+runagents copilot
+> deploy this folder as my-agent
+```
+
+---
+
+## Path B: Action Plans with Claude Code or Codex
+
+The most powerful path for teams. Your AI tool generates a structured deployment plan, you review it, validate it, and apply it. Plans are JSON files you can commit to version control.
+
+### Step 1: Export workspace state
+
+```bash
+runagents context export -o json > runagents-context.json
+```
+
+This snapshot includes all registered tools, model providers, agents, policies, and deploy drafts in your workspace.
+
+### Step 2: Ask your AI tool to write the plan
 
 === "Claude Code"
 
-    In Claude Code, paste `context.json` and say:
+    Open your project in Claude Code. The agent.py and runagents-context.json are both on disk. Ask Claude:
 
     ```
-    Here is my RunAgents workspace context. I have an agent.py file that calls
-    Stripe and Slack. Generate a RunAgents action plan JSON to register both tools
-    and deploy the agent as "support-agent".
+    I have an agent in agent.py that calls Stripe and Slack.
+    Read runagents-context.json to see my current RunAgents workspace.
+
+    Generate a file called plan.json that:
+    1. Registers stripe as a tool (https://api.stripe.com, OAuth2, Critical access)
+    2. Registers slack as a tool (https://slack.com/api, API Key, Open access)
+    3. Deploys agent.py as "support-agent" using gpt-4o-mini
+
+    Follow the RunAgents action plan schema:
+    https://github.com/runagents-io/runagents/blob/main/docs-site/docs/cli/plan-schema.json
     ```
 
-    Claude Code will produce a `plan.json` following the [Action Plan Schema](../cli/action-plans.md).
+    Claude Code will write `plan.json` to your project. Example output:
+
+    ```json
+    {
+      "plan_id": "deploy-support-agent",
+      "continue_on_error": false,
+      "actions": [
+        {
+          "id": "register-stripe",
+          "type": "tool.upsert",
+          "idempotency_key": "tool-stripe-v1",
+          "params": {
+            "name": "stripe",
+            "spec": {
+              "connection": { "baseUrl": "https://api.stripe.com" },
+              "authType": "OAuth2",
+              "accessMode": "Critical"
+            }
+          }
+        },
+        {
+          "id": "register-slack",
+          "type": "tool.upsert",
+          "idempotency_key": "tool-slack-v1",
+          "params": {
+            "name": "slack",
+            "spec": {
+              "connection": { "baseUrl": "https://slack.com/api" },
+              "authType": "ApiKey",
+              "accessMode": "Open"
+            }
+          }
+        },
+        {
+          "id": "deploy-agent",
+          "type": "deploy.execute",
+          "idempotency_key": "deploy-support-agent-v1",
+          "params": {
+            "agent_name": "support-agent",
+            "source_files": { "agent.py": "<contents>" },
+            "llm_configs": [{ "provider": "openai", "model": "gpt-4o-mini" }],
+            "required_tools": ["stripe", "slack"]
+          }
+        }
+      ]
+    }
+    ```
 
 === "OpenAI Codex"
 
-    In your Codex prompt:
+    In the Codex web interface or API, include both files in context:
 
     ```
-    Given this RunAgents context.json, create a plan.json to register
-    a Stripe tool (https://api.stripe.com, OAuth2, Critical access) and
-    deploy my agent.py as "support-agent" using gpt-4o-mini.
+    Files: runagents-context.json, agent.py
+
+    Generate a RunAgents action plan (plan.json) to:
+    - Register stripe (https://api.stripe.com, OAuth2, Critical)
+    - Register slack (https://slack.com/api, API Key, Open)
+    - Deploy agent.py as "support-agent" using gpt-4o-mini
+
+    Schema reference: https://github.com/runagents-io/runagents/blob/main/docs-site/docs/cli/plan-schema.json
+    Each action needs: id, type, idempotency_key, params
     ```
 
 === "Cursor"
 
-    Open `context.json` in Cursor and use the chat panel:
+    Open both `agent.py` and `runagents-context.json` in Cursor. In the Composer:
 
     ```
-    Use this RunAgents context to create a plan.json that wires
-    my agent to its tools and deploys it.
+    Using runagents-context.json as the current workspace state,
+    create plan.json to deploy agent.py as "support-agent".
+    Register stripe and slack tools first.
+    Follow the RunAgents action plan schema.
     ```
 
-### 3. Validate the plan
+    Cursor Composer will write the file directly to your project.
+
+### Step 3: Validate before applying
 
 ```bash
 runagents action validate --file plan.json
 ```
 
 ```
-Plan: bootstrap-support-agent
-  ✓ tool.upsert         stripe            valid
-  ✓ tool.upsert         slack             valid
-  ✓ deploy.execute      support-agent     valid
+Plan: deploy-support-agent  (3 actions)
 
-All 3 actions valid.
+  ✓ tool.upsert         register-stripe       valid
+  ✓ tool.upsert         register-slack        valid
+  ✓ deploy.execute      deploy-agent          valid
+
+All 3 actions valid. Ready to apply.
 ```
 
-### 4. Apply
+Validation checks required fields, schema correctness, and duplicate idempotency keys. **Nothing is created yet.**
+
+### Step 4: Apply
 
 ```bash
 runagents action apply --file plan.json
 ```
 
 ```
-  ✓ tool.upsert     stripe         applied
-  ✓ tool.upsert     slack          applied
-  ✓ deploy.execute  support-agent  applied (Running)
+Applying plan: deploy-support-agent
+
+  ✓ register-stripe      applied   (tool: stripe)
+  ✓ register-slack       applied   (tool: slack)
+  ✓ deploy-agent         applied   (agent: support-agent, status: Running)
+
+3/3 actions applied successfully.
 ```
 
-!!! tip "Idempotent by design"
-    Action plans use `idempotency_key` per action. Re-running the same plan is safe — already-applied actions are skipped.
+!!! tip "Idempotent — safe to re-run"
+    Each action has an `idempotency_key`. Re-applying the same plan is safe — already-applied actions are skipped. Commit `plan.json` to version control and re-run on every release.
 
-See [External Assistants](../cli/external-assistants.md) and [Action Plans](../cli/action-plans.md) for the full schema and examples.
+!!! tip "Automate in CI"
+    ```bash
+    # In your CI pipeline (GitHub Actions, etc.)
+    - name: Deploy to RunAgents
+      env:
+        RUNAGENTS_ENDPOINT: ${{ secrets.RUNAGENTS_ENDPOINT }}
+        RUNAGENTS_API_KEY: ${{ secrets.RUNAGENTS_API_KEY }}
+      run: |
+        runagents action validate --file plan.json
+        runagents action apply --file plan.json
+    ```
+
+---
+
+## Path C: Direct CLI Deploy
+
+For simple agents where you know the tools and model upfront.
+
+```bash
+runagents deploy \
+  --name support-agent \
+  --file agent.py \
+  --tool stripe \
+  --tool slack \
+  --model openai/gpt-4o-mini
+```
+
+```
+Analyzing agent.py...
+  Detected tools:      stripe, slack
+  Detected LLM usage:  gpt-4o-mini
+  Entry point:         agent.py
+
+Deploying agent "support-agent"...
+  ✓ Tool bound:      stripe (Open access)
+  ✓ Tool bound:      slack  (Open access)
+  ✓ Agent deployed:  support-agent (Running)
+```
+
+The `--tool` flag references tools already registered in your workspace. If a tool doesn't exist yet, register it first:
+
+```bash
+runagents tools create \
+  --name stripe \
+  --url https://api.stripe.com \
+  --auth oauth2 \
+  --access critical
+```
+
+---
+
+## What Gets Created
+
+Regardless of which path you use, the platform creates the same resources:
+
+| Resource | What it is |
+|----------|-----------|
+| **Agent** | A running service with its own identity (service account) |
+| **Policy bindings** | Access rules linking the agent to each tool |
+| **Configuration** | Tool URLs, LLM gateway, model settings — injected as env vars |
+| **Tool registrations** | Secure, policy-enforced routes to each external API |
+
+Your agent code runs unchanged. No secrets, no API keys — all credentials are injected at the network layer.
+
+---
+
+## Check it's running
+
+```bash
+# Status
+runagents agents get support-agent
+
+# Tail recent runs
+runagents runs list --agent support-agent
+
+# View run events
+runagents runs get run-XXXXX
+```
+
+Or open the [console](https://try.runagents.io) — navigate to **Agents → support-agent → Playground** — and send a test message.
+
+---
+
+## What changed vs running locally
+
+| | Local | RunAgents |
+|---|---|---|
+| **API keys** | Hardcoded / `.env` | Injected at network layer — never in code |
+| **Identity** | Yours | End-user identity flows through to every tool call |
+| **Access control** | None | Policy checked on every outbound request |
+| **High-risk actions** | Execute immediately | Paused for admin approval |
+| **Audit trail** | None | Full log — user, agent, tool, timestamp, payload hash |
 
 ---
 
 ## Next Steps
 
-| Goal | Guide |
-|------|-------|
-| Use the built-in terminal copilot | [Copilot](copilot.md) |
-| Learn agent patterns in depth | [Writing Agents](writing-agents.md) |
-| Register and configure external tools | [Registering Tools](../platform/registering-tools.md) |
-| Understand the policy and access model | [Policy Model](../concepts/policy-model.md) |
-| Set up approval workflows | [Approvals](../platform/approvals.md) |
-| Configure identity providers for your users | [Identity Providers](../platform/identity-providers.md) |
+<div class="grid cards" markdown>
 
-!!! tip "Need help?"
+-   :material-book-open-variant:{ .middle } **Action Plan Schema**
 
-    Reach out at [try@runagents.io](mailto:try@runagents.io) or open an issue on [GitHub](https://github.com/runagents-io/runagents).
+    Full JSON schema reference with all supported action types.
+
+    [:octicons-arrow-right-24: plan-schema.json](../cli/action-plans.md)
+
+-   :material-console-line:{ .middle } **CLI Commands**
+
+    Full reference for every `runagents` command and flag.
+
+    [:octicons-arrow-right-24: Commands](../cli/commands.md)
+
+-   :material-shield-check-outline:{ .middle } **Approval Workflows**
+
+    Configure Slack/PagerDuty notifications for high-risk tool calls.
+
+    [:octicons-arrow-right-24: Approvals](../platform/approvals.md)
+
+-   :material-chart-timeline-variant:{ .middle } **Run Observability**
+
+    Monitor runs, view events, export audit logs.
+
+    [:octicons-arrow-right-24: Run lifecycle](../operations/runs.md)
+
+</div>

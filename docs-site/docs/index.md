@@ -1,44 +1,72 @@
 ---
 title: RunAgents — Deploy AI Agents That Act Securely
-description: Deploy AI agents that call external tools and APIs with enterprise-grade security. Identity propagation, zero-trust networking, just-in-time approvals, and OAuth consent — all managed for you.
+description: Deploy AI agents that call external tools and APIs with enterprise-grade identity, policy, and approval workflows. No infrastructure to manage.
 hide:
   - navigation
   - toc
 ---
 
+<!-- ── HERO ─────────────────────────────────────────────────────────────── -->
 <div class="ra-hero">
-  <h1>Deploy AI Agents That Act Securely</h1>
-  <p>Upload your agent code. Wire it to tools and LLMs. RunAgents handles identity propagation, access control, and just-in-time approvals — automatically.</p>
+  <h1>Deploy AI Agents<br>That Act Securely</h1>
+  <p>Upload your agent code. Wire it to tools and LLMs. RunAgents enforces identity, access policy, and approval workflows — transparently, with zero code changes.</p>
   <div class="ra-hero-buttons">
-    <a href="getting-started/quickstart/" class="ra-btn-primary">Get Started Free</a>
-    <a href="getting-started/cli-quickstart/" class="ra-btn-secondary">CLI Quickstart</a>
-    <a href="concepts/architecture/" class="ra-btn-secondary">Architecture</a>
+    <a href="https://try.runagents.io" class="ra-btn-primary">Start Free Trial</a>
+    <a href="getting-started/quickstart/" class="ra-btn-secondary">5-Min Quickstart →</a>
+    <a href="getting-started/cli-quickstart/" class="ra-btn-secondary">CLI Docs →</a>
   </div>
 </div>
 
+<!-- ── STATS BAR ─────────────────────────────────────────────────────────── -->
+<div class="ra-stats-bar">
+  <div class="ra-stat">
+    <span class="ra-stat-num">5 min</span>
+    <span class="ra-stat-label">Time to first<br>running agent</span>
+  </div>
+  <div class="ra-stat">
+    <span class="ra-stat-num">0</span>
+    <span class="ra-stat-label">Lines of security<br>code to write</span>
+  </div>
+  <div class="ra-stat">
+    <span class="ra-stat-num">100%</span>
+    <span class="ra-stat-label">Tool calls<br>policy-checked</span>
+  </div>
+  <div class="ra-stat">
+    <span class="ra-stat-num">4</span>
+    <span class="ra-stat-label">LLM providers<br>supported</span>
+  </div>
+</div>
+
+---
+
+<!-- ── FEATURES GRID ──────────────────────────────────────────────────────── -->
+<p class="ra-flow-label">Platform capabilities</p>
+<p class="ra-section-heading">Everything your agent needs to act safely in production</p>
+<p class="ra-section-sub">From deploy to approval workflows — the full stack for production-grade AI agents.</p>
+
 <div class="grid cards" markdown>
 
--   :material-rocket-launch:{ .lg .middle } **5-Minute Quickstart**
+-   :material-rocket-launch:{ .lg .middle } **5-Minute Deploy**
 
     ---
 
-    Deploy your first agent from the console. No infrastructure required.
+    Upload Python or TypeScript, auto-detect tools and models, wire, deploy. No Dockerfile, no Kubernetes, no infra.
 
-    [:octicons-arrow-right-24: Get started](getting-started/quickstart.md)
+    [:octicons-arrow-right-24: Quickstart](getting-started/quickstart.md)
 
--   :material-console-line:{ .lg .middle } **CLI & Copilot**
-
-    ---
-
-    `runagents copilot` — deploy and manage agents in natural language from your terminal.
-
-    [:octicons-arrow-right-24: CLI quickstart](getting-started/cli-quickstart.md)
-
--   :material-robot-outline:{ .lg .middle } **Claude Code & Codex**
+-   :material-console-line:{ .lg .middle } **CLI & Natural Language Copilot**
 
     ---
 
-    Generate action plans with your AI coding tool and apply them with one command.
+    `runagents copilot` — deploy and manage agents by describing what you want. Works in any terminal.
+
+    [:octicons-arrow-right-24: CLI & Copilot](getting-started/copilot.md)
+
+-   :material-robot-outline:{ .lg .middle } **Claude Code · Codex · Cursor**
+
+    ---
+
+    Generate a structured action plan with your AI coding tool, validate it, apply it — no console needed.
 
     [:octicons-arrow-right-24: Deploy from AI tools](getting-started/deploy-from-ai-tools.md)
 
@@ -46,23 +74,23 @@ hide:
 
     ---
 
-    High-risk tool calls pause for admin review. Slack, PagerDuty, and Teams integrations built in.
+    High-risk tool calls pause the agent and notify reviewers via Slack, PagerDuty, Teams, or Jira.
 
     [:octicons-arrow-right-24: Approvals](platform/approvals.md)
 
--   :material-lock-outline:{ .lg .middle } **Policy-Driven Access**
+-   :material-lock-outline:{ .lg .middle } **Zero-Trust Policy Engine**
 
     ---
 
-    Fine-grained allow/deny rules enforced on every outbound agent call, at method + path level.
+    Every outbound call is authorized. Policies enforce method + path restrictions on every agent identity.
 
     [:octicons-arrow-right-24: Policy model](concepts/policy-model.md)
 
--   :material-chart-timeline-variant:{ .lg .middle } **Run Observability**
+-   :material-chart-timeline-variant:{ .lg .middle } **Full Run Observability**
 
     ---
 
-    Full audit trail per run — message events, tool calls, approvals, and export to Splunk or Datadog.
+    Structured audit trail per run — user messages, tool calls, approvals — exportable to Splunk, Datadog, ECS.
 
     [:octicons-arrow-right-24: Run lifecycle](operations/runs.md)
 
@@ -70,48 +98,123 @@ hide:
 
 ---
 
-## How It Works
+<!-- ── ARCHITECTURE ──────────────────────────────────────────────────────── -->
+<p class="ra-flow-label">Architecture</p>
+<p class="ra-section-heading">Three-stage secure request flow</p>
+<p class="ra-section-sub">Every agent invocation moves through ingress → runtime → egress, with identity and policy enforced at each stage.</p>
 
-![RunAgents architecture diagram showing three-stage request flow: client → platform → external tool](assets/architecture.svg)
+![RunAgents architecture — three-stage request flow](assets/architecture.svg)
 
-Every outbound call from your agent is intercepted, policy-checked, enriched with the correct credentials, and forwarded — all transparently, with no code changes required.
+<div class="grid cards" markdown style="margin-top:1.5rem">
+
+-   :material-shield-account:{ .middle } **Stage 1 · Ingress**
+
+    JWT validated at the edge. User identity extracted and forwarded as `X-End-User-ID` header through the entire call chain.
+
+-   :material-cpu-64-bit:{ .middle } **Stage 2 · Runtime**
+
+    Agent executes — LLM calls route through the gateway, tool calls route through the policy engine. Logs structured events per turn.
+
+-   :material-transit-connection-variant:{ .middle } **Stage 3 · Egress**
+
+    Every outbound call intercepted: identity verified, policy evaluated, OAuth token injected. Approval workflows triggered on deny.
+
+</div>
+
+[:octicons-arrow-right-24: Read the full architecture guide](concepts/architecture.md){ .md-button }
 
 ---
 
-## Three Pillars
+<!-- ── THREE PILLARS ─────────────────────────────────────────────────────── -->
+<p class="ra-flow-label">Core concepts</p>
+<p class="ra-section-heading">Security is the default, not an add-on</p>
 
 === ":material-account-arrow-right: Identity Propagation"
 
-    User identity flows from client → agent → external tool automatically.
-    Every downstream service sees **who** made the request, not just which service account.
+    The user who triggered the agent is identified at ingress. That identity travels — unchanged — to every tool the agent calls.
 
-    - JWT validated at ingress, user ID extracted and forwarded end-to-end
-    - Tools receive the real end-user identity on every call
-    - Full traceability across the entire request chain
+    - JWT validated and unpacked at the platform edge
+    - `X-End-User-ID` header forwarded automatically to all downstream tools
+    - External APIs see the real end-user, not a shared service account
+    - Full traceability: every tool call is linked to a real human identity
+
+    [Learn more about identity propagation :octicons-arrow-right-24:](concepts/identity-propagation.md)
 
 === ":material-shield-lock: Policy-Driven Access"
 
-    Fine-grained allow/deny rules control which agents can call which tools and at which paths.
+    Agents can only call tools they have been explicitly granted access to. Policies enforce not just which tools, but which operations.
 
-    - Policies define resource patterns with allow or deny effects
-    - Auto-binding creates policies automatically when you deploy an agent
-    - Capability checks enforce operation-level restrictions (e.g. `GET /documents/*` only)
+    - Policies define resource URN patterns with allow or deny effects
+    - Capability checks enforce method + path level (`POST /charges` vs `GET /customers`)
+    - Auto-binding creates policies automatically on deploy
+    - Critical tools require admin approval before any access is granted
+
+    [Learn more about the policy model :octicons-arrow-right-24:](concepts/policy-model.md)
 
 === ":material-clipboard-check-outline: Just-In-Time Approvals"
 
-    High-risk tools pause the agent until an admin approves. Platform auto-resumes after approval.
+    High-risk operations pause the agent. An admin reviews the exact payload, approves or rejects, and the platform auto-resumes.
 
-    - Admin notified via Slack, PagerDuty, Teams, or Jira
-    - Payload hash integrity ensures approved request matches what the agent will send
-    - No manual re-triggering — the platform handles the full pause-approve-resume cycle
+    - Payload hash verification — the approved request must match exactly what the agent sends
+    - Notification via Slack (with OIDC identity linking), PagerDuty, Teams, or Jira
+    - Time-limited grants — access expires after a configurable TTL
+    - Full resume automation — no manual re-triggering after approval
+
+    [Learn more about approvals :octicons-arrow-right-24:](platform/approvals.md)
 
 ---
 
-## Ready to Try?
+<!-- ── TERMINAL QUICKSTART ───────────────────────────────────────────────── -->
+<p class="ra-flow-label">Get started in seconds</p>
+<p class="ra-section-heading">One command to deploy from the terminal</p>
+
+<div class="ra-terminal">
+  <div class="ra-terminal-bar">
+    <span class="ra-dot ra-dot-r"></span>
+    <span class="ra-dot ra-dot-y"></span>
+    <span class="ra-dot ra-dot-g"></span>
+    <span class="ra-terminal-label">Terminal</span>
+  </div>
+
+```text
+# Install
+curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh
+
+# Configure
+runagents config set endpoint https://your-workspace.try.runagents.io
+runagents config set api-key YOUR_API_KEY
+
+# Deploy with natural language
+runagents copilot
+> deploy this folder as billing-agent
+
+  Analyzing source files...
+  ✓ Detected: stripe tool, gpt-4o-mini model
+  ✓ Tool registered: stripe
+  ✓ Agent deployed: billing-agent (Running)
+```
+
+</div>
+
+<div style="text-align:center;margin:1rem 0 0">
+<a href="getting-started/cli-quickstart/" class="md-button">Full CLI guide</a>&nbsp;&nbsp;
+<a href="getting-started/quickstart/" class="md-button">Console quickstart</a>&nbsp;&nbsp;
+<a href="getting-started/deploy-from-ai-tools/" class="md-button">Deploy from Claude Code</a>
+</div>
+
+---
+
+<!-- ── BOTTOM CTA ─────────────────────────────────────────────────────────── -->
+<div style="text-align:center;padding:2rem 0 0.5rem">
+  <p class="ra-section-heading">Ready to deploy your first agent?</p>
+  <p class="ra-section-sub">Free trial. No credit card. Running in 5 minutes.</p>
+</div>
 
 <div class="ra-cta-row">
   <a href="https://try.runagents.io" class="ra-btn-cta">Start Free Trial</a>
   <a href="getting-started/quickstart/" class="ra-btn-outline">Read the Quickstart</a>
 </div>
 
-<small>© 2026 RunAgents, Inc. &nbsp;·&nbsp; [Privacy](https://runagents.io/privacy) &nbsp;·&nbsp; [Terms](https://runagents.io/terms)</small>
+<div style="text-align:center;margin-top:1.5rem">
+<small style="color:var(--ra-ink-muted)">© 2026 RunAgents, Inc. &nbsp;·&nbsp; <a href="https://runagents.io/privacy">Privacy</a> &nbsp;·&nbsp; <a href="https://runagents.io/terms">Terms</a> &nbsp;·&nbsp; <a href="https://github.com/runagents-io/runagents">GitHub</a></small>
+</div>

@@ -27,7 +27,7 @@ phases:
   build:
     commands:
       - echo "Building docs site..."
-      - docker build --build-arg DOCS_VERSION=$IMAGE_TAG --build-arg GOOGLE_ANALYTICS_ID=$GOOGLE_ANALYTICS_ID -t $DOCS_IMAGE:$IMAGE_TAG -t $DOCS_IMAGE:latest -f Dockerfile .
+      - docker build --build-arg DOCS_VERSION=$IMAGE_TAG --build-arg GOOGLE_ANALYTICS_ID=$GOOGLE_ANALYTICS_ID -t $DOCS_IMAGE:$IMAGE_TAG -t $DOCS_IMAGE:latest -f docs-site/Dockerfile docs-site/
 
   post_build:
     commands:

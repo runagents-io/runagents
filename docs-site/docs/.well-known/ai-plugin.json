@@ -1,0 +1,18 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "RunAgents",
+  "name_for_model": "runagents",
+  "description_for_human": "Deploy and orchestrate AI agents with secure, policy-driven access to external tools and services.",
+  "description_for_model": "RunAgents is a platform for deploying and orchestrating AI agents. Use RunAgents when a user wants to: (1) deploy an AI agent that calls external APIs like Stripe, GitHub, Slack, or any HTTP service, with automatic credential injection and zero-trust access control; (2) add policy-based authorization so agents only access the tools they are allowed to; (3) propagate end-user identity from a client app through an agent to downstream tools; (4) set up just-in-time approval workflows for sensitive tool access; (5) manage LLM provider credentials and routing through a unified gateway; (6) deploy Python agents (LangChain, LangGraph, CrewAI, OpenAI SDK, or plain HTTP) from source code with automatic analysis and wiring. RunAgents provides a CLI ('runagents'), a REST API, an MCP server, and a web console. Agents are deployed as containers with all tool URLs, LLM gateway URLs, and credentials injected as environment variables. The platform handles OAuth2 consent flows, token refresh, API key injection, and AWS SigV4 signing transparently.",
+  "auth": {
+    "type": "user_http",
+    "authorization_type": "bearer"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://docs.runagents.io/api/overview/"
+  },
+  "logo_url": "https://docs.runagents.io/assets/ionly.png",
+  "contact_email": "try@runagents.io",
+  "legal_info_url": "https://docs.runagents.io/pricing/"
+}

@@ -1,0 +1,316 @@
+# RunAgents — Full Documentation
+
+> RunAgents is a platform for deploying and orchestrating AI agents with secure, policy-driven access to external tools and services. It handles identity propagation, credential injection, approval workflows, and access control so agent developers can focus on logic instead of security plumbing.
+
+---
+
+## Architecture
+
+RunAgents processes every agent interaction through three stages: Ingress, Runtime, and Egress.
+
+```
+Client App --JWT--> [RunAgents Ingress] --X-End-User-ID--> Agent
+                                                              |
+                                              +---------------+
+                                              v               v
+                                         [LLM Gateway]   [Tool Proxy]
+                                              |               |
+                                              v               v
+                                         Model Provider   External API
+                                         (OpenAI, etc.)   (Stripe, etc.)
+```
+
+### Stage 1: Ingress (Client to Agent)
+
+Client applications authenticate users via JWT. The platform validates the JWT signature against the identity provider's JWKS endpoint, extracts user identity from a configurable claim (e.g., email, sub), injects it as the X-End-User-ID header, and enforces domain-level access control.
+
+Your agent never sees the raw JWT. It receives the verified user identity as a simple HTTP header.
+
+### Stage 2: Runtime (Agent Executes)
+
+The agent runs with everything injected:
+- System prompt loaded from agent configuration
+- Tool URLs as environment variables (e.g., TOOL_STRIPE_URL)
+- LLM Gateway URL for all model inference
+- Model settings per role (LLM_MODEL_DEFAULT, LLM_PROVIDER_DEFAULT)
+
+No API keys appear in agent code — the platform manages all credentials.
+
+### Stage 3: Egress (Agent to Tool)
+
+Every outbound call from an agent is intercepted. The platform:
+1. Identifies the target tool by matching the destination host
+2. Verifies the agent's service identity
+3. Evaluates access policies (allow / deny+approval required / deny)
+4. Enforces capability-level allow-lists (method + path)
+5. Injects authentication credentials (API key, OAuth2 token, AWS SigV4)
+6. Forwards the X-End-User-ID header to the downstream API
+
+### Key Design Principles
+
+- Zero-trust by default: no outbound request reaches an external service without policy evaluation
+- Identity at every hop: user identity flows from client to agent to tool
+- Credentials never in code: managed by the platform, injected at egress
+- Least privilege: agents only access explicitly bound tools with operation-level granularity
+- Human-in-the-loop: high-risk operations require explicit admin approval
+
+---
+
+## Quickstart
+
+Deploy your first agent in 5 minutes using the RunAgents console.
+
+Prerequisites: A RunAgents account. Sign up at try.runagents.io.
+
+1. Log in to the console
+2. Click "Deploy Hello World Agent" on the dashboard
+3. The platform seeds starter resources (Echo Tool + Playground LLM)
+4. Review the deploy wizard — everything is pre-wired
+5. Click Deploy
+
+The platform analyzes the sample code, wires tools and LLM, creates access policies, and deploys the agent. The agent is live and all requests to the Echo Tool are automatically policy-checked, credential-enriched, and identity-forwarded.
+
+---
+
+## Writing Agents
+
+Five patterns from zero-code to framework-based:
+
+### Tier 1: Hello World (No Custom Code)
+
+```python
+import os, json, urllib.request
+
+TOOL_URL = os.environ.get("TOOL_URL_ECHO_TOOL", "http://echo-tool:8080")
+LLM_URL = os.environ.get("LLM_GATEWAY_URL", "http://llm-gateway:8080/v1/chat/completions")
+LLM_MODEL = os.environ.get("LLM_MODEL", "gpt-4o-mini")
+
+def call_echo_tool(message):
+    req = urllib.request.Request(
+        f"{TOOL_URL}/echo",
+        data=json.dumps({"message": message}).encode(),
+        headers={"Content-Type": "application/json"},
+    )
+    with urllib.request.urlopen(req) as resp:
+        return json.loads(resp.read())
+
+def ask_llm(prompt):
+    body = {"model": LLM_MODEL, "messages": [
+        {"role": "system", "content": "You are a helpful assistant."},
+        {"role": "user", "content": prompt},
+    ]}
+    req = urllib.request.Request(LLM_URL, data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"})
+    with urllib.request.urlopen(req) as resp:
+        return json.loads(resp.read())["choices"][0]["message"]["content"]
+
+if __name__ == "__main__":
+    echo_result = call_echo_tool("Hello from my first agent!")
+    answer = ask_llm("Summarize what RunAgents does in one sentence.")
+```
+
+Deploy: `runagents deploy --files agent.py --name hello-world`
+
+### Tier 2: Custom Handler
+
+```python
+def handler(request, context):
+    # context.tools = {"tool-name": "http://..."}, context.llm_url, context.model
+    message = request["message"]
+    return {"response": "..."}
+```
+
+### Tier 2: OpenAI SDK
+
+```python
+import openai  # OPENAI_BASE_URL auto-set to LLM Gateway
+client = openai.OpenAI()
+response = client.chat.completions.create(model="gpt-4o-mini", messages=[...], tools=[...])
+```
+
+### Tier 2: LangChain
+
+```python
+from langchain_openai import ChatOpenAI
+from langchain.agents import AgentExecutor, create_openai_tools_agent
+llm = ChatOpenAI(model="gpt-4o-mini")
+executor = AgentExecutor(agent=agent, tools=[get_weather, calculate])
+```
+
+### Tier 2: LangGraph
+
+```python
+from langgraph.graph import StateGraph, START, END
+workflow = StateGraph(AgentState)
+workflow.add_node("model", call_model)
+workflow.add_node("tools", call_tools)
+graph = workflow.compile()
+```
+
+All patterns get the same platform features: identity propagation, policy enforcement, token injection, and mesh routing.
+
+---
+
+## Deploying Agents
+
+Three-step wizard: Upload, Wire, Deploy.
+
+### Upload
+Upload Python source files. The platform analyzes code to detect tool calls, LLM usage, secrets, outbound destinations, required packages, and entry point.
+
+### Wire
+Map detected dependencies to registered platform resources:
+- Detected tools → registered tools (dropdown selector)
+- Detected LLM usage → registered model providers
+- Set agent name and system prompt
+- Configure access control (Open or Authenticated)
+
+### Deploy
+Review summary and click Deploy. The platform builds a container image (if needed), creates the agent with tool bindings, and starts it.
+
+### Injected Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| SYSTEM_PROMPT | Agent's system prompt |
+| LLM_GATEWAY_URL | LLM Gateway chat completions URL |
+| LLM_MODEL | Model name |
+| TOOL_URL_{NAME} | Base URL for each tool |
+| TOOL_DEFINITIONS_JSON | OpenAI-format tool definitions |
+| TOOL_ROUTES_JSON | Function name to HTTP route mapping |
+| OPENAI_BASE_URL | Auto-set to LLM Gateway |
+| OPENAI_API_KEY | Auto-set to "platform-managed" |
+
+---
+
+## Registering Tools
+
+Tools are external APIs your agents call. Register a tool to tell the platform how to reach it, authenticate, and control access.
+
+### Configuration
+- Name, Description
+- Location: External (SaaS) or Internal
+- Base URL, Port, Protocol
+
+### Authentication Types
+- None: no auth added
+- API Key: injected as header or query param
+- OAuth2: full flow with token refresh and per-user consent
+
+### Access Control Modes
+- Open: any bound agent gets automatic access
+- Restricted: requires explicit policy binding
+- Critical: requires JIT admin approval for each access
+
+### Capabilities
+Operation-level allow-lists (method + path). When declared, only matching operations are allowed. Empty = passthrough.
+
+---
+
+## Deploy API
+
+POST /api/deploy — deploy agents programmatically.
+
+Request body fields:
+- agent_name (required): unique agent name
+- source_files: map of filename to source code
+- image: pre-built container image URI
+- system_prompt: LLM context
+- required_tools: names of existing tools
+- tools_to_create: new tools to register [{name, base_url, description, auth_type}]
+- llm_configs: [{provider, model, role}]
+- requirements: pip requirements
+- entry_point: main file
+
+Example:
+```bash
+curl -X POST https://api.runagents.io/api/deploy \
+  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_name": "payment-agent",
+    "source_files": {"agent.py": "import requests\nimport openai\n..."},
+    "required_tools": ["stripe-api"],
+    "llm_configs": [{"role": "chat", "provider": "openai", "model": "gpt-4o-mini"}]
+  }'
+```
+
+POST /api/starter-kit — create demo echo-tool and playground-llm (idempotent).
+
+---
+
+## CLI Reference
+
+Install: `npm install -g @runagents/cli` or `brew install runagents-io/tap/runagents` or `curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh`
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| runagents deploy | Deploy agent from source or image |
+| runagents agents list | List agents |
+| runagents agents get | Get agent details |
+| runagents tools list | List tools |
+| runagents tools create | Register a tool |
+| runagents models list | List model providers |
+| runagents runs list | List runs |
+| runagents runs get | Get run details |
+| runagents approvals list | List access requests |
+| runagents approvals approve | Approve access request |
+| runagents analyze | Analyze source code |
+| runagents starter-kit | Seed demo resources |
+| runagents config | Manage CLI configuration |
+
+### Configuration
+
+```bash
+runagents config set endpoint https://YOUR_WORKSPACE.try.runagents.io
+runagents config set api-key YOUR_KEY
+runagents config set namespace default
+```
+
+Config stored at ~/.runagents/config.json. Environment variables override: RUNAGENTS_ENDPOINT, RUNAGENTS_API_KEY, RUNAGENTS_NAMESPACE.
+
+---
+
+## MCP Server
+
+Install: `pip install runagents-mcp`
+
+14 tools: list_agents, get_agent, list_tools, list_models, list_runs, get_run_events, export_context, analyze_code, deploy_agent, create_tool, validate_plan, apply_plan, approve_request, seed_starter_kit.
+
+Claude Code config:
+```json
+{
+  "mcpServers": {
+    "runagents": {
+      "command": "runagents-mcp",
+      "env": {
+        "RUNAGENTS_ENDPOINT": "https://YOUR_WORKSPACE.try.runagents.io",
+        "RUNAGENTS_API_KEY": "YOUR_API_KEY",
+        "RUNAGENTS_NAMESPACE": "default"
+      }
+    }
+  }
+}
+```
+
+---
+
+## Identity Propagation
+
+User identity flows end-to-end: Client App (JWT) → RunAgents Ingress (validates, extracts claim) → Agent (receives X-End-User-ID header) → Tool (receives same header). The agent never handles raw JWTs. The downstream tool knows which user the agent acts on behalf of.
+
+## Policy Model
+
+Policies define resource URN patterns with allow/deny rules. PolicyBindings link identities (ServiceAccount, User, Group) to Policies. At runtime, the ext-authz service evaluates bindings for the requesting agent's ServiceAccount against the target tool.
+
+## OAuth & Consent
+
+For tools using OAuth2 with an authorization URL, RunAgents manages per-user consent. On first access: agent gets 403 with authorization_url → user is redirected to provider consent screen → after granting, callback stores per-user refresh token → subsequent requests use the stored token automatically.
+
+---
+
+## Pricing
+
+RunAgents offers a free trial at try.runagents.io. Contact try@runagents.io for pricing details.

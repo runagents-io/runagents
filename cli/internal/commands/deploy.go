@@ -41,7 +41,7 @@ Example:
 
 			// Build the deploy payload.
 			payload := map[string]interface{}{
-				"name":         name,
+				"agent_name":   name,
 				"source_files": sourceFiles,
 			}
 

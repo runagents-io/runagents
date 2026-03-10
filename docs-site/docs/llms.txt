@@ -1,0 +1,61 @@
+# RunAgents
+
+> RunAgents is a platform for deploying and orchestrating AI agents with secure, policy-driven access to external tools and services. It handles identity propagation, credential injection, approval workflows, and access control so agent developers can focus on logic instead of security plumbing.
+
+## Getting Started
+
+- [Quickstart](https://docs.runagents.io/getting-started/quickstart/): Deploy your first agent in 5 minutes using the console
+- [API Quickstart](https://docs.runagents.io/getting-started/api-quickstart/): Deploy agents programmatically with curl
+- [CLI Quickstart](https://docs.runagents.io/getting-started/cli-quickstart/): Manage RunAgents from the terminal
+- [Writing Agents](https://docs.runagents.io/getting-started/writing-agents/): Five complete Python agent examples from hello-world to LangGraph
+- [Deploy from AI Tools](https://docs.runagents.io/getting-started/deploy-from-ai-tools/): Deploy agents directly from Claude Code, Cursor, or Codex
+- [Copilot](https://docs.runagents.io/getting-started/copilot/): Use the built-in AI copilot in the console
+
+## Platform Guide
+
+- [Dashboard](https://docs.runagents.io/platform/dashboard/): Platform overview, run counts, setup checklist
+- [Agent Runtime](https://docs.runagents.io/platform/agent-runtime/): How the built-in runtime executes agents (tiers, tool loop, SSE streaming)
+- [Deploying Agents](https://docs.runagents.io/platform/deploying-agents/): Three-step deploy wizard — Upload, Wire, Deploy
+- [Registering Tools](https://docs.runagents.io/platform/registering-tools/): Register external APIs with auth, access control, and capabilities
+- [Model Providers](https://docs.runagents.io/platform/model-providers/): Configure LLM providers (OpenAI, Anthropic, Bedrock, Ollama)
+- [Identity Providers](https://docs.runagents.io/platform/identity-providers/): JWT-based client authentication
+- [Approvals](https://docs.runagents.io/platform/approvals/): Just-in-time access request workflow for sensitive tools
+
+## API Reference
+
+- [Overview](https://docs.runagents.io/api/overview/): API authentication, base URLs, common patterns
+- [Deploy](https://docs.runagents.io/api/deploy/): POST /api/deploy — deploy agents programmatically
+- [Agents](https://docs.runagents.io/api/agents/): CRUD operations on agents
+- [Tools](https://docs.runagents.io/api/tools/): CRUD operations on tools
+- [Model Providers & LLM Gateway](https://docs.runagents.io/api/model-providers/): Model provider management and OpenAI-compatible gateway
+- [Identity Providers](https://docs.runagents.io/api/identity-providers/): Identity provider management
+- [Runs](https://docs.runagents.io/api/runs/): Run lifecycle, events, and blocked actions
+- [Approvals](https://docs.runagents.io/api/approvals/): Access request CRUD and approve/reject
+- [Ingestion](https://docs.runagents.io/api/ingestion/): Code analysis engine
+- [Build](https://docs.runagents.io/api/build/): Container image build pipeline
+- [Billing](https://docs.runagents.io/api/billing/): Usage and billing API
+
+## CLI Reference
+
+- [Installation](https://docs.runagents.io/cli/installation/): Install via curl, npm, or Homebrew
+- [Commands](https://docs.runagents.io/cli/commands/): All 13 CLI commands
+- [Action Plans](https://docs.runagents.io/cli/action-plans/): Validate-then-apply deployment workflow
+- [Action Plan Examples](https://docs.runagents.io/cli/plan-examples/): Real-world action plan walkthroughs
+- [External Assistants](https://docs.runagents.io/cli/external-assistants/): Use RunAgents with Claude Code, Cursor, Codex
+- [AI Assistant Setup](https://docs.runagents.io/cli/ai-assistant-setup/): Templates and MCP server for AI coding assistants
+
+## Concepts
+
+- [Architecture](https://docs.runagents.io/concepts/architecture/): Three-stage flow — Ingress, Runtime, Egress
+- [Identity Propagation](https://docs.runagents.io/concepts/identity-propagation/): How user identity flows from client to agent to tool
+- [Policy Model](https://docs.runagents.io/concepts/policy-model/): Access control rules and evaluation
+- [OAuth & Consent](https://docs.runagents.io/concepts/oauth-consent/): OAuth2 consent flow for tools requiring user authorization
+
+## Operations
+
+- [Run Lifecycle](https://docs.runagents.io/operations/runs/): Run states, events, approval workflow
+- [Troubleshooting](https://docs.runagents.io/operations/troubleshooting/): Common issues and fixes
+
+## Self-Hosted
+
+- [Deployment Guide](https://docs.runagents.io/self-hosted/deployment/): Deploy RunAgents on your own infrastructure

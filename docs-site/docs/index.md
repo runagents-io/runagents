@@ -121,4 +121,4 @@ Every outbound call from your agent is intercepted, authorized against your poli
 [📖 Read the Quickstart](getting-started/quickstart.md){ .md-button }
 </div>
 
-<small>Built with version {{ version }}</small>
+<small>© 2026 RunAgents, Inc. · [Privacy](https://runagents.io/privacy) · [Terms](https://runagents.io/terms)</small>

@@ -91,4 +91,4 @@ Yes. RunAgents can be deployed to your own Kubernetes cluster -- your cloud acco
     Deploy agents, register tools, and see the full security model in action -- no credit card required.
 
     [:material-rocket-launch: Start Free Trial](https://try.runagents.io){ .md-button .md-button--primary }
-    [:material-email-outline: Contact Sales](mailto:try@runagents.io?subject=RunAgents Pricing){ .md-button }
+    [:material-rocket-launch: Start Free Trial](https://try.runagents.io){ .md-button }

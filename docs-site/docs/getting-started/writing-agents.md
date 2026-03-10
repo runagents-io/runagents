@@ -249,7 +249,7 @@ def _execute_tool(name, args, context):
 2. `import openai` and `import requests` detected → pip requirements auto-generated
 3. At startup, the runtime calls `_inject_platform_env()` which sets `OPENAI_BASE_URL` to the LLM Gateway
 4. `openai.OpenAI()` reads `OPENAI_BASE_URL` from the environment → all LLM calls go through the gateway
-5. Tool calls via `requests.post()` go through the Istio sidecar → ext-authz handles policy + token injection
+5. Tool calls via `requests.post()` are intercepted by the platform mesh → policy is checked and auth tokens are injected automatically
 
 ---
 
@@ -332,7 +332,7 @@ requests
 **What happens behind the scenes:**
 
 1. `from langchain` and `AgentExecutor` detected → **Tier 2** with custom image build
-2. The build service creates a Docker image with your code + pip requirements via Kaniko
+2. The platform builds a container image from your code and pip requirements automatically
 3. At startup, the runtime sets `OPENAI_BASE_URL` → `ChatOpenAI()` routes through the gateway
 4. The runtime imports `agent.py`, finds `executor` (an `AgentExecutor`), and wraps it
 5. Every `POST /invoke` calls `executor.invoke({"input": message})` and returns the output

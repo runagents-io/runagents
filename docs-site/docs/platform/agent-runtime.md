@@ -21,7 +21,7 @@ Your agent runs on the pre-built RunAgents runtime image. The runtime provides:
 **What the runtime does:**
 
 1. Sends your system prompt + user message + tool definitions to the LLM
-2. If the LLM returns tool calls, executes them via HTTP (through the Istio mesh)
+2. If the LLM returns tool calls, executes them via HTTP (policy-checked and authenticated by the platform)
 3. Feeds tool results back to the LLM
 4. Repeats until the LLM produces a final text response (up to `MAX_TOOL_ITERATIONS`)
 
@@ -192,21 +192,21 @@ When multiple LLM configs are specified with different roles:
 
 ## Outbound Call Flow
 
-When your agent calls a tool, the request flows through the Istio service mesh:
+When your agent calls a tool, the request is intercepted by the platform's zero-trust network layer:
 
 ```
-Agent Pod  →  Istio Sidecar  →  Egress Gateway  →  ext-authz  →  Tool
-                                                       │
-                                                       ├─ Identify tool (match host)
-                                                       ├─ Verify agent identity (XFCC/SPIFFE)
-                                                       ├─ Check PolicyBinding (allowed?)
-                                                       ├─ Enforce capabilities (method+path)
-                                                       └─ Inject auth token (Bearer header)
+Agent  →  Platform Network Layer  →  Tool
+                    │
+                    ├─ Identify target tool
+                    ├─ Verify agent identity
+                    ├─ Check access policy
+                    ├─ Enforce capability restrictions (method + path)
+                    └─ Inject authentication token
 ```
 
 1. Your agent makes a plain HTTP call to the tool's base URL
-2. The Istio sidecar intercepts the outbound request
-3. The ext-authz service identifies the tool, checks policies, and optionally injects an OAuth token
+2. The platform intercepts the outbound request transparently
+3. Access policy is checked and an auth token is optionally injected
 4. If the tool requires approval and no policy exists, the agent receives a 403 with `APPROVAL_REQUIRED`
 5. If allowed, the request reaches the tool with proper authentication
 

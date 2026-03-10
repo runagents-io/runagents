@@ -89,7 +89,7 @@ Contact us to begin your self-hosted deployment:
     - Configuration templates for your environment
     - Dedicated onboarding support
 
-[Request Self-Hosted Deployment](mailto:try@runagents.io?subject=Self-Hosted RunAgents){.cta-button}
+[Contact Sales](mailto:try@runagents.io?subject=Self-Hosted){.cta-button}
 
 ---
 

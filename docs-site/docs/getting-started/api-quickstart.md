@@ -11,7 +11,7 @@ Deploy your first agent programmatically using the RunAgents REST API. This guid
 
 !!! info "Prerequisites"
 
-    You need a RunAgents account and an API key. If you do not have an account yet, email [try@runagents.io](mailto:try@runagents.io) to request trial access.
+    You need a RunAgents account and an API key. If you do not have an account yet, sign up at [try.runagents.io](https://try.runagents.io).
 
 ---
 
@@ -400,4 +400,4 @@ echo "Done."
 
 !!! tip "Need help?"
 
-    Email [try@runagents.io](mailto:try@runagents.io) and we will get you set up.
+    Sign up at [try.runagents.io](https://try.runagents.io) to get started.

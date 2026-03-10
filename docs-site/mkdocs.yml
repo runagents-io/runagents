@@ -67,18 +67,19 @@ extra:
           name: This page could be improved
           data: 0
           note: >-
-            Thanks for your feedback! Help us improve by
-            <a href="mailto:try@runagents.io?subject=Docs feedback: {url}" target="_blank">emailing us</a>.
+            Thanks for your feedback! Help us improve by opening an issue on
+            <a href="https://github.com/runagents-io/runagents/issues/new" target="_blank">GitHub</a>.
 
 extra_css:
   - stylesheets/extra.css
 
 extra_javascript:
   - javascripts/chat.js
-  - javascripts/crisp.js
 
 plugins:
   - search
+  - macros:
+      include_yaml: []
   - minify:
       minify_html: true
 

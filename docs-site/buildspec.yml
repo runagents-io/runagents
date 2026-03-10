@@ -1,0 +1,43 @@
+version: 0.2
+
+# AWS CodeBuild buildspec for docs site (lives at docs-site/buildspec.yml in runagents-io/runagents)
+# Trigger: aws codebuild start-build --project-name runagents-docs --region us-east-1
+
+env:
+  variables:
+    AWS_REGION: "us-east-1"
+    ECR_REGISTRY: "590183971896.dkr.ecr.us-east-1.amazonaws.com"
+    EKS_CLUSTER: "runagents-dev"
+    NAMESPACE: "agent-system"
+    DOCS_IMAGE: "590183971896.dkr.ecr.us-east-1.amazonaws.com/runagents/docs"
+
+phases:
+  install:
+    commands:
+      - curl -sLO "https://dl.k8s.io/release/v1.30.0/bin/linux/amd64/kubectl"
+      - chmod +x kubectl && mv kubectl /usr/local/bin/
+
+  pre_build:
+    commands:
+      - IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c1-7)
+      - echo "Building docs tag $IMAGE_TAG"
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY
+      - aws eks update-kubeconfig --name $EKS_CLUSTER --region $AWS_REGION
+
+  build:
+    commands:
+      - echo "Building docs site..."
+      - docker build --build-arg DOCS_VERSION=$IMAGE_TAG --build-arg GOOGLE_ANALYTICS_ID=$GOOGLE_ANALYTICS_ID -t $DOCS_IMAGE:$IMAGE_TAG -t $DOCS_IMAGE:latest -f Dockerfile .
+
+  post_build:
+    commands:
+      - |
+        if [ "$CODEBUILD_BUILD_SUCCEEDING" != "1" ]; then
+          echo "Build failed — skipping push and deploy"
+          exit 1
+        fi
+      - docker push $DOCS_IMAGE:$IMAGE_TAG
+      - docker push $DOCS_IMAGE:latest
+      - kubectl set image deployment/docs docs=$DOCS_IMAGE:$IMAGE_TAG -n $NAMESPACE
+      - kubectl rollout status deployment/docs -n $NAMESPACE --timeout=180s
+      - echo "Docs live at https://docs.runagents.io (tag $IMAGE_TAG)"

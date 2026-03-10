@@ -9,7 +9,7 @@ The RunAgents CLI lets you manage agents, tools, model providers, and runs from 
 
 !!! info "Prerequisites"
 
-    You need a RunAgents account and an API key. If you do not have an account yet, email [try@runagents.io](mailto:try@runagents.io) to request trial access.
+    You need a RunAgents account and an API key. If you do not have an account yet, sign up at [try.runagents.io](https://try.runagents.io).
 
 ---
 
@@ -381,4 +381,4 @@ See [External Assistants](../cli/external-assistants.md) and [Action Plans](../c
 
 !!! tip "Need help?"
 
-    Email [try@runagents.io](mailto:try@runagents.io) and we will get you set up.
+    Sign up at [try.runagents.io](https://try.runagents.io) to get started.

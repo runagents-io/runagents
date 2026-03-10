@@ -98,7 +98,7 @@ Stable, versioned APIs (e.g., `/v1/...`) are planned for general availability. S
 ## Interactive API Docs
 
 !!! info "Coming soon"
-    Interactive Swagger/OpenAPI documentation is in progress. Subscribe for updates at [try@runagents.io](mailto:try@runagents.io).
+    Interactive Swagger/OpenAPI documentation is coming soon.
 
 ## API Endpoints at a Glance
 

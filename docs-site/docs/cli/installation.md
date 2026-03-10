@@ -159,4 +159,4 @@ Configuration is stored in `~/.runagents/config.json`.
 ---
 
 !!! tip "Need an API key?"
-    [Request a free trial](mailto:try@runagents.io?subject=RunAgents Trial Request) and we'll get you set up within 24 hours.
+    [Sign up for free](https://try.runagents.io) and we'll get you set up within 24 hours.

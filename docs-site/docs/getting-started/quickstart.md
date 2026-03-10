@@ -9,7 +9,7 @@ Deploy your first agent in 5 minutes using the RunAgents console. No code to wri
 
 !!! info "Prerequisites"
 
-    You need a RunAgents account. If you do not have one yet, email [try@runagents.io](mailto:try@runagents.io) to request trial access.
+    You need a RunAgents account. If you do not have one yet, sign up at [try.runagents.io](https://try.runagents.io).
 
 ---
 

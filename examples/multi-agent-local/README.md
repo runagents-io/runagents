@@ -1,15 +1,14 @@
-# Multi-Agent Customer Support — Local → RunAgents
+# Multi-Agent Customer Support
 
-A three-agent customer support system built with LangChain.
-Runs locally out of the box. Deploy to RunAgents to add identity,
-policy enforcement, and credential injection — **zero code changes**.
+A three-agent LangChain system that runs locally and deploys to RunAgents
+without any code changes.
 
 ```
 User message
     ↓
 Coordinator         classifies and routes
     ├── KnowledgeAgent   searches FAQ / knowledge base
-    └── AccountAgent     handles account lookups and changes
+    └── AccountAgent     handles account lookups and plan changes
 ```
 
 ---
@@ -20,17 +19,15 @@ Coordinator         classifies and routes
 pip install langchain langchain-openai requests
 export OPENAI_API_KEY=sk-...
 
-# Terminal 1 — mock API server
+# Terminal 1 — start the mock API server
 python mock_server.py
 
-# Terminal 2 — ask the agent
+# Terminal 2 — run the agent
 python agent.py "What is your return policy?"
 python agent.py "Look up account CUST-001"
 python agent.py "Upgrade CUST-002 to the pro plan"
-python agent.py "Create a billing ticket for CUST-003, they were double charged"
+python agent.py "Create a billing ticket for CUST-003"
 ```
-
-No platform, no config, no deployment needed.
 
 ---
 
@@ -42,12 +39,12 @@ pip install runagents
 runagents config set endpoint https://YOUR_WORKSPACE.try.runagents.io
 runagents config set api-key  ra_ws_YOUR_KEY
 
-# Register tools (point base-url at your real APIs)
+# Register tools — point base-url at your real APIs
 runagents tools create --name faq-service     --base-url https://api.your-company.com --auth-type None
-runagents tools create --name account-service --base-url https://api.your-company.com --auth-type APIKey --access-mode Restricted
+runagents tools create --name account-service --base-url https://api.your-company.com --auth-type APIKey
 runagents tools create --name ticket-service  --base-url https://api.your-company.com --auth-type None
 
-# Deploy
+# Deploy — same agent.py and tools.py, no changes
 runagents deploy \
   --name support-agent \
   --files agent.py,tools.py,requirements.txt \
@@ -57,66 +54,62 @@ runagents deploy \
   --model openai/gpt-4o-mini
 ```
 
-The agent code is identical between local and deployed.
+**No changes to agent.py or tools.py.** The platform discovers the
+`chain` variable in `agent.py` and calls `chain.invoke({"input": message})`
+on each request.
 
 ---
 
-## What the Platform Adds (Without Code Changes)
+## How the Platform Discovers Your Agent
 
-### Identity
-Every request carries a JWT from your identity provider. The platform
-validates it at the ingress and extracts the user's identity (e.g. email)
-into an `X-End-User-ID` header. The runtime passes it to `handler()` as
-`request["user_id"]`. Every tool call then carries the user's verified
-identity — `account-service` and `ticket-service` know exactly who is
-making each request.
+The RunAgents runtime looks for well-known variable names in your entry
+point module. In this example, `agent.py` exposes:
 
-```
-Client JWT (sub: user@corp.com)
-  → ingress validates + extracts
-    → X-End-User-ID: user@corp.com
-      → handler() receives request["user_id"]
-        → tools.py sets X-End-User-ID on every outbound call
-          → account-service logs: changed_by = user@corp.com
+```python
+chain = RunnableLambda(lambda x: coordinator(x["input"]))
 ```
 
-### Policy
-Tool access is controlled by PolicyBindings on the cluster, not in code.
+The runtime finds `chain`, sees it has an `.invoke()` method, and calls
+it for every request. No handler function, no platform imports.
 
-| Tool | Access | Behaviour |
-|------|--------|-----------|
-| `faq-service` | Open | Agent operator creates PolicyBinding automatically — works on first deploy |
-| `account-service` | Restricted | Apply `kubectl apply -f` a PolicyBinding YAML, or use the console |
-| `ticket-service` | Open | Same as faq-service — works automatically |
-
-To require human approval before `account-service` allows plan changes,
-set `requireApproval: true` in the PolicyBinding. The run will pause and
-resume automatically after an admin approves — your agent code is unchanged.
-
-### Credentials
-`account-service` uses `--auth-type APIKey`. The platform stores the key
-in a Kubernetes Secret and injects it as `Authorization: Bearer <key>` on
-every outbound call via the Istio mesh. Your tool code never sees the key.
-
-### Durable Resume
-If a tool requires approval and the agent pod restarts before the approval
-is granted, the run still resumes correctly. The conversation checkpoint is
-stored in governance — not in the pod — so resume works regardless of what
-happens to the agent process.
+The same discovery works for `agent`, `executor`, `graph` (LangGraph),
+and `crew` (CrewAI) — whatever you already expose in your code.
 
 ---
 
-## Structure
+## What the Platform Adds
+
+Once deployed, the platform wraps your existing code with:
+
+**Identity** — every request carries a JWT from your identity provider.
+The platform validates it at the ingress, extracts the user's identity
+(e.g. email), and forwards it as `X-End-User-ID` to every tool call.
+Your `account-service` and `ticket-service` receive `who` made the
+request without any code in this repo touching tokens.
+
+**Policy** — tool access is controlled by PolicyBindings on the cluster.
+`faq-service` and `ticket-service` are Open (auto-bound). `account-service`
+is Restricted — you apply a PolicyBinding YAML to grant access, and can
+set `requireApproval: true` to require human sign-off per call.
+
+**Credentials** — `account-service` uses `--auth-type APIKey`. The platform
+stores the key in a Kubernetes Secret and injects `Authorization: Bearer`
+on every outbound call via the Istio mesh. Your `tools.py` never sees it.
+
+**Durable resume** — if a tool requires approval, the platform checkpoints
+the full conversation to governance and resumes automatically after approval,
+even if the agent pod restarts in between.
+
+---
+
+## Files
 
 ```
 multi-agent-local/
-├── agent.py        # Coordinator + KnowledgeAgent + AccountAgent
-├── tools.py        # HTTP tool wrappers (same code local and deployed)
-├── mock_server.py  # Local mock API for all three tools
-├── runagents.yaml  # Platform config (tools, model, system prompt)
+├── agent.py        # Pure LangChain — coordinator + two specialist agents
+├── tools.py        # LangChain tools reading TOOL_URL_* env vars
+├── mock_server.py  # Local mock API (FAQ, accounts, tickets)
+├── runagents.yaml  # Platform config
 ├── requirements.txt
 └── .env.example
 ```
-
-The coordinator and specialist agents are all in `agent.py` — easy to read
-as a whole. `tools.py` is the only file that touches external APIs.

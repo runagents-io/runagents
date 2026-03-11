@@ -1,198 +1,121 @@
 """
-agent.py — Multi-agent customer support system built with LangChain.
+Multi-agent customer support system — pure LangChain.
 
 Three agents, each with a focused role:
-
-  KnowledgeAgent  — answers questions using the FAQ / knowledge base
+  KnowledgeAgent  — answers questions from the FAQ / knowledge base
   AccountAgent    — handles account lookups and plan changes
   Coordinator     — classifies the request and routes to the right agent
 
-This file runs identically in both environments:
+Run locally:
+    python agent.py "What is your return policy?"
+    python agent.py "Look up account CUST-001"
 
-  LOCAL:     python agent.py "your question"
-             Tools call mock_server.py on localhost
+Deploy to RunAgents (no changes to this file):
+    runagents deploy --name support-agent --files agent.py,tools.py,requirements.txt ...
 
-  PLATFORM:  runagents deploy (or python deploy.py)
-             Same code. The platform adds:
-               - Identity: X-End-User-ID from JWT flows to every tool call
-               - Policy:   each tool's access is checked by ext-authz
-               - Credentials: API keys / OAuth2 tokens injected by the mesh
-               - Resume:  if a tool requires approval, the run pauses and
-                          resumes automatically — your code here is unchanged
-
-No conditional logic, no platform-specific imports, no if/else for env.
-The difference between local and deployed is purely infrastructure.
+The RunAgents runtime discovers the module-level `chain` variable and
+calls chain.invoke({"input": message}) automatically. Identity, policy,
+and credential injection are handled by the platform — nothing here changes.
 """
 
 import os
-from typing import Annotated
 from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage, AIMessage, SystemMessage, ToolMessage
-from langchain_core.tools import tool as lc_tool
+from langchain_core.messages import HumanMessage, SystemMessage, ToolMessage
+from langchain_core.tools import tool
+from langchain_core.runnables import RunnableLambda
 
-from tools import (
-    search_faq,
-    lookup_account,
-    update_account_plan,
-    create_support_ticket,
-    set_user_id,
-)
+from tools import search_faq, lookup_account, update_account_plan, create_support_ticket
 
-# ---------------------------------------------------------------------------
-# LLM
-#
-# LOCAL:    set OPENAI_API_KEY in your env; ChatOpenAI calls OpenAI directly.
-# PLATFORM: the runtime injects OPENAI_BASE_URL (LLM Gateway) and
-#           OPENAI_API_KEY before this file loads. ChatOpenAI routes
-#           through the gateway automatically — nothing to configure here.
-# ---------------------------------------------------------------------------
 llm = ChatOpenAI(model=os.environ.get("LLM_MODEL", "gpt-4o-mini"), temperature=0)
 
-MAX_ITER = 6  # max tool-calling iterations per agent
+MAX_ITER = 6
 
 
-# ---------------------------------------------------------------------------
-# Agent runner — shared tool-calling loop for all agents
-# ---------------------------------------------------------------------------
-
-def run_agent(system_prompt: str, tools: list, user_message: str) -> str:
-    """Run a single agent with a tool-calling loop. Returns final text response."""
-    llm_with_tools = llm.bind_tools(tools)
+def run_agent(system_prompt: str, tools: list, message: str) -> str:
+    """Run a single LLM agent with a tool-calling loop."""
+    lm = llm.bind_tools(tools)
     tool_map = {t.name: t for t in tools}
-
-    messages = [
-        SystemMessage(content=system_prompt),
-        HumanMessage(content=user_message),
-    ]
+    messages = [SystemMessage(content=system_prompt), HumanMessage(content=message)]
 
     for _ in range(MAX_ITER):
-        response = llm_with_tools.invoke(messages)
+        response = lm.invoke(messages)
         messages.append(response)
 
         if not getattr(response, "tool_calls", None):
             return response.content or ""
 
         for tc in response.tool_calls:
-            fn   = tool_map.get(tc["name"])
+            fn = tool_map.get(tc["name"])
             result = fn.invoke(tc["args"]) if fn else f"Unknown tool: {tc['name']}"
             messages.append(ToolMessage(content=str(result), tool_call_id=tc["id"]))
 
     return "Reached maximum steps without a final answer."
 
 
-# ---------------------------------------------------------------------------
-# Agent 1: KnowledgeAgent
-# Answers questions about policies, products, and procedures.
-# Tools: search_faq
-# ---------------------------------------------------------------------------
+# --- Specialist agents ---
 
 def knowledge_agent(question: str) -> str:
     return run_agent(
-        system_prompt=(
-            "You are a knowledge base specialist. Answer questions about company "
-            "policies, products, shipping, returns, and procedures. "
-            "Search the FAQ to find accurate answers. Be concise."
-        ),
+        "You are a knowledge base specialist. Answer questions about company "
+        "policies, products, shipping, returns, and procedures. "
+        "Search the FAQ to find accurate answers. Be concise.",
         tools=[search_faq],
-        user_message=question,
+        message=question,
     )
 
 
-# ---------------------------------------------------------------------------
-# Agent 2: AccountAgent
-# Handles account lookups, billing questions, and plan changes.
-# Tools: lookup_account, update_account_plan, create_support_ticket
-# ---------------------------------------------------------------------------
-
-def account_agent(request: str) -> str:
+def account_agent(question: str) -> str:
     return run_agent(
-        system_prompt=(
-            "You are an account management specialist. Help customers with account "
-            "lookups, billing questions, and subscription plan changes. "
-            "Always look up the account first before making changes. "
-            "Create a support ticket for issues you cannot resolve directly."
-        ),
+        "You are an account management specialist. Help with account lookups, "
+        "billing questions, and subscription plan changes. "
+        "Always look up the account before making changes. "
+        "Create a support ticket for issues you cannot resolve directly.",
         tools=[lookup_account, update_account_plan, create_support_ticket],
-        user_message=request,
+        message=question,
     )
 
 
-# ---------------------------------------------------------------------------
-# Coordinator
-#
-# Classifies the request and routes to the right agent.
-# The coordinator itself does not call external tools — it calls the
-# specialist agents above as functions.
-# ---------------------------------------------------------------------------
+# --- Coordinator: routes to the right specialist ---
 
-# Expose agents as LangChain tools so the coordinator can call them
-@lc_tool
+@tool
 def route_to_knowledge_agent(question: str) -> str:
     """Route to the knowledge agent for FAQ, policy, and product questions."""
     return knowledge_agent(question)
 
 
-@lc_tool
-def route_to_account_agent(request: str) -> str:
+@tool
+def route_to_account_agent(question: str) -> str:
     """Route to the account agent for account lookups, billing, and plan changes."""
-    return account_agent(request)
+    return account_agent(question)
 
 
 def coordinator(message: str) -> str:
     return run_agent(
-        system_prompt=(
-            "You are a customer support coordinator. Classify the customer's request "
-            "and route it to the right specialist:\n\n"
-            "  route_to_knowledge_agent — policies, products, FAQ, how-to questions\n"
-            "  route_to_account_agent  — account info, billing, plan changes\n\n"
-            "Use the specialist's response as your final answer. "
-            "Do not answer from your own knowledge — always route to a specialist."
-        ),
+        "You are a customer support coordinator. Route the request to the right specialist:\n"
+        "  route_to_knowledge_agent — policies, products, FAQ, how-to questions\n"
+        "  route_to_account_agent   — account info, billing, plan changes\n"
+        "Always route to a specialist. Use their response as your final answer.",
         tools=[route_to_knowledge_agent, route_to_account_agent],
-        user_message=message,
+        message=message,
     )
 
 
 # ---------------------------------------------------------------------------
-# Handler — entry point for the RunAgents platform runtime
-#
-# The runtime discovers `handler(request, ctx)` and calls it on each
-# POST /invoke request.
-#
-# request["user_id"] is the X-End-User-ID header value — the user's
-# verified identity extracted from the JWT at the platform ingress.
-# We pass it to tools.py so every outbound tool call carries the identity.
+# chain — the RunAgents runtime discovers this variable automatically.
+# It calls chain.invoke({"input": message}) on each request.
+# No handler function, no RunAgents imports needed.
 # ---------------------------------------------------------------------------
-
-def handler(request: dict, ctx) -> str:
-    message = request.get("message", "")
-    user_id = request.get("user_id", "")
-
-    # Propagate verified identity to all tool calls.
-    # On the platform the mesh also forwards X-End-User-ID automatically —
-    # setting it here makes it visible locally too.
-    if user_id:
-        set_user_id(user_id)
-
-    return coordinator(message)
+chain = RunnableLambda(lambda x: coordinator(x["input"]))
 
 
-# ---------------------------------------------------------------------------
-# Local entry point
-# ---------------------------------------------------------------------------
+# --- Local entry point ---
 
 if __name__ == "__main__":
     import sys
 
     if not os.environ.get("OPENAI_API_KEY"):
-        print("Set OPENAI_API_KEY to run locally.")
-        print("  export OPENAI_API_KEY=sk-...")
-        sys.exit(1)
+        print("Set OPENAI_API_KEY to run locally."); sys.exit(1)
 
     message = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "What is your return policy?"
-    print(f"User: {message}")
-    print("-" * 60)
-
-    from types import SimpleNamespace
-    result = handler({"message": message, "user_id": "local-dev"}, SimpleNamespace())
-    print(f"Agent: {result}")
+    print(f"User: {message}\n" + "-" * 60)
+    print(f"Agent: {chain.invoke({'input': message})}")

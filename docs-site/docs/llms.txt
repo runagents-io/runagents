@@ -35,9 +35,14 @@
 - [Build](https://docs.runagents.io/api/build/): Container image build pipeline
 - [Billing](https://docs.runagents.io/api/billing/): Usage and billing API
 
+## Python SDK
+
+- Install: `pip install runagents` — typed API client, Agent SDK, CLI, runtime, and MCP server in one package
+- [PyPI](https://pypi.org/project/runagents/): Python Package Index listing
+
 ## CLI Reference
 
-- [Installation](https://docs.runagents.io/cli/installation/): Install via curl, npm, or Homebrew
+- [Installation](https://docs.runagents.io/cli/installation/): Install via pip, curl, npm, or Homebrew
 - [Commands](https://docs.runagents.io/cli/commands/): All 13 CLI commands
 - [Action Plans](https://docs.runagents.io/cli/action-plans/): Validate-then-apply deployment workflow
 - [Action Plan Examples](https://docs.runagents.io/cli/plan-examples/): Real-world action plan walkthroughs

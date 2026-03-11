@@ -74,7 +74,23 @@ The platform analyzes the sample code, wires tools and LLM, creates access polic
 
 ## Writing Agents
 
-Five patterns from zero-code to framework-based:
+Six patterns from SDK-based to framework-based:
+
+### Using the RunAgents SDK (Recommended)
+
+```python
+from runagents import Agent
+
+agent = Agent()  # reads TOOL_URL_*, LLM_GATEWAY_URL, LLM_MODEL from env
+
+def handler(request, ctx):
+    message = request["message"]
+    result = agent.chat(message)
+    return result["choices"][0]["message"]["content"]
+```
+
+Install: `pip install runagents`
+Scaffold: `runagents init my-agent && cd my-agent && runagents dev`
 
 ### Tier 1: Hello World (No Custom Code)
 
@@ -241,7 +257,7 @@ POST /api/starter-kit — create demo echo-tool and playground-llm (idempotent).
 
 ## CLI Reference
 
-Install: `npm install -g @runagents/cli` or `brew install runagents-io/tap/runagents` or `curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh`
+Install: `pip install runagents` (recommended — includes CLI, SDK, and runtime) or `npm install -g @runagents/cli` or `brew install runagents-io/tap/runagents` or `curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh`
 
 ### Commands
 
@@ -275,7 +291,7 @@ Config stored at ~/.runagents/config.json. Environment variables override: RUNAG
 
 ## MCP Server
 
-Install: `pip install runagents-mcp`
+Install: `pip install runagents[mcp]` (recommended) or `pip install runagents-mcp`
 
 14 tools: list_agents, get_agent, list_tools, list_models, list_runs, get_run_events, export_context, analyze_code, deploy_agent, create_tool, validate_plan, apply_plan, approve_request, seed_starter_kit.
 

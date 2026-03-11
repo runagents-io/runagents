@@ -5,7 +5,9 @@
 ## Install
 
 ```bash
-pip install runagents-mcp
+pip install runagents[mcp]   # recommended — includes full SDK + CLI
+# or
+pip install runagents-mcp    # standalone MCP server only
 ```
 
 ## Configure

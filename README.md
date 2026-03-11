@@ -11,7 +11,34 @@
 
 **[docs.runagents.io](https://docs.runagents.io)**
 
-## Install the CLI
+## Install
+
+### Python SDK (recommended)
+
+```bash
+pip install runagents        # CLI + SDK + runtime
+pip install runagents[mcp]   # + MCP server for AI coding assistants
+```
+
+```python
+from runagents import Client, Agent
+
+# Manage platform resources
+client = Client()
+agents = client.agents.list()
+
+# Write agent code
+agent = Agent()
+result = agent.chat("What is 2+2?")
+```
+
+```bash
+runagents init my-agent   # scaffold project
+runagents dev             # local dev server
+runagents deploy          # ship to platform
+```
+
+### CLI only
 
 ```bash
 # macOS / Linux
@@ -41,9 +68,35 @@ runagents deploy --name my-agent --file agent.py --tool echo-tool --model openai
 runagents runs list
 ```
 
+## AI Assistant Setup (MCP)
+
+Give Claude Code, Cursor, or Codex direct access to deploy and manage agents:
+
+```bash
+pip install runagents[mcp]
+```
+
+Add to `.mcp.json`:
+
+```json
+{
+  "mcpServers": {
+    "runagents": {
+      "command": "runagents-mcp",
+      "env": {
+        "RUNAGENTS_ENDPOINT": "https://YOUR_WORKSPACE.try.runagents.io",
+        "RUNAGENTS_API_KEY": "YOUR_API_KEY"
+      }
+    }
+  }
+}
+```
+
+See [AI Assistant Setup](https://docs.runagents.io/cli/ai-assistant-setup/) for full guide.
+
 ## Get Access
 
-Email **[try@runagents.io](mailto:try@runagents.io)** to request a free trial.
+Email **[try@runagents.io](mailto:try@runagents.io)** to request a free trial or sign up at [try.runagents.io](https://try.runagents.io).
 
 ## License
 

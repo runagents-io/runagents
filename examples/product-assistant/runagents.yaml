@@ -1,0 +1,43 @@
+# runagents.yaml — Agent configuration
+#
+# This file is read by:
+#   - `runagents dev`  → local dev server
+#   - `runagents deploy` (if no flags given) → deploy to platform
+#   - `deploy.py` → programmatic deploy
+
+name: product-assistant
+
+# Tools this agent is allowed to call.
+# The platform will inject TOOL_URL_{NAME} env vars for each one.
+# Tool names must match tools registered on the platform
+# (run `runagents tools list` to see what's available).
+tools:
+  - product-catalog
+  - inventory-service
+  - pricing-engine
+
+# Model configuration.
+# The platform routes this through the LLM gateway — your API key
+# never appears in agent code.
+model:
+  provider: openai         # openai | anthropic | bedrock | ollama
+  model: gpt-4o-mini       # any model name your provider supports
+
+# System prompt injected as the first message in every conversation.
+# Keep it focused on what the agent is allowed to do.
+system_prompt: |
+  You are a helpful product assistant for an e-commerce store.
+  You have access to three tools:
+    - get_product: look up product details by ID
+    - check_inventory: check real-time stock levels by SKU
+    - get_pricing_quote: calculate pricing with volume discounts and promo codes
+
+  Guidelines:
+  - Always check inventory before quoting prices to avoid disappointing customers
+  - For quantities over 50, always call get_pricing_quote (volume discounts apply)
+  - If a product is out of stock, mention the restock date if available
+  - Be concise and helpful; include prices with currency symbols
+
+# Python entry point. The platform runtime will import this module
+# and look for a handler() function.
+entry_point: agent.py

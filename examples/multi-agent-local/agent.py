@@ -41,12 +41,11 @@ from tools import (
 # ---------------------------------------------------------------------------
 # LLM
 #
-# LOCAL:    reads OPENAI_API_KEY from env, calls OpenAI directly
-# PLATFORM: OPENAI_BASE_URL is set to the LLM Gateway by the operator.
-#           ChatOpenAI routes through the gateway — no key in this file.
+# LOCAL:    set OPENAI_API_KEY in your env; ChatOpenAI calls OpenAI directly.
+# PLATFORM: the runtime injects OPENAI_BASE_URL (LLM Gateway) and
+#           OPENAI_API_KEY before this file loads. ChatOpenAI routes
+#           through the gateway automatically — nothing to configure here.
 # ---------------------------------------------------------------------------
-os.environ.setdefault("OPENAI_API_KEY", "platform-managed")  # platform overwrites this
-
 llm = ChatOpenAI(model=os.environ.get("LLM_MODEL", "gpt-4o-mini"), temperature=0)
 
 MAX_ITER = 6  # max tool-calling iterations per agent
@@ -185,13 +184,10 @@ def handler(request: dict, ctx) -> str:
 if __name__ == "__main__":
     import sys
 
-    if not os.environ.get("OPENAI_API_KEY") or os.environ["OPENAI_API_KEY"] == "platform-managed":
+    if not os.environ.get("OPENAI_API_KEY"):
         print("Set OPENAI_API_KEY to run locally.")
         print("  export OPENAI_API_KEY=sk-...")
         sys.exit(1)
-
-    # Remove the platform-managed placeholder so OpenAI SDK uses the real key
-    os.environ.pop("OPENAI_BASE_URL", None)
 
     message = " ".join(sys.argv[1:]) if len(sys.argv) > 1 else "What is your return policy?"
     print(f"User: {message}")

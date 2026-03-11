@@ -31,16 +31,11 @@ from runagents.runtime import ApprovalRequired
 # ---------------------------------------------------------------------------
 # LLM — ChatOpenAI reads OPENAI_BASE_URL automatically.
 #
-# The platform sets OPENAI_BASE_URL to the LLM Gateway when the agent
-# starts, and sets OPENAI_API_KEY to "platform-managed" (a required
-# placeholder — the real credential is injected by the mesh at egress).
-# ChatOpenAI routes through the gateway without any configuration here.
-# Your real OpenAI API key never appears in this file.
-#
-# Locally: set OPENAI_API_KEY to your actual key for direct OpenAI access.
+# LOCAL:    set OPENAI_API_KEY in your env; ChatOpenAI calls OpenAI directly.
+# PLATFORM: the runtime injects OPENAI_BASE_URL (LLM Gateway) and
+#           OPENAI_API_KEY before this file loads. ChatOpenAI routes
+#           through the gateway automatically — nothing to configure here.
 # ---------------------------------------------------------------------------
-os.environ.setdefault("OPENAI_API_KEY", "platform-managed")
-
 llm = ChatOpenAI(
     model=os.environ.get("LLM_MODEL", "gpt-4o-mini"),
     temperature=0,

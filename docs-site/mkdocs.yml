@@ -119,6 +119,8 @@ nav:
     - Model Providers: platform/model-providers.md
     - Identity Providers: platform/identity-providers.md
     - Approvals: platform/approvals.md
+  - Python SDK:
+    - Overview: sdk/index.md
   - API Reference:
     - Overview: api/overview.md
     - Deploy: api/deploy.md

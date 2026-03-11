@@ -37,12 +37,19 @@
 
 ## Python SDK
 
-- Install: `pip install runagents` — typed API client, Agent SDK, CLI, runtime, and MCP server in one package
-- [PyPI](https://pypi.org/project/runagents/): Python Package Index listing
+- [Python SDK](https://docs.runagents.io/sdk/): Full reference — Client, Agent, @tool, CLI, MCP, runtime
+- `pip install runagents` — zero dependencies, Python 3.10+
+- `pip install runagents[mcp]` — includes MCP server (14 tools for AI coding assistants)
+- `Client` — manage agents, tools, runs, approvals, deploy, analyze from Python
+- `Agent` — write agent code: call_tool(), chat(), reads operator env vars
+- `@tool` — decorator for tool handler functions
+- `runagents init [name]` — scaffold a project with agent.py, runagents.yaml, CLAUDE.md, .mcp.json
+- `runagents dev` — local dev server with mock tools, optional hot-reload
+- [PyPI](https://pypi.org/project/runagents/): v0.2.0
 
 ## CLI Reference
 
-- [Installation](https://docs.runagents.io/cli/installation/): Install via pip, curl, npm, or Homebrew
+- [Installation](https://docs.runagents.io/cli/installation/): Install via pip (recommended), curl, npm, or Homebrew
 - [Commands](https://docs.runagents.io/cli/commands/): All 13 CLI commands
 - [Action Plans](https://docs.runagents.io/cli/action-plans/): Validate-then-apply deployment workflow
 - [Action Plan Examples](https://docs.runagents.io/cli/plan-examples/): Real-world action plan walkthroughs

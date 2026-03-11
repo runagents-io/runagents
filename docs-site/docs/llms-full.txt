@@ -255,6 +255,81 @@ POST /api/starter-kit — create demo echo-tool and playground-llm (idempotent).
 
 ---
 
+## Python SDK
+
+Install: `pip install runagents` (zero dependencies, Python 3.10+)
+MCP server: `pip install runagents[mcp]`
+Local dev hot-reload: `pip install runagents[dev]`
+PyPI: https://pypi.org/project/runagents/ (v0.2.0)
+
+### Client — manage platform resources
+
+```python
+from runagents import Client
+
+client = Client()  # reads ~/.runagents/config.json + env vars
+# or: Client(endpoint=..., api_key=..., namespace=...)
+
+agents = client.agents.list()           # → list[Agent]
+agent  = client.agents.get(ns, name)    # → Agent
+result = client.agents.deploy(name, source_files={"agent.py": "..."}, required_tools=["stripe-api"], llm_configs=[{"provider":"openai","model":"gpt-4o-mini","role":"default"}])
+
+tools  = client.tools.list()            # → list[Tool]
+client.tools.create(name, base_url, description, auth_type)
+
+runs   = client.runs.list(agent="name") # → list[Run]
+events = client.runs.events(run_id)     # → list[Event]
+
+approvals = client.approvals.list()
+client.approvals.approve(request_id)
+client.approvals.reject(request_id)
+
+result = client.analyze({"agent.py": code})  # → AnalysisResult
+client.seed_starter_kit()
+```
+
+### Agent — write agent code
+
+```python
+from runagents import Agent
+
+agent = Agent()
+# Reads from env: SYSTEM_PROMPT, LLM_GATEWAY_URL, LLM_MODEL, TOOL_URL_{NAME}
+
+# Call a platform tool (mesh handles auth)
+result = agent.call_tool("stripe-api", "/v1/charges", {"amount": 1000}, method="POST")
+
+# Chat via LLM gateway (your API key never in code)
+response = agent.chat("Summarise this", tools=[...], history=[...])
+```
+
+### @tool decorator
+
+```python
+from runagents import tool
+
+@tool
+def calculate(expression: str) -> str:
+    """Evaluate a math expression."""
+    return str(eval(expression))
+
+@tool(name="weather-lookup", description="Get weather for a city")
+def get_weather(city: str) -> dict: ...
+```
+
+### CLI
+
+```bash
+runagents init my-agent   # scaffold project (agent.py, runagents.yaml, CLAUDE.md, .mcp.json, ...)
+runagents dev             # local dev server :8080 + mock tools :9090
+runagents dev --watch     # with hot-reload (requires pip install runagents[dev])
+```
+
+Config: env vars > ~/.runagents/config.json > defaults
+RUNAGENTS_ENDPOINT, RUNAGENTS_API_KEY, RUNAGENTS_NAMESPACE, RUNAGENTS_ASSISTANT_MODE
+
+---
+
 ## CLI Reference
 
 Install: `pip install runagents` (recommended — includes CLI, SDK, and runtime) or `npm install -g @runagents/cli` or `brew install runagents-io/tap/runagents` or `curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh`
@@ -291,7 +366,7 @@ Config stored at ~/.runagents/config.json. Environment variables override: RUNAG
 
 ## MCP Server
 
-Install: `pip install runagents[mcp]` (recommended) or `pip install runagents-mcp`
+Install: `pip install runagents[mcp]`
 
 14 tools: list_agents, get_agent, list_tools, list_models, list_runs, get_run_events, export_context, analyze_code, deploy_agent, create_tool, validate_plan, apply_plan, approve_request, seed_starter_kit.
 

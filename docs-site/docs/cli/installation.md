@@ -2,7 +2,21 @@
 
 The RunAgents CLI lets you manage your agents, tools, model providers, runs, and approvals from the terminal.
 
-## One-line install (macOS / Linux) — Recommended
+## Python (pip) — Recommended
+
+If you use Python, `pip install runagents` is the easiest way. It installs the CLI, the Python SDK, and the agent runtime in one command.
+
+```bash
+pip install runagents
+```
+
+The `runagents` command is available immediately. The Python SDK (Client, Agent, `@tool`, local dev) is documented at [Python SDK →](../sdk/index.md)
+
+---
+
+## One-line install (macOS / Linux)
+
+Binary-only install — no Python required.
 
 ```bash
 curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh

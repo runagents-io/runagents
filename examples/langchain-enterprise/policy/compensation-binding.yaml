@@ -1,0 +1,91 @@
+# policy/compensation-binding.yaml
+#
+# Grants the hr-assistant agent access to compensation-api WITH approval.
+#
+# With requireApproval: true, every call to compensation-api will:
+#   1. Trigger an AccessRequest (status: Pending)
+#   2. Pause the run (PAUSED_APPROVAL)
+#   3. Wait for admin approval
+#   4. Resume automatically when approved
+#
+# This is the JIT (just-in-time) approval pattern: the PolicyBinding
+# EXISTS (so the agent is not flatly denied), but each operation requires
+# explicit human sign-off before it executes.
+#
+# Apply with:
+#   kubectl apply -f policy/compensation-binding.yaml
+#
+# Without this binding, calls to compensation-api return:
+#   403 {"code": "PERMISSION_DENIED"}  — flat denial, no approval offered
+#
+# With this binding, calls to compensation-api return:
+#   403 {"code": "APPROVAL_REQUIRED", "action_id": "act-xxx", "run_id": "run-xxx"}
+
+---
+apiVersion: platform.ai/v1alpha1
+kind: Policy
+metadata:
+  name: hr-assistant-compensation-api
+  namespace: agent-system
+  labels:
+    runagents.ai/agent: hr-assistant
+    runagents.ai/tool: compensation-api
+spec:
+  rules:
+    - resources:
+        - "tool:compensation-api"
+      verbs:
+        - "call"
+      effect: Allow
+
+---
+apiVersion: platform.ai/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: hr-assistant-compensation-api
+  namespace: agent-system
+  labels:
+    runagents.ai/agent: hr-assistant
+    runagents.ai/tool: compensation-api
+spec:
+  subjects:
+    - kind: ServiceAccount
+      name: hr-assistant
+      namespace: default
+
+  policyRef:
+    name: hr-assistant-compensation-api
+
+  # requireApproval: true
+  # THIS is the key flag. Every call to compensation-api will:
+  #   - Create an AccessRequest in governance
+  #   - Return 403 APPROVAL_REQUIRED to the agent
+  #   - Pause the run until a human approves
+  requireApproval: true
+
+  # ttl: "1h" — the approved PolicyBinding (created by governance on approval)
+  # expires after 1 hour. After expiry, the next call requires approval again.
+  # Leave empty for permanent approval (not recommended for sensitive tools).
+  ttl: "1h"
+
+  # --- What approval looks like in the console / CLI ---
+  #
+  # runagents approvals list
+  # ┌─────────────────┬───────────────────┬───────────────┬──────────────────────┐
+  # │ ID              │ Tool              │ Agent         │ User                 │
+  # ├─────────────────┼───────────────────┼───────────────┼──────────────────────┤
+  # │ act-xxxxxxxx    │ compensation-api  │ hr-assistant  │ analyst@corp.com     │
+  # └─────────────────┴───────────────────┴───────────────┴──────────────────────┘
+  #
+  # runagents approvals approve act-xxxxxxxx
+  # ✓ Approved — run will resume within ~10 seconds
+  #
+  # The ResumeWorker:
+  #   1. Polls governance for APPROVED actions every few seconds
+  #   2. Finds act-xxxxxxxx is approved
+  #   3. Calls POST /resume/act-xxxxxxxx on the hr-assistant pod
+  #      with X-Run-ID: run-xxx header
+  #   4. Runtime fetches checkpoint (messages + pending tool calls)
+  #   5. Re-executes update_compensation — now allowed (approved)
+  #   6. Continues LLM loop and returns final response
+  #   7. Marks action as EXECUTED

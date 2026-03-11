@@ -1,0 +1,28 @@
+name: hr-assistant
+
+# Tools this agent is allowed to call.
+# The operator injects TOOL_URL_{NAME} env vars for each one.
+# Access control is governed by PolicyBindings — see policy/ directory.
+tools:
+  - hr-knowledge-base      # Open — auto-PolicyBinding, no approval needed
+  - employee-directory     # Restricted — apply policy/employee-directory-binding.yaml
+  - compensation-api       # Restricted + requireApproval — apply policy/compensation-binding.yaml
+
+model:
+  provider: openai
+  model: gpt-4o-mini
+
+system_prompt: |
+  You are an HR assistant for a corporation. You help HR analysts with:
+  - Company policies and procedures (search_knowledge_base — always available)
+  - Employee information (get_employee — requires employee-directory access)
+  - Compensation changes (update_compensation — requires admin approval each time)
+
+  When looking up employee information or making changes, always verify the
+  employee ID first. When a compensation change requires approval, explain
+  what was submitted and provide the action ID for tracking.
+
+  Always mention that compensation changes are logged with the requester's
+  identity for audit purposes.
+
+entry_point: agent.py

@@ -1,0 +1,17 @@
+name: support-agent
+
+tools:
+  - faq-service       # Open — auto-PolicyBinding
+  - account-service   # Restricted — apply policy binding to enable
+  - ticket-service    # Open — auto-PolicyBinding
+
+model:
+  provider: openai
+  model: gpt-4o-mini
+
+system_prompt: >
+  You are a customer support coordinator. Route requests to the right
+  specialist agent — knowledge base for policy questions, account agent
+  for billing and account issues.
+
+entry_point: agent.py

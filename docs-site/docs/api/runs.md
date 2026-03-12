@@ -208,12 +208,14 @@ Update the status of a run. Only valid state transitions are allowed.
 
 ### Valid State Transitions
 
-```
-RUNNING --> PAUSED_APPROVAL
-RUNNING --> COMPLETED
-RUNNING --> FAILED
-PAUSED_APPROVAL --> RUNNING
-PAUSED_APPROVAL --> FAILED
+```mermaid
+stateDiagram-v2
+    [*] --> RUNNING
+    RUNNING --> PAUSED_APPROVAL
+    RUNNING --> COMPLETED
+    RUNNING --> FAILED
+    PAUSED_APPROVAL --> RUNNING
+    PAUSED_APPROVAL --> FAILED
 ```
 
 ---

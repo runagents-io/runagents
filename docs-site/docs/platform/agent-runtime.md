@@ -194,20 +194,21 @@ When multiple LLM configs are specified with different roles:
 
 When your agent calls a tool, the request is intercepted by the platform's zero-trust network layer:
 
-```
-Agent  →  Platform Network Layer  →  Tool
-                    │
-                    ├─ Identify target tool
-                    ├─ Verify agent identity
-                    ├─ Check access policy
-                    ├─ Enforce capability restrictions (method + path)
-                    └─ Inject authentication token
+```mermaid
+flowchart LR
+    agent["Agent"] --> layer["Platform Network Layer"]
+    layer --> tool["Tool"]
+    layer -.-> step1["Identify target tool"]
+    layer -.-> step2["Verify agent identity"]
+    layer -.-> step3["Check access policy"]
+    layer -.-> step4["Enforce capability restrictions (method + path)"]
+    layer -.-> step5["Inject authentication token"]
 ```
 
 1. Your agent makes a plain HTTP call to the tool's base URL
 2. The platform intercepts the outbound request transparently
 3. Access policy is checked and an auth token is optionally injected
-4. If the tool requires approval and no policy exists, the agent receives a 403 with `APPROVAL_REQUIRED`
+4. If policy evaluation returns `approval_required`, the agent receives a 403 with `APPROVAL_REQUIRED`
 5. If allowed, the request reaches the tool with proper authentication
 
 Your code never handles authentication tokens directly. The mesh injects them transparently.

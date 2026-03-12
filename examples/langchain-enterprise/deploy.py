@@ -4,11 +4,11 @@ deploy.py — One-shot deploy: register tools, deploy agent, print invoke URL.
 Usage:
     python deploy.py
 
-After deploying, apply policy YAML to enable Restricted tools:
+After deploying, apply policy YAML to bind access policies:
     kubectl apply -f policy/employee-directory-binding.yaml
     kubectl apply -f policy/compensation-binding.yaml
 
-Or use the runagents CLI / console to create PolicyBindings.
+Or use the console/API to create equivalent policies and bindings.
 """
 
 import subprocess
@@ -27,7 +27,7 @@ NAMESPACE  = "default"
 TOOLS = [
     {
         "name":        "hr-knowledge-base",
-        "base_url":    "https://hr-api.your-company.com",   # ← replace
+        "base_url":    "https://knowledge.hr-api.your-company.com",   # ← replace
         "description": "HR policy and procedures knowledge base. GET /articles/search",
         "auth_type":   "None",
         "port":        443,
@@ -35,7 +35,7 @@ TOOLS = [
     },
     {
         "name":        "employee-directory",
-        "base_url":    "https://hr-api.your-company.com",   # ← replace
+        "base_url":    "https://directory.hr-api.your-company.com",   # ← replace
         "description": "Employee directory. GET /employees/{id}",
         "auth_type":   "APIKey",    # platform injects API key from a K8s Secret
         "port":        443,
@@ -43,7 +43,7 @@ TOOLS = [
     },
     {
         "name":        "compensation-api",
-        "base_url":    "https://hr-api.your-company.com",   # ← replace
+        "base_url":    "https://compensation.hr-api.your-company.com",   # ← replace
         "description": "Compensation management. POST /compensation/{id}",
         "auth_type":   "OAuth2",    # platform injects per-user OAuth2 token
         "port":        443,
@@ -137,11 +137,11 @@ def main():
     print("=" * 60)
     print(f"Agent deployed: {AGENT_NAME}")
     print()
-    print("Next: apply PolicyBindings to enable Restricted tools:")
+    print("Next: apply policy YAML to bind access rules:")
     print("  kubectl apply -f policy/employee-directory-binding.yaml")
     print("  kubectl apply -f policy/compensation-binding.yaml")
     print()
-    print("Test (knowledge base — works immediately, Open access):")
+    print("Test (knowledge base — should be allowed by policy):")
     print(f'  curl -X POST {invoke_url} \\')
     print(f'    -H "Authorization: Bearer {cfg.api_key or "YOUR_KEY"}" \\')
     print(f'    -H "Content-Type: application/json" \\')

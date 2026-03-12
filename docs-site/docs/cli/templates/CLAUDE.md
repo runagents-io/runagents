@@ -23,11 +23,10 @@ runagents config set namespace default
 
 ```bash
 # Deploy this agent
-runagents deploy --files agent.py --name my-agent
+runagents deploy --name my-agent --file agent.py
 
-# Deploy with analysis (auto-detect tools + LLM usage)
-runagents analyze --files agent.py         # preview what the platform detects
-runagents deploy --files agent.py --name my-agent --auto-wire
+# Analyze source (preview detected tools + models)
+runagents analyze --file agent.py
 
 # List platform resources
 runagents agents list
@@ -43,8 +42,8 @@ runagents approvals list
 runagents approvals approve <request-id>
 
 # Action plan workflow (validate before apply)
-runagents plan validate --files plan.json
-runagents plan apply --files plan.json
+runagents action validate --file plan.json
+runagents action apply --file plan.json
 ```
 
 ## Agent Code Patterns
@@ -85,9 +84,9 @@ client = openai.OpenAI()
 ## Workflow
 
 1. Write agent code that calls tools via HTTP URLs and uses the LLM gateway
-2. Run `runagents analyze --files agent.py` to verify detection
-3. Register any new tools via `runagents tools create` or the console
-4. Deploy with `runagents deploy --files agent.py --name my-agent`
+2. Run `runagents analyze --file agent.py` to verify detection
+3. Register any new tools via `runagents tools create --file tool.json` or the console
+4. Deploy with `runagents deploy --name my-agent --file agent.py`
 5. Monitor with `runagents runs list --agent my-agent`
 6. Handle approvals with `runagents approvals list` and `runagents approvals approve`
 

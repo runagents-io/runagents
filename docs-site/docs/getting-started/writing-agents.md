@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
 === "CLI"
     ```bash
-    runagents deploy --files agent.py --name hello-world
+    runagents deploy --name hello-world --file agent.py
     ```
 
 **What happens behind the scenes:**
@@ -142,7 +142,7 @@ def _call_llm(llm_url, model, system_prompt, message):
 
 === "CLI"
     ```bash
-    runagents deploy --files agent.py --name my-handler-agent
+    runagents deploy --name my-handler-agent --file agent.py
     ```
 
 **What happens behind the scenes:**
@@ -240,7 +240,7 @@ def _execute_tool(name, args, context):
 
 === "CLI"
     ```bash
-    runagents deploy --files agent.py --name openai-agent
+    runagents deploy --name openai-agent --file agent.py
     ```
 
 **What happens behind the scenes:**
@@ -319,7 +319,7 @@ executor = AgentExecutor(agent=agent, tools=[get_weather, calculate], verbose=Tr
 
 === "CLI"
     ```bash
-    runagents deploy --files agent.py,requirements.txt --name langchain-agent
+    runagents deploy --name langchain-agent --file agent.py --file requirements.txt
     ```
 
 **requirements.txt:**
@@ -444,7 +444,7 @@ graph = workflow.compile()
 
 === "CLI"
     ```bash
-    runagents deploy --files agent.py,requirements.txt --name langgraph-agent
+    runagents deploy --name langgraph-agent --file agent.py --file requirements.txt
     ```
 
 **requirements.txt:**

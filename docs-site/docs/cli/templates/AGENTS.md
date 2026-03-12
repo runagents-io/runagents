@@ -22,11 +22,11 @@ Install: `npm install -g @runagents/cli` or `brew install runagents-io/tap/runag
 
 | Command | Description |
 |---------|-------------|
-| `runagents deploy --files agent.py --name NAME` | Deploy agent from source |
-| `runagents analyze --files agent.py` | Preview code analysis results |
+| `runagents deploy --name NAME --file agent.py` | Deploy agent from source |
+| `runagents analyze --file agent.py` | Preview code analysis results |
 | `runagents agents list` | List deployed agents |
 | `runagents tools list` | List registered tools |
-| `runagents tools create --name NAME --url URL` | Register a new tool |
+| `runagents tools create --file tool.json` | Register a new tool |
 | `runagents models list` | List model providers |
 | `runagents runs list --agent NAME` | List runs for an agent |
 | `runagents approvals list` | List pending access requests |
@@ -43,12 +43,12 @@ Provides 14 tools for direct platform access: `list_agents`, `get_agent`, `list_
 
 ### Deploy a new agent
 1. Write agent code (Python) that calls tools via HTTP and uses the LLM gateway
-2. Run `runagents analyze --files agent.py` to verify tool and LLM detection
+2. Run `runagents analyze --file agent.py` to verify tool and LLM detection
 3. Register any new tools with `runagents tools create`
-4. Deploy with `runagents deploy --files agent.py --name my-agent`
+4. Deploy with `runagents deploy --name my-agent --file agent.py`
 
 ### Add a new tool
-1. Register: `runagents tools create --name stripe-api --url https://api.stripe.com --auth-type APIKey`
+1. Register: `runagents tools create --file stripe-tool.json`
 2. Update agent code to call the new tool URL
 3. Re-deploy the agent
 

@@ -260,9 +260,9 @@ runagents tools list
 
 ```
 NAME          TOPOLOGY   BASE URL                     ACCESS       STATUS
-echo-tool     Internal   http://governance:8092/echo   Open         Available
+echo-tool     Internal   http://governance.agent-system.svc:8092   Restricted   Available
 stripe-api    External   https://api.stripe.com        Restricted   Available
-google-drive  External   https://www.googleapis.com    Critical     Available
+google-drive  External   https://www.googleapis.com    Restricted   Available
 ```
 
 ### `tools get`

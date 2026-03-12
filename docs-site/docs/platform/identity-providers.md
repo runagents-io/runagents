@@ -23,16 +23,23 @@ Navigate to **Identity** in the sidebar, then click **+ New Identity Provider**.
 
 Once an identity provider is configured, here is what happens when a client application sends a request to an agent:
 
-```
-Client App            RunAgents Ingress        Agent           Tool (e.g., Stripe)
-    |                       |                    |                    |
-    |-- JWT in Auth header ->|                    |                    |
-    |                       |-- Validate JWT      |                    |
-    |                       |-- Extract user ID   |                    |
-    |                       |-- X-End-User-ID --->|                    |
-    |                       |                    |-- Call tool ------->|
-    |                       |                    |  (X-End-User-ID    |
-    |                       |                    |   header included) |
+```mermaid
+sequenceDiagram
+    autonumber
+    participant Client as Client Application
+    participant Ingress as RunAgents Ingress
+    participant IdP as Identity Provider (JWKS)
+    participant Agent as Agent Runtime
+    participant Tool as External Tool API
+
+    Client->>Ingress: Authorization: Bearer <JWT>
+    Ingress->>IdP: Validate signature + issuer + audience
+    IdP-->>Ingress: JWT verification result
+    Ingress->>Ingress: Extract userIDClaim (email/sub/etc.)
+    Ingress->>Agent: Forward request + X-End-User-ID
+    Agent->>Tool: Tool API call + X-End-User-ID
+    Tool-->>Agent: Response
+    Agent-->>Client: Agent response
 ```
 
 1. **Client authenticates**: The client application includes a JWT in the `Authorization` header.

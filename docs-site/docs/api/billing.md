@@ -350,18 +350,22 @@ Returns the Stripe publishable key for initializing Stripe Elements on the front
 
 Workspace plans follow a state machine with automatic transitions based on time, usage, and payment events.
 
-```
-Trial (30 days, 1000 actions)
-  |
-  |-- no payment method --> ReadOnly (30 days grace) --> Deleted
-  |
-  |-- payment method added --> Promo (3 months free)
-                                |
-                                |--> Active ($24/mo)
-                                      |
-                                      |-- payment failure --> Suspended
-                                      |
-                                      |-- cancel --> Deleted
+```mermaid
+flowchart TD
+    trial["Trial<br/>(30 days, 1000 actions)"]
+    readonly["ReadOnly<br/>(30-day grace)"]
+    promo["Promo<br/>(3 months free)"]
+    active["Active<br/>($24/mo)"]
+    suspended["Suspended"]
+    deleted["Deleted"]
+
+    trial -->|"No payment method"| readonly
+    readonly -->|"Grace expires"| deleted
+    trial -->|"Payment method added"| promo
+    promo -->|"Promo period ends"| active
+    active -->|"Payment failure"| suspended
+    suspended -->|"Payment resolved"| active
+    active -->|"Cancel subscription"| deleted
 ```
 
 ### Transitions

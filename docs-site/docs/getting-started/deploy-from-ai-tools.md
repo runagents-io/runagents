@@ -73,8 +73,8 @@ Analyzing 3 source files in ./...
   ✓ Detected: openai gpt-4o-mini
 
 I'll create the following:
-  1. Register tool:  stripe   (https://api.stripe.com, OAuth2, Critical)
-  2. Register tool:  slack    (https://slack.com/api, API Key, Open)
+  1. Register tool:  stripe   (https://api.stripe.com, OAuth2)
+  2. Register tool:  slack    (https://slack.com/api, API Key)
   3. Deploy agent:   support-agent (gpt-4o-mini)
 
 Confirm? [y/n] y
@@ -134,8 +134,8 @@ This snapshot includes all registered tools, model providers, agents, policies, 
     Read runagents-context.json to see my current RunAgents workspace.
 
     Generate a file called plan.json that:
-    1. Registers stripe as a tool (https://api.stripe.com, OAuth2, Critical access)
-    2. Registers slack as a tool (https://slack.com/api, API Key, Open access)
+    1. Registers stripe as a tool (https://api.stripe.com, OAuth2)
+    2. Registers slack as a tool (https://slack.com/api, API Key)
     3. Deploys agent.py as "support-agent" using gpt-4o-mini
 
     Follow the RunAgents action plan schema:
@@ -157,8 +157,7 @@ This snapshot includes all registered tools, model providers, agents, policies, 
             "name": "stripe",
             "spec": {
               "connection": { "baseUrl": "https://api.stripe.com" },
-              "authType": "OAuth2",
-              "accessMode": "Critical"
+              "authType": "OAuth2"
             }
           }
         },
@@ -170,8 +169,7 @@ This snapshot includes all registered tools, model providers, agents, policies, 
             "name": "slack",
             "spec": {
               "connection": { "baseUrl": "https://slack.com/api" },
-              "authType": "ApiKey",
-              "accessMode": "Open"
+              "authType": "ApiKey"
             }
           }
         },
@@ -198,8 +196,8 @@ This snapshot includes all registered tools, model providers, agents, policies, 
     Files: runagents-context.json, agent.py
 
     Generate a RunAgents action plan (plan.json) to:
-    - Register stripe (https://api.stripe.com, OAuth2, Critical)
-    - Register slack (https://slack.com/api, API Key, Open)
+    - Register stripe (https://api.stripe.com, OAuth2)
+    - Register slack (https://slack.com/api, API Key)
     - Deploy agent.py as "support-agent" using gpt-4o-mini
 
     Schema reference: https://github.com/runagents-io/runagents/blob/main/docs-site/docs/cli/plan-schema.json
@@ -290,20 +288,13 @@ Analyzing agent.py...
   Entry point:         agent.py
 
 Deploying agent "support-agent"...
-  ✓ Tool bound:      stripe (Open access)
-  ✓ Tool bound:      slack  (Open access)
+  ✓ Tool mapped:     stripe
+  ✓ Tool mapped:     slack
   ✓ Agent deployed:  support-agent (Running)
 ```
 
-The `--tool` flag references tools already registered in your workspace. If a tool doesn't exist yet, register it first:
-
-```bash
-runagents tools create \
-  --name stripe \
-  --url https://api.stripe.com \
-  --auth oauth2 \
-  --access critical
-```
+The `--tool` flag references tools already registered in your workspace.
+If a tool doesn't exist yet, create it first using `runagents tools create --file <tool.json>` or action plans.
 
 ---
 
@@ -314,7 +305,7 @@ Regardless of which path you use, the platform creates the same resources:
 | Resource | What it is |
 |----------|-----------|
 | **Agent** | A running service with its own identity (service account) |
-| **Policy bindings** | Access rules linking the agent to each tool |
+| **Policy bindings** | Access rules linking selected policies to the agent |
 | **Configuration** | Tool URLs, LLM gateway, model settings — injected as env vars |
 | **Tool registrations** | Secure, policy-enforced routes to each external API |
 
@@ -326,7 +317,7 @@ Your agent code runs unchanged. No secrets, no API keys — all credentials are 
 
 ```bash
 # Status
-runagents agents get support-agent
+runagents agents get default support-agent
 
 # Tail recent runs
 runagents runs list --agent support-agent

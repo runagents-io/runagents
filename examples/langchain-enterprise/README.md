@@ -1,90 +1,24 @@
-# LangChain Enterprise Agent — RunAgents Identity & Policy Example
+# LangChain Enterprise Agent (Policy-Driven Approval)
 
-An enterprise HR assistant built with LangChain that demonstrates every
-RunAgents security feature: identity propagation, policy enforcement,
-just-in-time approvals, and OAuth2 credential injection.
-
-```
-HR Analyst → [RunAgents Ingress] → [LangChain Agent] → [HR Tools]
-    JWT             validates              reasons          mesh enforces
-                    extracts identity      tool calls       policies
-                                                            injects creds
-                                                            propagates identity
-```
+This example demonstrates identity propagation, policy enforcement, and JIT approvals for an HR assistant.
 
 ---
 
-## What This Example Demonstrates
+## What It Demonstrates
 
-### 1. Identity Propagation
-The user's identity (`X-End-User-ID`) flows from the JWT at the edge through
-the agent to every tool call. Tools receive the verified end-user identity
-without the agent touching any tokens.
+- Agent calls to multiple HR tools
+- Policy-based allow and `approval_required` decisions
+- Run pause/resume on approval
+- End-user identity propagation (`X-End-User-ID`) to downstream tools
 
-```
-Client JWT (email: analyst@corp.com)
-  → Ingress validates, extracts email claim
-    → Agent receives X-End-User-ID: analyst@corp.com
-      → Tool receives X-End-User-ID: analyst@corp.com
-```
+---
 
-Your LangChain code never handles tokens — the platform carries identity
-end-to-end.
-
-### 2. Three Policy Tiers
-
-| Tool | Access Mode | PolicyBinding | Behaviour |
-|------|-------------|--------------|-----------|
-| `hr-knowledge-base` | Open | Auto-created by operator | Agent calls freely |
-| `employee-directory` | Restricted | Must be created explicitly | Agent calls after binding |
-| `compensation-api` | Restricted + `requireApproval` | Must be created, triggers JIT | First call pauses for admin approval |
-
-### 3. JIT Approval Flow
+## Architecture
 
 ```
-Agent calls compensation-api
-  → ext-authz checks PolicyBinding → requireApproval: true
-    → governance creates AccessRequest (status: Pending)
-      → run pauses (PAUSED_APPROVAL)
-        → 403 APPROVAL_REQUIRED returned to agent
-          → agent catches ApprovalRequired exception
-            → returns: "Submitted for approval (action: act-xxx)"
-
-Admin approves in console or CLI
-  → AccessRequest status → Approved
-    → ResumeWorker polls approved actions
-      → calls /resume/act-xxx on agent pod
-        → runtime restores checkpoint
-          → re-executes compensation-api call (now allowed)
-            → agent completes and responds
+HR Analyst -> RunAgents -> hr-assistant (LangChain) -> HR tools
+                        \-> policy evaluation on every tool call
 ```
-
-### 4. Durable Checkpointing — Resumes Even After Agent Failure
-
-When approval is required, the runtime immediately saves the full
-conversation state to **governance** (not to the agent pod):
-
-```
-approval triggered
-  → runtime POSTs checkpoint to governance
-    → checkpoint stored: messages + pending tool calls + tool definitions
-      → agent pod can crash, restart, or be redeployed
-        → resume still works — checkpoint is fetched from governance
-          → runtime re-executes the pending calls and continues
-```
-
-**This means:**
-- Pod crash between approval and resume → **still resumes correctly**
-- Agent redeployed with a new version → **still resumes correctly**
-- Node eviction, OOM kill, rolling restart → **still resumes correctly**
-
-The checkpoint includes the complete conversation context — every LLM
-message, every tool result, every pending call that was blocked. Your
-LangChain code contributes nothing to this; it is entirely handled by
-the platform runtime at the HTTP layer.
-
-**Your LangChain code doesn't implement any of this.**
-You only catch `ApprovalRequired` and return a user-facing message.
 
 ---
 
@@ -92,217 +26,95 @@ You only catch `ApprovalRequired` and return a user-facing message.
 
 ```bash
 pip install runagents langchain langchain-openai requests
+runagents config set endpoint https://<your-workspace>.try.runagents.io
+runagents config set api-key ra_ws_<your_key>
+runagents config set namespace default
 ```
 
 ---
 
-## Step 1: Credentials
+## 1) Register Tools
+
+Use the console or API to register these tools:
+
+- `hr-knowledge-base` -> `https://knowledge.hr-api.your-company.com`
+- `employee-directory` -> `https://directory.hr-api.your-company.com`
+- `compensation-api` -> `https://compensation.hr-api.your-company.com`
+
+The tool URLs should align with policy resource patterns in `policy/*.yaml`.
+
+---
+
+## 2) Deploy Agent
 
 ```bash
-runagents config set endpoint https://<your-id>.try.runagents.io
-runagents config set api-key  ra_ws_YOUR_KEY_HERE
+python deploy.py
 ```
 
----
-
-## Step 2: Register Tools
+Or deploy directly:
 
 ```bash
-# Open tool — agent operator auto-creates PolicyBinding, agent can call immediately
-runagents tools create \
-  --name hr-knowledge-base \
-  --base-url https://hr-api.your-company.com \
-  --description "HR policy and procedures knowledge base. GET /articles/search" \
-  --auth-type None \
-  --access-mode Open
-
-# Restricted tool — requires explicit PolicyBinding
-runagents tools create \
-  --name employee-directory \
-  --base-url https://hr-api.your-company.com \
-  --description "Employee directory. GET /employees/{id}" \
-  --auth-type APIKey \
-  --access-mode Restricted
-
-# Restricted + approval — PolicyBinding must exist AND triggers JIT approval
-runagents tools create \
-  --name compensation-api \
-  --base-url https://hr-api.your-company.com \
-  --description "Compensation management. POST /compensation/{id}" \
-  --auth-type OAuth2 \
-  --access-mode Restricted
+runagents deploy \
+  --name hr-assistant \
+  --file agent.py \
+  --file tools.py \
+  --file requirements.txt \
+  --tool hr-knowledge-base \
+  --tool employee-directory \
+  --tool compensation-api \
+  --model openai/gpt-4o-mini
 ```
-
-Or run `python deploy.py` — it registers all three and applies the policy YAML.
 
 ---
 
-## Step 3: Apply Policy YAML
-
-The `policy/` directory contains the Kubernetes YAML for policies and bindings.
-
-### What the operator auto-creates (Open tools)
-
-For `hr-knowledge-base` (Open), the agent operator automatically creates:
-
-```yaml
-# policy/auto-generated-open.yaml (for reference — you don't apply this)
-apiVersion: platform.ai/v1alpha1
-kind: Policy
-metadata:
-  name: hr-assistant-hr-knowledge-base
-  namespace: agent-system
-spec:
-  rules:
-    - resources: ["tool:hr-knowledge-base"]
-      verbs: ["call"]
-      effect: Allow
----
-apiVersion: platform.ai/v1alpha1
-kind: PolicyBinding
-metadata:
-  name: hr-assistant-hr-knowledge-base
-  namespace: agent-system
-spec:
-  subjects:
-    - kind: ServiceAccount
-      name: hr-assistant
-      namespace: default
-  policyRef:
-    name: hr-assistant-hr-knowledge-base
-  requireApproval: false
-```
-
-**You don't apply this — the operator handles it.**
-
-### What you must apply (Restricted tools)
-
-Apply these yourself to grant access to the Restricted tools:
+## 3) Apply Policies
 
 ```bash
 kubectl apply -f policy/employee-directory-binding.yaml
 kubectl apply -f policy/compensation-binding.yaml
 ```
 
-See `policy/` directory for the full YAML with explanations.
+These policies bind access to ServiceAccount `hr-assistant`.
 
 ---
 
-## Step 4: Deploy
+## 4) Invoke
 
 ```bash
-python deploy.py
-# or:
-runagents deploy \
-  --name hr-assistant \
-  --files agent.py,tools.py,requirements.txt \
-  --tool hr-knowledge-base \
-  --tool employee-directory \
-  --tool compensation-api \
-  --model openai/gpt-4o-mini \
-  --system-prompt "You are an HR assistant..."
-```
-
----
-
-## Step 5: Invoke
-
-```bash
-# This works immediately (Open tool, no approval needed)
-curl -X POST https://<your-id>.try.runagents.io/api/agents/default/hr-assistant/invoke \
-  -H "Authorization: Bearer ra_ws_YOUR_KEY" \
+curl -X POST https://<workspace>.try.runagents.io/api/agents/default/hr-assistant/invoke \
+  -H "Authorization: Bearer ra_ws_<your_key>" \
   -H "Content-Type: application/json" \
-  -d '{"message": "What is the company maternity leave policy?"}'
-
-# This works if PolicyBinding exists for employee-directory
-curl -X POST .../invoke \
-  -d '{"message": "Look up employee ID EMP-042"}'
-
-# This triggers JIT approval (requireApproval: true in PolicyBinding)
-curl -X POST .../invoke \
-  -d '{"message": "Update salary for EMP-042 to $95,000"}'
-# Response: "Submitted for approval. Action ID: act-xxxxxxxx"
+  -d '{"message": "Look up employee EMP-042"}'
 ```
+
+For compensation writes, policy should return `APPROVAL_REQUIRED`.
 
 ---
 
-## Step 6: Handle the Approval
-
-After a compensation update is requested:
+## 5) Approve
 
 ```bash
-# See the pending approval
 runagents approvals list
-
-# Output:
-# ID:      act-xxxxxxxx
-# Tool:    compensation-api
-# Agent:   hr-assistant
-# User:    analyst@corp.com   ← identity propagated end-to-end
-# Action:  POST /compensation/EMP-042  {"salary": 95000}
-
-# Approve it
-runagents approvals approve act-xxxxxxxx
+runagents approvals approve <request-id>
 ```
 
-The ResumeWorker picks up the approved action within ~10 seconds,
-calls `/resume/act-xxxxxxxx` on the agent pod, restores the checkpoint,
-and completes the compensation update.
+After approval, blocked run actions are resumed automatically.
 
 ---
 
-## Step 7: Monitor the Run
+## Key Policy Behavior
 
-```bash
-runagents runs list --agent hr-assistant
-
-# Output:
-# run-abc  PAUSED_APPROVAL  2026-03-11T10:00:00Z
-# run-xyz  COMPLETED        2026-03-11T09:55:00Z
-
-runagents runs get run-abc
-# Events:
-#   [01] invoke       {"message": "Update salary for EMP-042..."}
-#   [02] tool_call    {"tool": "employee-directory", "input": {"id": "EMP-042"}}
-#   [03] tool_result  {"employee": {"name": "Jane Doe", ...}}
-#   [04] tool_call    {"tool": "compensation-api", "input": {...}}
-#   [05] APPROVAL_REQUIRED  {"action_id": "act-xxxxxxxx", "tool": "compensation-api"}
-```
+- `employee-directory`: `allow` rule for read operations.
+- `compensation-api`: `approval_required` rule for write operations.
+- Precedence: `deny` > `approval_required` > `allow` > default deny.
 
 ---
 
-## Local Development
+## Files
 
-```bash
-# Terminal 1: mock tool server (shows identity headers being received)
-python mock_tools/server.py
+- `agent.py` — LangChain orchestration
+- `tools.py` — Tool wrappers
+- `deploy.py` — Example deploy helper
+- `policy/employee-directory-binding.yaml`
+- `policy/compensation-binding.yaml`
 
-# Terminal 2: agent dev server
-runagents dev
-
-# Terminal 3: test (no JWT needed for local dev)
-curl -X POST http://localhost:8080/invoke \
-  -H "Content-Type: application/json" \
-  -H "X-End-User-ID: developer@local" \
-  -d '{"message": "What is the PTO policy?"}'
-```
-
----
-
-## Project Structure
-
-```
-langchain-enterprise/
-├── README.md             # This file
-├── agent.py              # LangChain ReAct agent + handler function
-├── tools.py              # Tool definitions with identity + approval handling
-├── runagents.yaml        # Agent config
-├── requirements.txt      # Python dependencies
-├── deploy.py             # One-shot deploy (tools + policy + agent)
-├── policy/
-│   ├── README.md         # Policy model explanation
-│   ├── employee-directory-binding.yaml   # Apply to grant access
-│   └── compensation-binding.yaml         # Apply — triggers JIT on first call
-└── mock_tools/
-    └── server.py         # Local mock showing identity header flow
-```

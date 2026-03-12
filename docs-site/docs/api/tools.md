@@ -109,8 +109,7 @@ Register a new tool. Idempotent -- creating a tool with an existing name updates
           },
           "governance": {
             "accessControl": {
-              "mode": "Restricted",
-              "requireApproval": false
+              "mode": "Restricted"
             },
             "caching": {
               "enabled": true,
@@ -169,7 +168,7 @@ Register a new tool. Idempotent -- creating a tool with an existing name updates
                     },
                 },
                 "governance": {
-                    "accessControl": {"mode": "Restricted", "requireApproval": False},
+                    "accessControl": {"mode": "Restricted"},
                     "caching": {"enabled": True, "duration": "5m"},
                 },
                 "capabilities": [
@@ -224,7 +223,7 @@ Register a new tool. Idempotent -- creating a tool with an existing name updates
       }
     },
     "governance": {
-      "accessControl": {"mode": "Restricted", "requireApproval": false},
+      "accessControl": {"mode": "Restricted"},
       "caching": {"enabled": true, "duration": "5m"}
     },
     "capabilities": [
@@ -266,7 +265,7 @@ Register a new tool. Idempotent -- creating a tool with an existing name updates
             }
           },
           "governance": {
-            "accessControl": {"mode": "Restricted", "requireApproval": true},
+            "accessControl": {"mode": "Restricted"},
             "approval": {
               "group": "platform-admins",
               "defaultDuration": "4h",
@@ -489,7 +488,7 @@ Manages OAuth2 token lifecycle including refresh and user consent flows.
 | Field | Type | Description |
 |-------|------|-------------|
 | `accessControl.mode` | string | Access mode (see below) |
-| `accessControl.requireApproval` | boolean | Whether denied access triggers the JIT approval flow |
+| `accessControl.requireApproval` | boolean | Deprecated for runtime authorization; use policy rule `permission: approval_required` |
 | `approval.group` | string | Admin group that reviews access requests |
 | `approval.defaultDuration` | string | Default access window (e.g., `"4h"`) |
 | `approval.autoExpire` | boolean | Automatically clean up expired access |
@@ -500,9 +499,12 @@ Manages OAuth2 token lifecycle including refresh and user consent flows.
 
 | Mode | Behavior |
 |------|----------|
-| `Open` | All agents are automatically granted access |
-| `Restricted` | Access requires explicit policy binding. Agents must be authorized before calling the tool |
-| `Critical` | Same as Restricted, plus requires admin approval for each access grant |
+| `Open` | UI/default posture for low-risk tools |
+| `Restricted` | Recommended default posture for production tools |
+| `Critical` | Legacy high-risk label; prefer policy-level `approval_required` rules |
+
+!!! info "Policy-first runtime"
+    Runtime authorization is based on bound policy rules (`allow`, `deny`, `approval_required`) plus capability checks. Access modes are not the primary runtime authorization source.
 
 ### Capabilities
 

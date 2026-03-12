@@ -69,17 +69,18 @@ Full OAuth2 flow with automatic token management. The platform handles token ref
 
 ## Access Control
 
-Access control determines which agents can call this tool and whether admin approval is needed.
+Tool governance fields set the tool's default posture in the UI, but runtime authorization is policy-driven.
+Use [Policy Model](../concepts/policy-model.md) semantics (`allow`, `deny`, `approval_required`) to control real access.
 
 | Mode | Behavior |
 |------|----------|
-| **Open** | Any agent that lists this tool in its configuration gets automatic access. No approval needed. |
-| **Restricted** | Access requires an explicit policy binding. Agents must be granted access by an admin. |
-| **Critical** | Requires just-in-time (JIT) admin approval for each access. Requests are paused until approved. See [Approvals](approvals.md). |
+| **Open** | Convenience posture for low-risk tools. |
+| **Restricted** | Recommended default posture for production tools. |
+| **Critical** | Legacy high-risk label; prefer explicit `approval_required` policy rules. |
 
 ### Approval Settings
 
-When access control is set to **Critical** (or `requireApproval` is enabled), configure the approval workflow:
+Approval routing should be configured in policy approval rules (`spec.approvals`). Tool-level approval fields are defaults/metadata, not the runtime authorization trigger.
 
 | Field | Description | Default |
 |-------|-------------|---------|
@@ -159,7 +160,7 @@ Here is a complete example of registering the Stripe API as a tool with API key 
 
 With this configuration:
 
-- Only agents explicitly granted access can call the Stripe API
+- Only agents with matching bound policies can call the Stripe API
 - Agents can only call `POST /v1/charges` and `GET /v1/charges` -- any other endpoint is blocked
 - The platform injects the `Authorization: Bearer sk-xxx` header automatically
 - Your agent code never handles or stores the Stripe API key
@@ -190,7 +191,7 @@ The **echo-tool** is a built-in demo tool included in the RunAgents starter kit.
 
 - **Location**: Internal
 - **Base URL**: Points to the platform's built-in echo endpoint
-- **Access Control**: Open (any agent can use it)
+- **Access Control**: Restricted default posture (authorize via policy binding)
 - **Authentication**: None
 
 The echo tool accepts `POST` requests with a JSON body `{"message": "..."}` and echoes the message back. It is designed for testing the deploy flow without any external dependencies.

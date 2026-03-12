@@ -32,17 +32,14 @@ Each run is assigned a unique ID and begins in the `RUNNING` state.
 
 ### State Transitions
 
-```
-                 ┌──────────────────────────────────┐
-                 |                                  |
-                 v                                  |
-RUNNING ───> PAUSED_APPROVAL ───(approved)───> RUNNING
-   |                |
-   v                v
-COMPLETED       FAILED
-
-RUNNING ───> FAILED
-RUNNING ───> COMPLETED
+```mermaid
+stateDiagram-v2
+    [*] --> RUNNING
+    RUNNING --> COMPLETED: Agent finished successfully
+    RUNNING --> FAILED: Runtime or tool error
+    RUNNING --> PAUSED_APPROVAL: approval_required decision
+    PAUSED_APPROVAL --> RUNNING: Admin approved
+    PAUSED_APPROVAL --> FAILED: Rejected / timed out
 ```
 
 !!! info "Only forward transitions"
@@ -84,11 +81,11 @@ Events provide a complete audit trail of agent behavior. Use them for debugging,
 
 ## Blocked Actions and Approval Workflow
 
-When an agent calls a tool that requires approval, the following sequence occurs:
+When an agent calls a tool and policy evaluation resolves to `approval_required`, the following sequence occurs:
 
 ### 1. Request Blocked
 
-The platform intercepts the tool call and determines that the agent does not have an active policy binding, and the tool requires approval.
+The platform intercepts the tool call and blocks it because the effective policy decision is `approval_required`.
 
 ### 2. Blocked Action Created
 

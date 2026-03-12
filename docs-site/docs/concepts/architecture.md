@@ -7,16 +7,24 @@ description: High-level overview of how RunAgents processes requests through thr
 
 RunAgents processes every agent interaction through three stages: **Ingress**, **Runtime**, and **Egress**. Together, they ensure that user identity, access policy, and credentials are handled transparently — so you can focus on writing agent logic, not security plumbing.
 
-```
-Client App ──JWT──> [RunAgents Ingress] ──X-End-User-ID──> Agent
-                                                              |
-                                              ┌───────────────┤
-                                              v               v
-                                         [LLM Gateway]   [Tool Proxy]
-                                              |               |
-                                              v               v
-                                         Model Provider   External API
-                                         (OpenAI, etc.)   (Stripe, etc.)
+```mermaid
+flowchart LR
+    client["Client Application"]
+    idp["Identity Provider<br/>(OIDC/JWKS)"]
+    ingress["RunAgents Ingress"]
+    runtime["Agent Runtime"]
+    llm["LLM Gateway"]
+    egress["Policy & Egress Layer"]
+    model["Model Provider APIs<br/>(OpenAI, Anthropic, Bedrock, ...)"]
+    tools["External Tool APIs<br/>(Stripe, Slack, GitHub, ...)"]
+
+    client -->|"JWT"| ingress
+    ingress -.->|"Validate signature & claims"| idp
+    ingress -->|"X-End-User-ID"| runtime
+    runtime -->|"Model requests"| llm
+    runtime -->|"Tool requests"| egress
+    llm --> model
+    egress --> tools
 ```
 
 ---
@@ -69,11 +77,12 @@ The agent's service identity (a unique identifier per agent, separate from the e
 
 ### 3. Policy Evaluation
 
-The platform checks whether the agent has a valid policy binding for the target tool:
+The platform evaluates bound policy rules for the agent ServiceAccount with precedence:
+`deny` > `approval_required` > `allow` > default deny.
 
 - **Allowed** -- Proceed to the next step
-- **Denied, approval required** -- Create an access request, pause the run, return `APPROVAL_REQUIRED`
-- **Denied, no approval path** -- Return `403 Forbidden`
+- **Approval required** -- Create an access request, pause the run, return `APPROVAL_REQUIRED`
+- **Denied** -- Return `403 Forbidden`
 
 ### 4. Capability Enforcement
 

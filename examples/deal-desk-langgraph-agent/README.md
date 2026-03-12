@@ -17,7 +17,8 @@ Open-source framework: `langgraph`
 
 ```bash
 runagents deploy \
-  --files agent.py,requirements.txt \
+  --file agent.py \
+  --file requirements.txt \
   --name deal-desk-agent
 ```
 

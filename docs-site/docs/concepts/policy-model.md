@@ -1,248 +1,192 @@
 ---
 title: Policy Model
-description: How RunAgents enforces access control through policies, policy bindings, auto-binding, access control modes, and capability-level enforcement.
+description: How RunAgents enforces tool access with policy rules, policy bindings, capability checks, and just-in-time approvals.
 ---
 
 # Policy Model
 
-RunAgents enforces access control on every outbound request from an agent. The policy model determines which agents can call which tools, at what granularity, and whether human approval is required.
+RunAgents evaluates every outbound agent-to-tool call against policy. Access is **deny by default**, and approvals are triggered by policy rules (`approval_required`) rather than legacy tool flags.
 
 ---
 
-## Core Concepts
+## Runtime Source Of Truth
 
-### Policies
+At runtime, policy decisions are made in this order:
 
-A **policy** defines what actions are allowed, denied, or require approval. Each policy contains one or more rules:
+1. **Tool match**: Destination host must match a registered tool, otherwise the call is denied.
+2. **Policy binding lookup**: Find policies bound to the agent ServiceAccount.
+3. **Policy rule evaluation** (for matching resource/tags + HTTP method):
+    - `deny` wins immediately
+    - otherwise `approval_required`
+    - otherwise `allow`
+    - otherwise deny
+4. **Capability check**: If tool capabilities are defined, method+path must match.
+5. **Auth injection + forward**: Only after policy and capability checks pass.
+
+```mermaid
+flowchart TD
+    start["Outbound tool call"]
+    tool{"Tool host registered?"}
+    bindings{"Matching PolicyBinding for agent SA?"}
+    denyRule{"Matching deny rule?"}
+    approvalRule{"Matching approval_required rule?"}
+    allowRule{"Matching allow rule?"}
+    caps{"Capabilities declared?"}
+    capMatch{"Method + path match capability?"}
+    permit["Inject auth + forward request"]
+    approval["Create approval request<br/>Return APPROVAL_REQUIRED"]
+    deny["Deny request (403)"]
+
+    start --> tool
+    tool -->|"No"| deny
+    tool -->|"Yes"| bindings
+    bindings -->|"No"| deny
+    bindings -->|"Yes"| denyRule
+    denyRule -->|"Yes"| deny
+    denyRule -->|"No"| approvalRule
+    approvalRule -->|"Yes"| approval
+    approvalRule -->|"No"| allowRule
+    allowRule -->|"No"| deny
+    allowRule -->|"Yes"| caps
+    caps -->|"No"| permit
+    caps -->|"Yes"| capMatch
+    capMatch -->|"No"| deny
+    capMatch -->|"Yes"| permit
+```
+
+!!! info "Current identity scope"
+    Runtime policy evaluation is currently driven by the **agent ServiceAccount** identity.
+
+---
+
+## Policy Rules
+
+A policy defines access behavior through `spec.policies` rules.
 
 ```yaml
-name: stripe-read-only
-rules:
-  - permission: allow
-    resource: "https://api.stripe.com/v1/charges*"
-    operations: [GET]
-  - permission: deny
-    resource: "https://api.stripe.com/v1/charges*"
-    operations: [DELETE]
-  - permission: approval_required
-    resource: "https://api.stripe.com/v1/refunds*"
-    operations: [POST]
+apiVersion: platform.ai/v1alpha1
+kind: Policy
+metadata:
+  name: payments-access
+spec:
+  policies:
+    - permission: allow
+      resource: https://api.stripe.com/*
+      operations: [GET]
+    - permission: approval_required
+      tags: [financial]
+      operations: [POST]
+    - permission: deny
+      resource: https://api.stripe.com/*
+      operations: [DELETE]
 ```
 
 | Field | Description |
 |---|---|
 | `permission` | `allow`, `deny`, or `approval_required` |
-| `resource` | URL pattern with wildcard support (e.g., `https://api.stripe.com/*`) |
-| `operations` | Optional list of HTTP methods (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`). If omitted, the rule applies to all methods. |
-| `tags` | Optional list of tags to match against tool risk tags (e.g., `["financial", "pii"]`) |
+| `resource` | URL pattern, supports wildcard suffix (e.g. `https://api.stripe.com/*`) |
+| `operations` | Optional HTTP methods. Empty means all methods. |
+| `tags` | Optional tool risk tags. Rule matches if any listed tag is on the tool. |
 
-!!! warning "Precedence: deny > approval_required > allow"
+!!! warning "Precedence"
+    Decision precedence is always: **`deny` > `approval_required` > `allow` > default deny**.
 
-    When multiple rules match a request, the strictest wins. `deny` overrides everything. `approval_required` overrides `allow`. This follows the principle of least privilege.
+---
 
-#### Approval-Required Rules
+## Policy Bindings
 
-Rules with `permission: approval_required` trigger the just-in-time approval workflow. When an agent hits an `approval_required` rule:
-
-1. The agent's run is paused (`PAUSED_APPROVAL`)
-2. An access request is created for admin review
-3. If approved, a time-limited policy binding is created and the run resumes
-4. If rejected, the request fails with a 403
-
-This is the recommended way to gate high-risk operations — use `approval_required` in policy rules rather than relying on tool-level `requireApproval` flags.
-
-!!! example "Deal Desk pattern"
-    A common pattern is to allow low-risk reads but require approval for writes:
-
-    ```yaml
-    rules:
-      - permission: allow
-        resource: "https://api.erp.com/*"
-        operations: [GET]
-      - permission: approval_required
-        resource: "https://api.erp.com/credit-notes*"
-        operations: [POST]
-    ```
-
-    See the [deal-desk-langgraph-agent](https://github.com/runagents-io/runagents/tree/main/examples/deal-desk-langgraph-agent) example for a complete walkthrough.
-
-### Policy Bindings
-
-A **policy binding** links a policy to one or more subjects (identities):
+A policy binding connects policies to an agent identity:
 
 ```yaml
-name: billing-agent-stripe-access
-policy: stripe-read-only
-subjects:
-  - kind: ServiceAccount
-    name: billing-agent
-  - kind: Group
-    name: finance-team
+apiVersion: platform.ai/v1alpha1
+kind: PolicyBinding
+metadata:
+  name: billing-agent-payments-access
+spec:
+  policyRef:
+    name: payments-access
+  subjects:
+    - kind: ServiceAccount
+      name: billing-agent
 ```
 
-| Subject Kind | Description |
-|---|---|
-| `ServiceAccount` | An agent's identity. Each agent gets a unique service account when deployed. |
-| `User` | An end-user identity (as identified by `X-End-User-ID`). |
-| `Group` | A named group of users or agents. |
-
-!!! info "Agents are identified by service account"
-
-    When RunAgents evaluates a policy, it uses the agent's service account identity -- not the end-user's identity. This means you grant permissions to specific agents, and the platform verifies the agent's identity cryptographically on every request.
+Use bindings to decide which policies apply to each deployed agent.
 
 ---
 
-## Access Control Modes
+## Approval Routing In Policy
 
-Every tool registered on RunAgents has an access control mode that determines how agents gain access:
-
-| Mode | Behavior | Best For |
-|---|---|---|
-| **Open** | Auto-bind on deploy. Any agent that lists this tool as required gets access automatically. | Internal tools, low-risk APIs, development environments |
-| **Restricted** | Manual binding required. An admin must create a policy + policy binding to grant access. | Production APIs, third-party services with rate limits |
-| **Critical** | Just-in-time approval required. Each access request needs explicit admin approval with a time-limited window. | Financial APIs, data deletion endpoints, compliance-sensitive tools |
-
----
-
-## Auto-Binding (Open Tools)
-
-When you deploy an agent with required tools, RunAgents automatically creates policies and bindings for tools that use **Open** access control:
-
-1. Agent is deployed with `requiredTools: [echo-tool, internal-api]`
-2. Both tools are configured with Open access mode
-3. RunAgents creates:
-    - A policy allowing the agent to call each tool's URL
-    - A policy binding linking the agent's service account to the policy
-4. The agent can call both tools immediately -- no manual policy setup needed
-
-!!! tip "Auto-bindings are cleaned up automatically"
-
-    When you delete an agent, its auto-created policies and bindings are deleted too. No orphaned policies to manage.
-
----
-
-## Manual Policy Binding (Restricted Tools)
-
-For tools with **Restricted** access, you must explicitly create policies and bindings:
-
-=== "Console"
-
-    1. Go to **Approvals** in the sidebar
-    2. Navigate to the **Policies** tab
-    3. Create a new policy with the desired rules
-    4. Create a policy binding linking the policy to the agent
-
-=== "API"
-
-    ```bash
-    # Create a policy
-    curl -X POST https://your-platform/api/policies \
-      -H "Content-Type: application/json" \
-      -d '{
-        "name": "stripe-full-access",
-        "rules": [{
-          "permission": "allow",
-          "resource": "https://api.stripe.com/*"
-        }]
-      }'
-
-    # Bind it to an agent
-    curl -X POST https://your-platform/api/policy-bindings \
-      -H "Content-Type: application/json" \
-      -d '{
-        "name": "billing-agent-stripe",
-        "policy": "stripe-full-access",
-        "subjects": [{
-          "kind": "ServiceAccount",
-          "name": "billing-agent"
-        }]
-      }'
-    ```
-
----
-
-## Just-In-Time Approvals
-
-The platform enforces a human-in-the-loop workflow when a policy rule has `permission: approval_required` (or for legacy tools marked as **Critical**):
-
-1. Agent calls the tool
-2. Platform evaluates matching policy rules and the winning rule is `approval_required`
-3. An **access request** is created with details about the agent, tool, and requested capability
-4. The agent's run is paused (`PAUSED_APPROVAL` state)
-5. Admin reviews and approves or rejects the request
-6. If approved: a time-limited policy binding is created, the run resumes, and the agent retries the tool call
-7. When the TTL expires, the binding is automatically removed
-
-!!! tip "Policy-driven approvals"
-
-    The recommended approach is to use `approval_required` in policy rules rather than the tool-level `requireApproval` flag. Policy rules give you finer control — you can require approval for specific operations (e.g., POST to `/refunds`) while allowing reads without approval.
-
-!!! warning "Time-limited access"
-
-    Approved access expires after a configurable TTL (time-to-live). Once expired, the agent must request access again. This prevents long-lived permissions on sensitive operations.
-
-See [Run Lifecycle](../operations/runs.md) for details on how runs pause and resume during approvals.
-
----
-
-## Capability-Level Enforcement
-
-Beyond URL-level policies, tools can declare specific **capabilities** -- the operations they support:
+Approval authority and delivery are configured in `spec.approvals` on a Policy.
 
 ```yaml
-name: stripe-tool
-baseUrl: https://api.stripe.com
-capabilities:
-  - method: GET
-    pathPattern: /v1/charges
-  - method: POST
-    pathPattern: /v1/charges
-  - method: GET
-    pathPattern: /v1/customers
+spec:
+  approvals:
+    - name: financial-posts
+      tags: [financial]
+      operations: [POST]
+      approvers:
+        groups: [finance-approvers]
+        match: any
+      defaultDuration: 4h
+      delivery:
+        connectors: [slack-finance]
+        mode: first_success
+        fallbackToUI: true
 ```
 
-When capabilities are declared:
+This controls:
 
-- Only requests matching a declared capability (method + path prefix) are allowed
-- Even if the agent has a valid policy binding, a non-matching operation is blocked
-- This acts as an additional layer of defense beyond policy rules
-
-**Example**: An agent with full `allow` access to `https://api.stripe.com/*` calls `DELETE /v1/charges/ch_123`. If the tool only declares `GET` and `POST` capabilities, the `DELETE` request is blocked with `403 operation not permitted`.
-
-!!! info "Empty capabilities = passthrough"
-
-    If a tool does not declare any capabilities, all operations are allowed (subject to policy evaluation). Capabilities are an opt-in restriction for tools where you want operation-level granularity.
+- who can approve (`approvers.groups`)
+- how group matching works (`any` or `all`)
+- default approval TTL (`defaultDuration`)
+- where requests are sent (connectors / fallback)
 
 ---
 
-## Policy Evaluation Order
+## Just-In-Time Approval Flow
 
-When an agent makes an outbound request, the platform evaluates access in this order:
+When a matching policy rule returns `approval_required`:
 
-1. **Tool identification** -- Match the destination host to a registered tool. If no match, deny.
-2. **Agent identification** -- Verify the agent's service identity.
-3. **Policy binding lookup** -- Find all policy bindings for this agent + tool combination.
-4. **Rule evaluation** -- Evaluate all matching rules. Precedence: `deny` > `approval_required` > `allow`.
-5. **Capability check** -- If the tool declares capabilities, verify the method + path matches.
-6. **Approval check** -- If the winning rule is `approval_required`, create an access request and pause the run. If no rules match at all, deny.
+1. The call is blocked with `403` and `code=APPROVAL_REQUIRED`.
+2. An access request is created.
+3. If the call is part of a run, the run moves to `PAUSED_APPROVAL`.
+4. On approval, RunAgents creates a temporary allow policy + binding and resumes work.
+5. On expiry, that temporary grant is cleaned up automatically.
 
 ---
 
-## Summary
+## Capabilities Are A Second Guardrail
 
-| Concept | Purpose |
-|---|---|
-| **Policy** | Defines allow/deny/approval_required rules for resources (URL patterns) and operations (HTTP methods) |
-| **Policy Binding** | Links a policy to agents, users, or groups |
-| **Auto-Binding** | Automatic policy creation for Open tools when agents are deployed |
-| **Access Modes** | Open (auto), Restricted (manual), Critical (approval required) |
-| **Capabilities** | Operation-level allow-lists on tools (method + path) |
-| **TTL Expiry** | Time-limited access for approved Critical tool bindings |
+Capabilities are operation allow-lists on tools. They are checked **after** policy allow/approval resolution.
+
+- If capabilities are defined, non-matching method/path requests are denied.
+- If capabilities are empty, capability filtering is skipped.
+
+This lets you combine broad policy resources with strict operation-level controls.
+
+---
+
+## About Tool Access Control Fields
+
+Tool `governance.accessControl.mode` is still present for UI/default posture, but runtime authorization is policy-driven.
+
+`governance.accessControl.requireApproval` is deprecated for runtime authorization; use policy rules with `permission: approval_required`.
+
+---
+
+## Recommended Pattern
+
+1. Register tools with accurate base URL, auth, capabilities, and risk tags.
+2. Create policies that express allow/deny/approval-required behavior.
+3. Bind policies to agent ServiceAccounts during deploy.
+4. Add approval rules (`spec.approvals`) for approver groups and connector routing.
+5. Verify behavior with run timelines and approval logs.
 
 ---
 
 ## Next Steps
 
-- [OAuth & Consent](oauth-consent.md) -- How authentication works alongside policy enforcement
-- [Run Lifecycle](../operations/runs.md) -- How approval workflows integrate with run state management
-- [Architecture](architecture.md) -- See where policy evaluation happens in the three-stage flow
+- [Approvals](../platform/approvals.md)
+- [Registering Tools](../platform/registering-tools.md)
+- [Architecture](architecture.md)
+- [Run Lifecycle](../operations/runs.md)

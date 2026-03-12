@@ -15,8 +15,13 @@ RunAgents ensures that user identity flows from the client application, through 
 
 The end user logs into your client application and receives a JWT (JSON Web Token) from your identity provider (e.g., Auth0, Okta, Firebase Auth, or any OIDC-compliant provider).
 
-```
-User ──login──> Your App ──JWT──> RunAgents
+```mermaid
+sequenceDiagram
+    participant User
+    participant App as Your App
+    participant RunAgents
+    User->>App: Login
+    App->>RunAgents: JWT
 ```
 
 ### Step 2: Ingress Validates

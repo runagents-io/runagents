@@ -1,62 +1,30 @@
-# policy/employee-directory-binding.yaml
-#
-# Grants the hr-assistant agent access to the employee-directory tool.
-# Access is open once this binding exists — no per-call approval needed.
+# Grants hr-assistant read access to the employee directory API.
 #
 # Apply with:
 #   kubectl apply -f policy/employee-directory-binding.yaml
-#
-# Remove with:
-#   kubectl delete -f policy/employee-directory-binding.yaml
-#   (The agent will lose access to employee-directory immediately)
 
 ---
-# Policy: defines WHAT access is granted (which tool, which operations)
 apiVersion: platform.ai/v1alpha1
 kind: Policy
 metadata:
   name: hr-assistant-employee-directory
-  namespace: agent-system   # all platform resources live in agent-system
-  labels:
-    runagents.ai/agent: hr-assistant
-    runagents.ai/tool: employee-directory
+  namespace: default
 spec:
-  rules:
-    - resources:
-        # Resource URN format: "tool:{tool-name}"
-        # Matches the Tool CRD named "employee-directory"
-        - "tool:employee-directory"
-      verbs:
-        # "call" is the only verb for tool access
-        - "call"
-      effect: Allow
+  policies:
+    - permission: allow
+      resource: https://directory.hr-api.your-company.com/*
+      operations: [GET]
 
 ---
-# PolicyBinding: defines WHO gets the policy (which agent ServiceAccount)
 apiVersion: platform.ai/v1alpha1
 kind: PolicyBinding
 metadata:
   name: hr-assistant-employee-directory
-  namespace: agent-system
-  labels:
-    runagents.ai/agent: hr-assistant
-    runagents.ai/tool: employee-directory
+  namespace: default
 spec:
   subjects:
     - kind: ServiceAccount
-      # This is the ServiceAccount created by the agent operator
-      # for the hr-assistant Agent CRD in the "default" namespace.
       name: hr-assistant
       namespace: default
-
   policyRef:
     name: hr-assistant-employee-directory
-
-  # requireApproval: false
-  # The agent can call employee-directory freely once this binding exists.
-  # No per-call approval flow is triggered.
-  requireApproval: false
-
-  # ttl: "" means this binding never expires.
-  # Set a duration (e.g., "24h", "7d") for time-limited access.
-  ttl: ""

@@ -168,9 +168,12 @@ Poll the status of a build.
 | `SUCCEEDED` | Build completed, image pushed to registry |
 | `FAILED` | Build failed (check `error` field for details) |
 
-```
-PENDING --> BUILDING --> SUCCEEDED
-                    --> FAILED
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING
+    PENDING --> BUILDING
+    BUILDING --> SUCCEEDED
+    BUILDING --> FAILED
 ```
 
 ---

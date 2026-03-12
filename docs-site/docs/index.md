@@ -144,10 +144,10 @@ hide:
 
     Agents can only call tools they have been explicitly granted access to. Policies enforce not just which tools, but which operations.
 
-    - Policies define resource URN patterns with allow or deny effects
+    - Policies define URL/tag rules with `allow`, `deny`, or `approval_required`
     - Capability checks enforce method + path level (`POST /charges` vs `GET /customers`)
-    - Auto-binding creates policies automatically on deploy
-    - Critical tools require admin approval before any access is granted
+    - Default posture is deny unless a bound policy explicitly allows access
+    - Approval workflows are triggered by policy rules, not by legacy tool flags
 
     [Learn more about the policy model :octicons-arrow-right-24:](concepts/policy-model.md)
 

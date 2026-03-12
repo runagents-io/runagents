@@ -214,6 +214,44 @@
   box-shadow: var(--ra-shadow-md);
 }
 
+/* ── Mermaid diagrams ───────────────────────────────────────────────────── */
+.md-typeset pre.mermaid {
+  margin: 1.25rem 0 1.5rem;
+  padding: 1rem 0.85rem;
+  border: 1px solid var(--ra-border);
+  border-radius: 16px;
+  background:
+    radial-gradient(circle at top right, rgba(91,140,245,0.10), transparent 38%),
+    linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+  box-shadow: var(--ra-shadow-sm);
+  overflow-x: auto;
+}
+
+.md-typeset pre.mermaid > svg {
+  display: block;
+  margin: 0 auto;
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+.md-typeset .mermaidTooltip {
+  border: 1px solid var(--ra-border);
+  border-radius: 8px;
+  box-shadow: var(--ra-shadow-md);
+  font-size: 0.8rem;
+}
+
+[data-md-color-scheme="slate"] .md-typeset pre.mermaid {
+  border-color: rgba(148,163,184,0.25);
+  background:
+    radial-gradient(circle at top right, rgba(96,165,250,0.14), transparent 42%),
+    linear-gradient(180deg, #0f1a2b 0%, #111e30 100%);
+}
+
+[data-md-color-scheme="slate"] .md-typeset .mermaidTooltip {
+  border-color: #334155;
+}
+
 /* ── How it works section ───────────────────────────────────────────────── */
 .ra-flow-label {
   font-size: 0.78rem; font-weight: 600; letter-spacing: 0.08em;

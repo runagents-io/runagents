@@ -39,15 +39,17 @@ pip install runagents
 runagents config set endpoint https://YOUR_WORKSPACE.try.runagents.io
 runagents config set api-key  ra_ws_YOUR_KEY
 
-# Register tools — point base-url at your real APIs
-runagents tools create --name faq-service     --base-url https://api.your-company.com --auth-type None
-runagents tools create --name account-service --base-url https://api.your-company.com --auth-type APIKey
-runagents tools create --name ticket-service  --base-url https://api.your-company.com --auth-type None
+# Register tools (console/API/action plans) and point base URLs at your real APIs:
+# - faq-service
+# - account-service
+# - ticket-service
 
 # Deploy — same agent.py and tools.py, no changes
 runagents deploy \
   --name support-agent \
-  --files agent.py,tools.py,requirements.txt \
+  --file agent.py \
+  --file tools.py \
+  --file requirements.txt \
   --tool faq-service \
   --tool account-service \
   --tool ticket-service \
@@ -87,14 +89,13 @@ The platform validates it at the ingress, extracts the user's identity
 Your `account-service` and `ticket-service` receive `who` made the
 request without any code in this repo touching tokens.
 
-**Policy** — tool access is controlled by PolicyBindings on the cluster.
-`faq-service` and `ticket-service` are Open (auto-bound). `account-service`
-is Restricted — you apply a PolicyBinding YAML to grant access, and can
-set `requireApproval: true` to require human sign-off per call.
+**Policy** — tool access is controlled by policies bound to the agent
+ServiceAccount. Decisions follow `deny` > `approval_required` > `allow` > default deny.
+For sensitive operations, use policy rules with `permission: approval_required`.
 
-**Credentials** — `account-service` uses `--auth-type APIKey`. The platform
+**Credentials** — `account-service` uses API key auth. The platform
 stores the key in a Kubernetes Secret and injects `Authorization: Bearer`
-on every outbound call via the Istio mesh. Your `tools.py` never sees it.
+on every outbound call via the platform egress layer. Your `tools.py` never sees it.
 
 **Durable resume** — if a tool requires approval, the platform checkpoints
 the full conversation to governance and resumes automatically after approval,

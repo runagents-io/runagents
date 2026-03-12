@@ -69,7 +69,7 @@ Review the summary and click **Deploy**. The platform:
 
 1. Creates the agent with its configuration
 2. Sets up a service account for the agent
-3. Auto-creates policies that allow the agent to call its required tools
+3. Binds any selected policies to the agent service account
 4. Starts the agent
 
 ---
@@ -94,7 +94,7 @@ Here is what RunAgents did behind the scenes when you clicked Deploy:
 
 3. **LLM wiring** -- The detected model usage was matched to the Playground LLM provider. The agent was configured with the LLM gateway URL and model settings.
 
-4. **Policy auto-binding** -- Since the Echo Tool is configured with open access (no approval required), the platform automatically created access policies allowing the `hello-world` agent to call it.
+4. **Policy wiring** -- The deploy flow links selected policies to the `hello-world` agent so outbound tool calls are authorized by policy.
 
 5. **Agent deployment** -- The agent was deployed with its service account, environment configuration, and networking rules. All outbound traffic from the agent flows through the platform's security layer.
 
@@ -113,7 +113,7 @@ Now that you have a running agent, explore further:
 - **Register your own tools** -- Add external APIs and SaaS services that your agents need to call. See [Registering Tools](../platform/registering-tools.md).
 - **Deploy your own agent** -- Upload your own code instead of the sample. The analysis engine supports Python agents with LangChain, LangGraph, CrewAI, and more.
 - **Set up identity providers** -- Configure JWT-based authentication so your client applications can call agents with user identity. See [Identity Providers](../platform/identity-providers.md).
-- **Configure approvals** -- Mark sensitive tools as requiring approval to enable just-in-time access control. See [Approvals](../platform/approvals.md).
+- **Configure approvals** -- Add `approval_required` policy rules and approver groups for sensitive operations. See [Approvals](../platform/approvals.md).
 
 !!! tip "Want to use the API or CLI instead?"
 

@@ -1,245 +1,139 @@
 # Deploy API
 
-The Deploy API is the primary endpoint for deploying agents programmatically. It handles tool registration, image building, and agent creation in a single call.
+Deploy or update agents programmatically.
+
+`POST /api/deploy` supports both image-based deploys and source-file deploys with optional server-side build.
 
 ---
 
-## Deploy an Agent
+## Deploy An Agent
 
 <span class="method-post">POST</span> <span class="endpoint">/api/deploy</span>
 
-Deploy a new agent or update an existing one. This endpoint is **idempotent** -- re-deploying with the same name updates the existing agent.
+Idempotent by `agent_name` within namespace.
 
 ### Request Body
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `agent_name` | string | Yes | Unique name for the agent |
-| `image` | string | No | Pre-built container image URI. Required if `source_files` is not provided |
-| `source_files` | object | No | Map of filename to source code. Triggers server-side build if `image` is not provided |
-| `system_prompt` | string | No | System prompt for the agent's LLM context |
-| `required_tools` | string[] | No | Names of existing tools the agent needs access to |
-| `tools_to_create` | object[] | No | New tools to register as part of this deployment |
-| `llm_configs` | object[] | No | LLM model configurations (supports multi-model) |
-| `llm_config` | object | No | Single LLM config (use `llm_configs` for multi-model) |
-| `env` | object[] | No | Environment variables to inject into the agent |
-| `requirements` | string | No | Python requirements (pip format) |
-| `entry_point` | string | No | Entry point file for the agent |
-| `framework` | string | No | Agent framework (e.g., `langchain`, `openai`) |
-| `identity_provider` | string | No | Name of an existing identity provider to associate |
+| `agent_name` | string | Yes | Agent name |
+| `namespace` | string | No | Workspace namespace (must match workspace header) |
+| `image` | string | No* | Pre-built image URI |
+| `source_files` | object | No* | Map of filename to file contents |
+| `artifact_id` | string | No | Existing workflow artifact to deploy |
+| `draft_id` | string | No | Existing deploy draft to hydrate from |
+| `system_prompt` | string | No | Agent system prompt |
+| `required_tools` | string[] | No | Registered tool names required by the agent |
+| `tool_url_mappings` | object | No | Rewrite map of detected URL -> tool name |
+| `tools_to_create` | object[] | No | Tools to create as part of deploy |
+| `llm_configs` | object[] | No | Role-based model configs |
+| `env` | object[] | No | Extra env vars |
+| `requirements` | string | No | Requirements text for build |
+| `entry_point` | string | No | Source entry point |
+| `framework` | string | No | Framework hint (e.g., `langchain`) |
+| `identity_provider` | string | No | Agent ingress identity provider |
+| `policies` | string[] | No | Policy names to bind to this agent |
 
-#### Tool Object (`tools_to_create`)
+`*` Provide at least one of `image`, `source_files`, or `artifact_id`.
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Unique tool name |
-| `description` | string | No | Human-readable description |
-| `base_url` | string | Yes | Tool endpoint URL |
-| `auth_type` | string | No | Authentication type: `None`, `APIKey`, `OAuth2`. Defaults to `None` |
-| `port` | integer | No | Target port. Defaults to `443` |
-| `scheme` | string | No | Protocol: `HTTP` or `HTTPS`. Defaults to `HTTPS` |
-
-#### LLM Config Object (`llm_configs`)
+### Tool Object (`tools_to_create`)
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `provider` | string | Yes | Provider name: `openai`, `anthropic`, `bedrock`, `ollama` |
-| `model` | string | Yes | Model identifier (e.g., `gpt-4o-mini`) |
-| `role` | string | No | Model role: `chat` (default), `embedding`, `classify`, `reranking` |
+| `name` | string | Yes | Tool name |
+| `base_url` | string | Yes | Tool base URL |
+| `description` | string | No | Tool description |
+| `auth_type` | string | No | `None`, `APIKey`, `OAuth2` |
+| `port` | integer | No | Tool port |
+| `scheme` | string | No | `HTTP` or `HTTPS` |
 
-#### Env Var Object (`env`)
-
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `name` | string | Yes | Environment variable name |
-| `value` | string | Yes | Environment variable value |
-
-### Example: Deploy with source code and new tools
-
-=== "curl"
-
-    ```bash
-    curl -X POST https://api.runagents.io/api/deploy \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "agent_name": "payment-agent",
-        "source_files": {
-          "agent.py": "import requests\nimport openai\n\nclient = openai.OpenAI()\n\ndef run():\n    response = requests.get(\"https://api.stripe.com/v1/charges\")\n    return response.json()\n\nif __name__ == \"__main__\":\n    run()"
-        },
-        "system_prompt": "You are a payment processing assistant.",
-        "tools_to_create": [
-          {
-            "name": "stripe-api",
-            "description": "Stripe payments API",
-            "base_url": "https://api.stripe.com",
-            "auth_type": "APIKey"
-          }
-        ],
-        "required_tools": ["stripe-api"],
-        "llm_configs": [
-          {
-            "role": "chat",
-            "provider": "openai",
-            "model": "gpt-4o-mini"
-          }
-        ],
-        "entry_point": "agent.py",
-        "requirements": "openai>=1.0\nrequests"
-      }'
-    ```
-
-=== "Python"
-
-    ```python
-    import requests
-
-    resp = requests.post(
-        "https://api.runagents.io/api/deploy",
-        headers={"Authorization": f"Bearer {api_key}"},
-        json={
-            "agent_name": "payment-agent",
-            "source_files": {
-                "agent.py": "import requests\nimport openai\n..."
-            },
-            "system_prompt": "You are a payment processing assistant.",
-            "tools_to_create": [
-                {
-                    "name": "stripe-api",
-                    "description": "Stripe payments API",
-                    "base_url": "https://api.stripe.com",
-                    "auth_type": "APIKey",
-                }
-            ],
-            "required_tools": ["stripe-api"],
-            "llm_configs": [
-                {"role": "chat", "provider": "openai", "model": "gpt-4o-mini"}
-            ],
-            "entry_point": "agent.py",
-            "requirements": "openai>=1.0\nrequests",
-        },
-    )
-    print(resp.json())
-    ```
-
-### Response (201 Created)
+### Response (201)
 
 ```json
 {
   "agent": "payment-agent",
-  "namespace": "agent-system",
+  "namespace": "default",
   "tools_created": ["stripe-api"],
   "build_id": "build-a1b2c3",
-  "image_uri": "registry.runagents.io/payment-agent:a1b2c3"
+  "image_uri": "registry.example.com/payment-agent:a1b2c3",
+  "execution_mode": "FAST_OVERLAY",
+  "build_required": true,
+  "build_profile": "fast_overlay",
+  "decision_reason": "Detected framework runtime overlay path"
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `agent` | string | Name of the created/updated agent |
-| `namespace` | string | Namespace where the agent was deployed |
-| `tools_created` | string[] | Names of tools that were created as part of this deploy |
-| `build_id` | string | Build ID (present when source files triggered a server-side build) |
-| `image_uri` | string | Container image URI (present when a build was triggered) |
-
-### Example: Deploy with a pre-built image
-
-=== "curl"
-
-    ```bash
-    curl -X POST https://api.runagents.io/api/deploy \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "agent_name": "my-agent",
-        "image": "myregistry.io/my-agent:v1.2.0",
-        "required_tools": ["echo-tool"],
-        "llm_configs": [
-          {"provider": "openai", "model": "gpt-4o-mini"}
-        ]
-      }'
-    ```
-
-### Response (201 Created)
-
-```json
-{
-  "agent": "my-agent",
-  "namespace": "agent-system",
-  "tools_created": []
-}
-```
-
-### Example: Multi-model deploy
-
-=== "curl"
-
-    ```bash
-    curl -X POST https://api.runagents.io/api/deploy \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
-      -H "Content-Type: application/json" \
-      -d '{
-        "agent_name": "rag-agent",
-        "image": "myregistry.io/rag-agent:latest",
-        "llm_configs": [
-          {"role": "chat", "provider": "openai", "model": "gpt-4o"},
-          {"role": "embedding", "provider": "openai", "model": "text-embedding-3-small"},
-          {"role": "reranking", "provider": "anthropic", "model": "claude-3-haiku-20240307"}
-        ],
-        "required_tools": ["vector-db"]
-      }'
-    ```
-
-The agent receives role-based environment variables:
-
-| Environment Variable | Value |
-|---------------------|-------|
-| `LLM_MODEL` | `gpt-4o` |
-| `LLM_PROVIDER` | `openai` |
-| `LLM_MODEL_EMBEDDING` | `text-embedding-3-small` |
-| `LLM_PROVIDER_EMBEDDING` | `openai` |
-| `LLM_MODEL_RERANKING` | `claude-3-haiku-20240307` |
-| `LLM_PROVIDER_RERANKING` | `anthropic` |
-
-### Errors
-
-| Status | Error | Description |
-|--------|-------|-------------|
-| `400` | `agent_name is required` | Missing required field |
-| `400` | `either image or source_files is required` | Must provide one of `image` or `source_files` |
-| `400` | `tool name and base_url are required` | Tool in `tools_to_create` missing required fields |
-| `500` | `build failed: ...` | Server-side build failed |
-| `500` | `failed to create tool "...": ...` | Tool creation failed |
-| `500` | `failed to create agent: ...` | Agent creation failed |
+| Field | Description |
+|---|---|
+| `tools_created` | Tools created during this request |
+| `build_id`, `image_uri` | Present when build path is used |
+| `execution_mode`, `build_required`, `build_profile`, `decision_reason` | Deployment decision metadata |
 
 ---
 
-## Seed Starter Kit
+## Example: Source Deploy With Policy Bindings
+
+```bash
+curl -X POST https://api.runagents.io/api/deploy \
+  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_name": "billing-agent",
+    "source_files": {
+      "agent.py": "print(\"hello\")"
+    },
+    "required_tools": ["stripe-api"],
+    "llm_configs": [{"provider": "openai", "model": "gpt-4o-mini", "role": "chat"}],
+    "policies": ["billing-stripe-policy"],
+    "entry_point": "agent.py",
+    "requirements": "runagents>=0.2.0\n"
+  }'
+```
+
+---
+
+## Example: Image Deploy
+
+```bash
+curl -X POST https://api.runagents.io/api/deploy \
+  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "agent_name": "my-agent",
+    "image": "ghcr.io/acme/my-agent:1.2.0",
+    "required_tools": ["echo-tool"],
+    "policies": ["echo-read-policy"],
+    "llm_configs": [{"provider": "openai", "model": "gpt-4o-mini"}]
+  }'
+```
+
+---
+
+## Common Errors
+
+| Status | Error |
+|--------|-------|
+| `400` | Missing required fields (e.g. `agent_name`) |
+| `400` | Namespace mismatch with workspace header |
+| `400` | No valid deploy source (`image`, `source_files`, `artifact_id`) |
+| `500` | Tool/agent/build creation failed |
+
+---
+
+## Starter Kit Endpoint
 
 <span class="method-post">POST</span> <span class="endpoint">/api/starter-kit</span>
 
-Creates built-in starter resources for first-time users. This is idempotent and safe to call multiple times.
+Seeds demo resources in the workspace namespace:
 
-Creates:
+- `echo-tool`
+- `playground-llm`
 
-- **echo-tool** -- A built-in echo tool for testing (no external dependencies)
-- **playground-llm** -- A playground model provider (OpenAI gpt-4o-mini)
-
-=== "curl"
-
-    ```bash
-    curl -X POST https://api.runagents.io/api/starter-kit \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
-    ```
-
-### Response (200 OK)
+### Response (201)
 
 ```json
 {
-  "status": "ok",
-  "message": "Starter kit resources created"
+  "tool_created": "echo-tool",
+  "model_provider_created": "playground-llm"
 }
 ```
-
-!!! note
-    Starter kit resources are labeled for demo purposes and should be replaced with production tools and model providers for real workloads.

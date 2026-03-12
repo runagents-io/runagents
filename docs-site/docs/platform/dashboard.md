@@ -48,7 +48,7 @@ Each step shows a green checkmark when complete and a **Start** link when pendin
 
 ## Runs Awaiting Approval
 
-If any active runs are paused because they need admin approval to access a restricted tool, a **Runs Awaiting Approval** section appears. Each row shows:
+If any active runs are paused because policy evaluation returned `approval_required`, a **Runs Awaiting Approval** section appears. Each row shows:
 
 - The run's current status
 - The agent that initiated the run
@@ -59,7 +59,7 @@ If any active runs are paused because they need admin approval to access a restr
 
 ## Pending Approvals
 
-When there are pending access requests (agents requesting access to tools with Critical access control), a **Pending Approvals** section shows up to five recent requests. Each row displays:
+When there are pending access requests (policy-driven JIT approvals), a **Pending Approvals** section shows up to five recent requests. Each row displays:
 
 - The requesting user
 - The target tool

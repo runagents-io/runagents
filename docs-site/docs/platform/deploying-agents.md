@@ -79,7 +79,14 @@ Each detected LLM usage is shown as a card with:
 - A dropdown to select a **registered model provider**
 - A model selector for choosing the specific model from that provider
 
-### Access Control
+### Policies
+
+Select one or more existing policies to bind to the deployed agent. These bindings govern tool-call authorization at runtime.
+
+!!! info "Policy-driven runtime"
+    Access decisions are computed from bound policy rules (`allow`, `deny`, `approval_required`) plus capability checks.
+
+### Client Authentication
 
 Optionally configure how clients authenticate to your agent:
 
@@ -108,15 +115,16 @@ The final step shows a **deployment summary** with all your configuration choice
 - System prompt
 - Wired tools and model providers
 - Identity provider (if configured)
-- Access mode
+- Selected policies
 
 Review the summary, then click **Deploy Now**.
 
 The platform:
 
 1. Builds a container image from your source code (if not using a custom image)
-2. Creates the agent with all configured tool bindings and model provider mappings
-3. Starts the agent
+2. Creates the agent with configured tool and model mappings
+3. Creates PolicyBindings for selected policies
+4. Starts the agent
 
 A progress animation shows the build and deploy phases. When deployment succeeds, you see a **success screen** with:
 
@@ -219,7 +227,7 @@ Shows a center-radial diagram of everything your agent connects to:
 **Edges** between nodes are animated SVG paths that draw themselves on tab open, then show a flowing dash animation to represent data flow. Each tool edge includes:
 
 - A **policy badge** at the midpoint showing the effective access decision (Allow, Deny, Approval Required, or No Policy) based on your configured [policies](../concepts/policy-model.md)
-- An **approval gate** (pulsing amber diamond) on tools where `requireApproval` is enabled
+- An **approval gate** (pulsing amber diamond) on tools where `approval_required` policy rules match
 
 !!! tip "Agent-as-tool"
     If one of your agent's required tools is actually another deployed agent, the Flow tab renders it as an agent node (indigo, with a bot icon) instead of a tool node. Clicking it navigates to that agent's Flow tab, letting you trace multi-agent orchestration graphs.

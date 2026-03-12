@@ -517,30 +517,20 @@ The gateway signs the request with AWS SigV4 credentials automatically.
 
 ## How the Gateway Works
 
-```
-Agent                    LLM Gateway                   Provider
-  |                          |                            |
-  |  POST /v1/chat/completions                            |
-  |  model: "gpt-4o-mini"   |                            |
-  |------------------------->|                            |
-  |                          |  1. Match model to         |
-  |                          |     ModelProvider           |
-  |                          |  2. Read credentials        |
-  |                          |  3. Translate format        |
-  |                          |     (if needed)             |
-  |                          |                            |
-  |                          |  POST (provider-specific)   |
-  |                          |  + Authorization header     |
-  |                          |--------------------------->|
-  |                          |                            |
-  |                          |  Provider response          |
-  |                          |<---------------------------|
-  |                          |                            |
-  |                          |  4. Translate to OpenAI     |
-  |                          |     format (if needed)      |
-  |                          |                            |
-  |  OpenAI-format response  |                            |
-  |<-------------------------|                            |
+```mermaid
+sequenceDiagram
+    participant Agent
+    participant Gateway as LLM Gateway
+    participant Provider
+
+    Agent->>Gateway: POST /v1/chat/completions (model)
+    Gateway->>Gateway: 1) Match model to ModelProvider
+    Gateway->>Gateway: 2) Read provider credentials
+    Gateway->>Gateway: 3) Translate request format (if needed)
+    Gateway->>Provider: POST provider request (+auth)
+    Provider-->>Gateway: Provider response
+    Gateway->>Gateway: 4) Normalize to OpenAI format
+    Gateway-->>Agent: OpenAI-format response
 ```
 
 ### Step-by-step:

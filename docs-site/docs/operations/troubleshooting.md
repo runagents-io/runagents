@@ -37,9 +37,9 @@ The agent attempted to call a tool but was denied.
 **Possible causes:**
 
 - **No policy binding exists** -- The agent does not have a policy granting access to the target tool.
-    - For **Open** tools: verify the tool is listed in the agent's required tools. Auto-binding creates the policy on deploy.
-    - For **Restricted** tools: you must create a policy and policy binding explicitly. Go to **Approvals** or use the API.
-    - For **Critical** tools: an approval is required for each access. Check the **Approvals** page for pending requests.
+    - Verify at least one PolicyBinding targets the agent ServiceAccount.
+    - Verify the bound Policy has a matching `allow` or `approval_required` rule for the tool and HTTP method.
+    - If no rule matches, the platform denies by default.
 
 - **Capability mismatch** -- The tool declares specific capabilities, and the agent's request does not match any of them. For example, the agent sends a `DELETE` request but the tool only allows `GET` and `POST`. Check the tool's registered capabilities.
 
@@ -48,13 +48,13 @@ The agent attempted to call a tool but was denied.
 **How to diagnose:**
 
 1. Go to **Approvals** to see if there is a pending request for this agent + tool combination
-2. Check the tool's access control mode (Open, Restricted, or Critical)
+2. Check the policies bound to the agent in deploy settings or policy APIs
 3. Review the tool's capabilities to ensure the requested operation is allowed
-4. Review policies bound to the agent's service account
+4. Review rule precedence conflicts (`deny` overrides `approval_required` and `allow`)
 
 ### APPROVAL_REQUIRED response
 
-The agent called a tool that has `requireApproval` enabled.
+The agent matched a policy rule with `permission: approval_required`.
 
 **What to do:**
 
@@ -63,9 +63,9 @@ The agent called a tool that has `requireApproval` enabled.
 3. An admin must approve the request on the **Approvals** page
 4. After approval, the run resumes automatically
 
-!!! info "Approvals are per-request for Critical tools"
+!!! info "Approvals are policy-driven"
 
-    For tools with Critical access mode, each access requires a separate approval. Previously approved access expires after the configured TTL.
+    Approval requests are created when policy evaluation resolves to `approval_required`. Approved access is time-limited and expires automatically.
 
 ---
 

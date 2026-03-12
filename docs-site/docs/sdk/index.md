@@ -183,7 +183,7 @@ The platform operator injects these env vars automatically at deploy time — yo
 
 ### `agent.call_tool()`
 
-Call a platform tool by name. The Istio mesh handles authentication and policy — the agent just makes an HTTP call.
+Call a platform tool by name. The platform egress layer handles authentication and policy — the agent just makes an HTTP call.
 
 ```python
 # POST request (default)
@@ -202,6 +202,9 @@ product = agent.call_tool(
 ```
 
 Tool names must match what's in `TOOL_URL_{NAME}` env vars (injected for every tool in `requiredTools`).
+
+!!! info "Policy still applies"
+    Tool calls are authorized by policies bound to the agent service account. If no matching `allow` or `approval_required` rule exists, calls are denied.
 
 ### `agent.chat()`
 
@@ -344,10 +347,9 @@ Deploy to the platform (delegates to Go CLI):
 ```bash
 runagents deploy \
   --name my-agent \
-  --files agent.py \
+  --file agent.py \
   --tool echo-tool \
-  --model openai/gpt-4o-mini \
-  --system-prompt "You are a helpful assistant."
+  --model openai/gpt-4o-mini
 ```
 
 All other `runagents` commands (`agents`, `tools`, `runs`, `approvals`, etc.) also delegate to the Go CLI. See [CLI Commands](../cli/commands.md) for the full reference.

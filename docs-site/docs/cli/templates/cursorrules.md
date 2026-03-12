@@ -10,8 +10,8 @@ This project deploys to RunAgents, a platform for orchestrating AI agents with s
 ## Key Commands
 
 ```bash
-runagents deploy --files agent.py --name my-agent    # Deploy agent
-runagents analyze --files agent.py                    # Preview code analysis
+runagents deploy --name my-agent --file agent.py      # Deploy agent
+runagents analyze --file agent.py                     # Preview code analysis
 runagents agents list                                 # List agents
 runagents tools list                                  # List registered tools
 runagents models list                                 # List model providers
@@ -56,9 +56,9 @@ client = openai.OpenAI()
 ## Workflow
 
 1. Write agent code using HTTP calls to tool URLs and the LLM gateway
-2. Run `runagents analyze --files agent.py` to verify detection
-3. Register tools via `runagents tools create` or the console
-4. Deploy with `runagents deploy --files agent.py --name my-agent`
+2. Run `runagents analyze --file agent.py` to verify detection
+3. Register tools via `runagents tools create --file tool.json` or the console
+4. Deploy with `runagents deploy --name my-agent --file agent.py`
 5. Monitor with `runagents runs list` and handle approvals with `runagents approvals`
 
 ## Important

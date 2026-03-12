@@ -29,38 +29,28 @@ RunAgents handles all of this automatically.
 
 ### The Flow
 
-```
-Agent calls Google Drive tool
-         |
-         v
-RunAgents checks for existing token
-         |
-    ┌────┴─────────────────────────┐
-    |                              |
-    v                              v
-Token found                   No token
-    |                              |
-    v                              v
-Inject token,              Return CONSENT_REQUIRED
-forward request            with authorization_url
-                                   |
-                                   v
-                           Client redirects user
-                           to consent screen
-                                   |
-                                   v
-                           User approves
-                                   |
-                                   v
-                           OAuth callback receives code
-                                   |
-                                   v
-                           RunAgents exchanges code for tokens
-                           and stores per-user refresh token
-                                   |
-                                   v
-                           Subsequent calls use
-                           stored token automatically
+```mermaid
+flowchart TD
+    call["Agent calls Google Drive tool"]
+    check["RunAgents checks for existing token"]
+    found["Inject token and forward request"]
+    consent["Return CONSENT_REQUIRED with authorization_url"]
+    redirect["Client redirects user to consent screen"]
+    approve["User approves"]
+    callback["OAuth callback receives code"]
+    exchange["RunAgents exchanges code for tokens"]
+    store["Store per-user refresh token"]
+    reuse["Subsequent calls use stored token automatically"]
+
+    call --> check
+    check -->|"Token found"| found
+    check -->|"No token"| consent
+    consent --> redirect
+    redirect --> approve
+    approve --> callback
+    callback --> exchange
+    exchange --> store
+    store --> reuse
 ```
 
 ### Step-by-Step

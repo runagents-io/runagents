@@ -75,9 +75,9 @@ I'll create:
 > what tools do I have?
 
 You have 3 registered tools:
-  • echo-tool (Internal, Open access)
-  • stripe     (External, OAuth2, Critical access)
-  • slack      (External, API Key, Open access)
+  • echo-tool (Internal, Restricted posture)
+  • stripe     (External, OAuth2)
+  • slack      (External, API Key)
 ```
 
 ### Quick commands

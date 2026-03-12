@@ -172,12 +172,11 @@ runagents models create \
 ```bash
 runagents deploy \
   --name product-assistant \
-  --files agent.py \
+  --file agent.py \
   --tool product-catalog \
   --tool inventory-service \
   --tool pricing-engine \
-  --model openai/gpt-4o-mini \
-  --system-prompt "You are a helpful product assistant. Use the available tools to look up products, check stock, and calculate pricing. Always confirm quantities before quoting prices."
+  --model openai/gpt-4o-mini
 ```
 
 ### Programmatic deploy (recommended for CI/CD)
@@ -294,8 +293,8 @@ for run in runs[:3]:
 High-value pricing quotes may need human sign-off before the agent can
 execute them. To enable this:
 
-1. In the console: **Tools → pricing-engine → Edit → Access Mode → Critical**
-2. Or via API: update the Tool CRD with `accessMode: Critical, requireApproval: true`
+1. Create or update a policy bound to the agent with a matching `approval_required` rule for pricing write operations.
+2. Add approver groups in policy `spec.approvals` for who can approve.
 
 Now when the agent tries to call the pricing engine:
 - The run **pauses** with status `PAUSED_APPROVAL`
@@ -363,9 +362,8 @@ Usually means the container image failed to build. Check the build logs
 in the console under **Agents → product-assistant → Logs**.
 
 **Tool calls return 403**
-The agent's ServiceAccount doesn't have a PolicyBinding for that tool.
-Run `deploy.py` again — it creates Open-mode bindings automatically.
-Or check **Tools → product-catalog → Access Control** in the console.
+The agent ServiceAccount is missing a matching allow/approval policy binding,
+or a deny rule took precedence. Check bound policies and capability matches.
 
 **"Connection refused" on local dev**
 Make sure `python mock_tools/server.py` is running before `runagents dev`.

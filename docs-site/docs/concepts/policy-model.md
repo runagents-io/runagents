@@ -13,7 +13,7 @@ RunAgents enforces access control on every outbound request from an agent. The p
 
 ### Policies
 
-A **policy** defines what actions are allowed or denied. Each policy contains one or more rules:
+A **policy** defines what actions are allowed, denied, or require approval. Each policy contains one or more rules:
 
 ```yaml
 name: stripe-read-only
@@ -24,17 +24,47 @@ rules:
   - permission: deny
     resource: "https://api.stripe.com/v1/charges*"
     operations: [DELETE]
+  - permission: approval_required
+    resource: "https://api.stripe.com/v1/refunds*"
+    operations: [POST]
 ```
 
 | Field | Description |
 |---|---|
-| `permission` | `allow` or `deny` |
+| `permission` | `allow`, `deny`, or `approval_required` |
 | `resource` | URL pattern with wildcard support (e.g., `https://api.stripe.com/*`) |
 | `operations` | Optional list of HTTP methods (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`). If omitted, the rule applies to all methods. |
+| `tags` | Optional list of tags to match against tool risk tags (e.g., `["financial", "pii"]`) |
 
-!!! warning "Deny takes precedence"
+!!! warning "Precedence: deny > approval_required > allow"
 
-    When both `allow` and `deny` rules match a request, the `deny` rule wins. This follows the principle of least privilege: explicitly denied actions cannot be overridden by allow rules.
+    When multiple rules match a request, the strictest wins. `deny` overrides everything. `approval_required` overrides `allow`. This follows the principle of least privilege.
+
+#### Approval-Required Rules
+
+Rules with `permission: approval_required` trigger the just-in-time approval workflow. When an agent hits an `approval_required` rule:
+
+1. The agent's run is paused (`PAUSED_APPROVAL`)
+2. An access request is created for admin review
+3. If approved, a time-limited policy binding is created and the run resumes
+4. If rejected, the request fails with a 403
+
+This is the recommended way to gate high-risk operations — use `approval_required` in policy rules rather than relying on tool-level `requireApproval` flags.
+
+!!! example "Deal Desk pattern"
+    A common pattern is to allow low-risk reads but require approval for writes:
+
+    ```yaml
+    rules:
+      - permission: allow
+        resource: "https://api.erp.com/*"
+        operations: [GET]
+      - permission: approval_required
+        resource: "https://api.erp.com/credit-notes*"
+        operations: [POST]
+    ```
+
+    See the [deal-desk-langgraph-agent](https://github.com/runagents-io/runagents/tree/main/examples/deal-desk-langgraph-agent) example for a complete walkthrough.
 
 ### Policy Bindings
 
@@ -131,21 +161,25 @@ For tools with **Restricted** access, you must explicitly create policies and bi
 
 ---
 
-## Just-In-Time Approvals (Critical Tools)
+## Just-In-Time Approvals
 
-For tools marked as **Critical**, the platform enforces a human-in-the-loop workflow:
+The platform enforces a human-in-the-loop workflow when a policy rule has `permission: approval_required` (or for legacy tools marked as **Critical**):
 
 1. Agent calls the tool
-2. Platform evaluates the policy and finds no active binding (or the tool requires approval regardless)
+2. Platform evaluates matching policy rules and the winning rule is `approval_required`
 3. An **access request** is created with details about the agent, tool, and requested capability
 4. The agent's run is paused (`PAUSED_APPROVAL` state)
 5. Admin reviews and approves or rejects the request
 6. If approved: a time-limited policy binding is created, the run resumes, and the agent retries the tool call
 7. When the TTL expires, the binding is automatically removed
 
+!!! tip "Policy-driven approvals"
+
+    The recommended approach is to use `approval_required` in policy rules rather than the tool-level `requireApproval` flag. Policy rules give you finer control — you can require approval for specific operations (e.g., POST to `/refunds`) while allowing reads without approval.
+
 !!! warning "Time-limited access"
 
-    Approved access for Critical tools expires after a configurable TTL (time-to-live). Once expired, the agent must request access again. This prevents long-lived permissions on sensitive tools.
+    Approved access expires after a configurable TTL (time-to-live). Once expired, the agent must request access again. This prevents long-lived permissions on sensitive operations.
 
 See [Run Lifecycle](../operations/runs.md) for details on how runs pause and resume during approvals.
 
@@ -188,9 +222,9 @@ When an agent makes an outbound request, the platform evaluates access in this o
 1. **Tool identification** -- Match the destination host to a registered tool. If no match, deny.
 2. **Agent identification** -- Verify the agent's service identity.
 3. **Policy binding lookup** -- Find all policy bindings for this agent + tool combination.
-4. **Rule evaluation** -- Evaluate all matching rules. Deny takes precedence over allow.
+4. **Rule evaluation** -- Evaluate all matching rules. Precedence: `deny` > `approval_required` > `allow`.
 5. **Capability check** -- If the tool declares capabilities, verify the method + path matches.
-6. **Approval check** -- If denied and the tool requires approval, create an access request instead of a hard deny.
+6. **Approval check** -- If the winning rule is `approval_required`, create an access request and pause the run. If no rules match at all, deny.
 
 ---
 
@@ -198,7 +232,7 @@ When an agent makes an outbound request, the platform evaluates access in this o
 
 | Concept | Purpose |
 |---|---|
-| **Policy** | Defines allow/deny rules for resources (URL patterns) and operations (HTTP methods) |
+| **Policy** | Defines allow/deny/approval_required rules for resources (URL patterns) and operations (HTTP methods) |
 | **Policy Binding** | Links a policy to agents, users, or groups |
 | **Auto-Binding** | Automatic policy creation for Open tools when agents are deployed |
 | **Access Modes** | Open (auto), Restricted (manual), Critical (approval required) |

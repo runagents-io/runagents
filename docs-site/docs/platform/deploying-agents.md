@@ -169,7 +169,7 @@ The deploy wizard automatically saves your progress as a **draft**. If you close
 
 ## Agent Detail Page
 
-After deployment, navigate to **Agents** and click on an agent to view its detail page. The detail page has three tabs:
+After deployment, navigate to **Agents** and click on an agent to view its detail page. The detail page has four tabs:
 
 ### Overview Tab
 
@@ -202,6 +202,50 @@ Lists all runs for this agent, including runs created from the playground. Each 
 - Initial message (first user message in the conversation)
 - Timestamp
 - Click a run to view the **Run Detail page** with a full event timeline and approval actions
+
+### Flow Tab
+
+A visual, animated graph of your agent's topology and execution history. The Flow tab has two views, toggled at the top:
+
+#### Topology View
+
+Shows a center-radial diagram of everything your agent connects to:
+
+- **Agent node** (center) -- the agent name and current status
+- **LLM nodes** (top) -- one node per model role. If your agent uses multiple models (e.g., a planner and a summarizer), each appears as a separate node showing the provider and model name
+- **Tool nodes** (right) -- each required tool with its auth type (OAuth2, API Key, or None), access mode (Open, Restricted, or Critical), and capability count
+- **Client node** (left) -- appears only if an identity provider is configured, showing the JWT validation source
+
+**Edges** between nodes are animated SVG paths that draw themselves on tab open, then show a flowing dash animation to represent data flow. Each tool edge includes:
+
+- A **policy badge** at the midpoint showing the effective access decision (Allow, Deny, Approval Required, or No Policy) based on your configured [policies](../concepts/policy-model.md)
+- An **approval gate** (pulsing amber diamond) on tools where `requireApproval` is enabled
+
+!!! tip "Agent-as-tool"
+    If one of your agent's required tools is actually another deployed agent, the Flow tab renders it as an agent node (indigo, with a bot icon) instead of a tool node. Clicking it navigates to that agent's Flow tab, letting you trace multi-agent orchestration graphs.
+
+**Edge cases handled:**
+
+| Scenario | Behavior |
+|----------|----------|
+| No tools configured | Shows "No tools configured" note |
+| No LLM configured | Shows warning; omits LLM node |
+| No identity provider | Omits client node |
+| 7+ tools | Tighter spacing |
+| 10+ tools | Shows first 8, then "+N more" |
+| No policies | Gray "No policy" badges on all edges |
+
+#### Execution Trace View
+
+Select a run from the dropdown to see an animated timeline of everything that happened during that run:
+
+- Events appear as a vertical timeline with animated spring-in transitions
+- Each event shows its type (User Message, Tool Request, Approval Required, etc.), timestamp, and relevant details
+- **Tool request/response pairs** are linked with a visual connector
+- **Approval Required** events pulse amber until resolved
+- For **in-progress runs**, the trace polls every 5 seconds and new events animate in at the bottom
+
+This view reuses the same event types and color coding as the [Run Detail page](../operations/runs.md), so the visual language is consistent across the console.
 
 ---
 

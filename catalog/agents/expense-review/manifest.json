@@ -1,0 +1,45 @@
+{
+  "id": "expense-review-agent",
+  "version": "1.2.0",
+  "name": "Expense Review Agent",
+  "summary": "Triages expense submissions, assembles policy context, and routes exceptions for approval.",
+  "description": "Designed for finance teams that want a reliable first-pass review assistant. It normalizes incoming expense data, highlights out-of-policy items, and prepares a grounded decision summary before a human reviewer signs off.",
+  "category": "Finance",
+  "tags": ["Approvals", "ERP", "Finance Ops"],
+  "defaultModel": "gpt-4.1",
+  "requiredIntegrations": ["erp", "expense_system"],
+  "defaultPolicies": ["approval-required", "finance-readonly"],
+  "governanceTraits": ["approval-routed", "audit-ready", "least-privilege"],
+  "accessRecommendations": [
+    "Bind to finance approver policy before production use.",
+    "Scope ERP credentials to expense read and approval APIs only."
+  ],
+  "useCases": [
+    "Employee expense triage",
+    "Policy exception review",
+    "Approval packet generation"
+  ],
+  "prompts": [
+    {
+      "title": "System",
+      "content": "You are a finance operations agent. Review each expense report carefully, cite policy reasons, and escalate exceptions rather than guessing."
+    }
+  ],
+  "deploymentTemplate": {
+    "agentName": "expense-review-agent",
+    "systemPrompt": "You are a finance operations agent. Review each expense report carefully, cite policy reasons, and escalate exceptions rather than guessing.",
+    "requiredTools": ["erp", "expense_system"],
+    "policies": ["approval-required", "finance-readonly"],
+    "accessMode": "authenticated",
+    "sourceType": "python_source",
+    "sourceFiles": {
+      "agent.py": "\"\"\"Expense review starter for RunAgents catalog.\"\"\"\n\nfrom typing import Any, Dict\n\n\ndef handler(payload: Dict[str, Any]) -> Dict[str, Any]:\n    report = payload.get(\"expense_report\", {})\n    amount = report.get(\"amount\", \"unknown\")\n    employee = report.get(\"employee\", \"employee\")\n    return {\n        \"summary\": f\"Prepared finance review packet for {employee}.\",\n        \"status\": \"needs_approval\",\n        \"highlights\": [f\"Expense amount: {amount}\", \"Attach policy context from ERP and expense system before approval.\"],\n    }\n"
+    }
+  },
+  "metadata": {
+    "complexity": "medium",
+    "nandu_ready": true
+  },
+  "changelog": "Added enriched finance policy summary and default approval posture.",
+  "publishedAt": "2026-03-20T15:00:00Z"
+}

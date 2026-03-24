@@ -1,0 +1,10 @@
+{
+  "order": [
+    "expense-review-agent",
+    "hr-policy-agent"
+  ],
+  "featured": [
+    "expense-review-agent",
+    "hr-policy-agent"
+  ]
+}

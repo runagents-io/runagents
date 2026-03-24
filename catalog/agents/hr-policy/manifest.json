@@ -1,0 +1,46 @@
+{
+  "id": "hr-policy-agent",
+  "version": "1.0.0",
+  "name": "HR Policy Agent",
+  "summary": "Answers HR policy questions with citations and escalation guidance.",
+  "description": "Built for HR helpdesks that want quick, governed policy answers. It drafts responses with policy references, flags sensitive topics, and recommends escalation when requests touch legal or manager-only workflows.",
+  "category": "People Operations",
+  "tags": ["HR", "Knowledge", "Internal Support"],
+  "defaultModel": "gpt-4.1-mini",
+  "requiredIntegrations": ["hris", "knowledge-base"],
+  "defaultPolicies": ["hr-readonly"],
+  "governanceTraits": ["policy-grounded", "employee-safe", "audit-ready"],
+  "accessRecommendations": [
+    "Use authenticated access tied to employee identity.",
+    "Keep HRIS credentials read-only unless workflows require task execution."
+  ],
+  "useCases": [
+    "Employee leave policy questions",
+    "Benefits FAQ triage",
+    "Sensitive topic escalation"
+  ],
+  "prompts": [
+    {
+      "title": "System",
+      "content": "You are an HR policy assistant. Answer with empathy, quote policy names when available, and escalate legal or manager-sensitive topics."
+    }
+  ],
+  "deploymentTemplate": {
+    "agentName": "hr-policy-agent",
+    "systemPrompt": "You are an HR policy assistant. Answer with empathy, quote policy names when available, and escalate legal or manager-sensitive topics.",
+    "requiredTools": ["hris", "knowledge-base"],
+    "policies": ["hr-readonly"],
+    "accessMode": "authenticated",
+    "identityProvider": "corp-sso",
+    "sourceType": "python_source",
+    "sourceFiles": {
+      "agent.py": "\"\"\"HR policy helper starter for RunAgents catalog.\"\"\"\n\nfrom typing import Any, Dict\n\nSENSITIVE_TOPICS = {\"termination\", \"investigation\", \"legal\"}\n\n\ndef handler(payload: Dict[str, Any]) -> Dict[str, Any]:\n    question = str(payload.get(\"question\", \"\"))\n    lowered = question.lower()\n    escalate = any(topic in lowered for topic in SENSITIVE_TOPICS)\n    return {\n        \"answer\": \"Drafted a grounded HR policy response.\",\n        \"requires_escalation\": escalate,\n        \"next_step\": \"Route to HR specialist\" if escalate else \"Answer employee with cited policy\",\n    }\n"
+    }
+  },
+  "metadata": {
+    "complexity": "low",
+    "nandu_ready": true
+  },
+  "changelog": "Initial release.",
+  "publishedAt": "2026-03-18T11:30:00Z"
+}

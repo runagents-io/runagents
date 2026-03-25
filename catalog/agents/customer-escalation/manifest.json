@@ -1,0 +1,46 @@
+{
+  "id": "customer-escalation-agent",
+  "version": "1.0.0",
+  "name": "Customer Escalation Agent",
+  "summary": "Prepares cross-functional escalation briefs for high-priority customer issues.",
+  "description": "Built for support, success, and engineering teams that need a fast, consistent handoff when issues escalate. It assembles customer context, incident state, business impact, and next-step recommendations into a shared escalation brief.",
+  "category": "Customer Operations",
+  "tags": ["Support", "Escalation", "Customer Success", "Operations"],
+  "defaultModel": "gpt-4.1",
+  "requiredIntegrations": ["crm", "ticketing", "knowledge-base", "chat"],
+  "defaultPolicies": ["support-readonly", "customer-data-guardrails"],
+  "governanceTraits": ["customer-safe", "context-grounded", "audit-ready"],
+  "accessRecommendations": [
+    "Use customer-safe policies that mask or limit sensitive CRM fields.",
+    "Keep ticketing and CRM access read-only for the initial briefing workflow."
+  ],
+  "useCases": [
+    "High-priority support escalation briefs",
+    "Account risk handoff summaries",
+    "Cross-functional incident coordination"
+  ],
+  "prompts": [
+    {
+      "title": "System",
+      "content": "You are a customer escalation assistant. Keep the brief factual, highlight impact and urgency, and recommend the next cross-functional action without speculating."
+    }
+  ],
+  "deploymentTemplate": {
+    "agentName": "customer-escalation-agent",
+    "systemPrompt": "You are a customer escalation assistant. Keep the brief factual, highlight impact and urgency, and recommend the next cross-functional action without speculating.",
+    "requiredTools": ["crm", "ticketing", "knowledge-base", "chat"],
+    "policies": ["support-readonly", "customer-data-guardrails"],
+    "accessMode": "authenticated",
+    "identityProvider": "corp-sso",
+    "sourceType": "python_source",
+    "sourceFiles": {
+      "agent.py": "\"\"\"Customer escalation starter for RunAgents catalog.\"\"\"\n\nfrom typing import Any, Dict\n\n\ndef handler(payload: Dict[str, Any]) -> Dict[str, Any]:\n    account = payload.get(\"account\", {}) or {}\n    incident = payload.get(\"incident\", {}) or {}\n\n    return {\n        \"headline\": f\"Prepared escalation brief for {account.get('name', 'customer account')}\",\n        \"severity\": incident.get(\"severity\", \"unknown\"),\n        \"business_impact\": incident.get(\"impact\", \"Impact not yet summarized\"),\n        \"recommended_next_step\": \"Align support, success, and engineering on mitigation and owner handoff.\",\n        \"brief_ready\": True,\n    }\n"
+    }
+  },
+  "metadata": {
+    "complexity": "medium",
+    "nandu_ready": true
+  },
+  "changelog": "Initial release.",
+  "publishedAt": "2026-03-25T17:10:00Z"
+}

@@ -1,0 +1,46 @@
+{
+  "id": "meeting-follow-up-agent",
+  "version": "1.0.0",
+  "name": "Meeting Follow-Up Agent",
+  "summary": "Turns meeting notes into action items, owners, and polished follow-up drafts.",
+  "description": "Built for teams that want meetings to result in crisp follow-through instead of loose notes. It organizes discussion notes, extracts decisions and action items, and prepares a ready-to-send recap with next steps.",
+  "category": "Enterprise Productivity",
+  "tags": ["Meetings", "Productivity", "Collaboration", "Execution"],
+  "defaultModel": "gpt-4.1-mini",
+  "requiredIntegrations": ["calendar", "docs", "project-tracker", "chat"],
+  "defaultPolicies": ["meeting-readonly", "task-write-approval"],
+  "governanceTraits": ["action-oriented", "approval-aware", "audit-ready"],
+  "accessRecommendations": [
+    "Keep project tracker writes behind approval until the workflow is tuned for your team.",
+    "Use authenticated access for internal collaboration spaces."
+  ],
+  "useCases": [
+    "Weekly team recap generation",
+    "Decision and action item capture",
+    "Stakeholder follow-up drafting"
+  ],
+  "prompts": [
+    {
+      "title": "System",
+      "content": "You are a meeting follow-up assistant. Extract only grounded decisions and actions, assign clear owners when provided, and make the recap ready for internal distribution."
+    }
+  ],
+  "deploymentTemplate": {
+    "agentName": "meeting-follow-up-agent",
+    "systemPrompt": "You are a meeting follow-up assistant. Extract only grounded decisions and actions, assign clear owners when provided, and make the recap ready for internal distribution.",
+    "requiredTools": ["calendar", "docs", "project-tracker", "chat"],
+    "policies": ["meeting-readonly", "task-write-approval"],
+    "accessMode": "authenticated",
+    "identityProvider": "corp-sso",
+    "sourceType": "python_source",
+    "sourceFiles": {
+      "agent.py": "\"\"\"Meeting follow-up starter for RunAgents catalog.\"\"\"\n\nfrom typing import Any, Dict, List\n\n\ndef _normalize_items(items: List[Dict[str, Any]]) -> List[Dict[str, str]]:\n    normalized: List[Dict[str, str]] = []\n    for item in items:\n        task = str(item.get(\"task\", \"\")).strip()\n        if not task:\n            continue\n        normalized.append({\n            \"task\": task,\n            \"owner\": str(item.get(\"owner\", \"TBD\")).strip() or \"TBD\",\n            \"due\": str(item.get(\"due\", \"\")).strip() or \"Unspecified\",\n        })\n    return normalized\n\n\ndef handler(payload: Dict[str, Any]) -> Dict[str, Any]:\n    decisions = [str(item).strip() for item in payload.get(\"decisions\", []) if str(item).strip()]\n    action_items = _normalize_items(payload.get(\"action_items\", []) or [])\n    meeting_title = str(payload.get(\"meeting_title\", \"Team meeting\")).strip() or \"Team meeting\"\n\n    return {\n        \"subject\": f\"Follow-up: {meeting_title}\",\n        \"decisions\": decisions,\n        \"action_items\": action_items,\n        \"draft_recap\": \"Prepared a concise recap with decisions, owners, and next steps.\",\n    }\n"
+    }
+  },
+  "metadata": {
+    "complexity": "medium",
+    "nandu_ready": true
+  },
+  "changelog": "Initial release.",
+  "publishedAt": "2026-03-25T17:05:00Z"
+}

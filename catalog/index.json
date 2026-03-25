@@ -1,10 +1,15 @@
 {
   "order": [
+    "executive-briefing-agent",
     "expense-review-agent",
+    "meeting-follow-up-agent",
+    "customer-escalation-agent",
     "hr-policy-agent"
   ],
   "featured": [
+    "executive-briefing-agent",
     "expense-review-agent",
+    "meeting-follow-up-agent",
     "hr-policy-agent"
   ]
 }

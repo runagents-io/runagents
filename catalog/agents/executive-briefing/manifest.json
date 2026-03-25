@@ -32,10 +32,7 @@
     "policies": ["leadership-readonly", "internal-docs-readonly"],
     "accessMode": "authenticated",
     "identityProvider": "corp-sso",
-    "sourceType": "python_source",
-    "sourceFiles": {
-      "agent.py": "\"\"\"Executive briefing starter for RunAgents catalog.\"\"\"\n\nfrom typing import Any, Dict, List\n\n\ndef _collect_titles(items: List[Dict[str, Any]], field: str) -> List[str]:\n    titles: List[str] = []\n    for item in items[:5]:\n        value = str(item.get(field, \"\")).strip()\n        if value:\n            titles.append(value)\n    return titles\n\n\ndef handler(payload: Dict[str, Any]) -> Dict[str, Any]:\n    meetings = payload.get(\"meetings\", []) or []\n    project_updates = payload.get(\"project_updates\", []) or []\n    stakeholder_notes = payload.get(\"stakeholder_notes\", []) or []\n\n    risks = [item for item in project_updates if str(item.get(\"status\", \"\")).lower() in {\"at_risk\", \"blocked\"}]\n    decisions = _collect_titles(project_updates, \"decision\")\n    stakeholder_signals = _collect_titles(stakeholder_notes, \"signal\")\n\n    return {\n        \"headline\": \"Prepared executive daily briefing.\",\n        \"today\": _collect_titles(meetings, \"title\"),\n        \"top_risks\": _collect_titles(risks, \"title\"),\n        \"decisions_needed\": decisions,\n        \"stakeholder_signals\": stakeholder_signals,\n        \"recommended_next_step\": \"Review top risks and decisions before the leadership stand-up.\",\n    }\n"
-    }
+    "sourceType": "python_source"
   },
   "metadata": {
     "complexity": "medium",

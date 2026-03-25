@@ -31,10 +31,7 @@
     "requiredTools": ["erp", "expense_system"],
     "policies": ["approval-required", "finance-readonly"],
     "accessMode": "authenticated",
-    "sourceType": "python_source",
-    "sourceFiles": {
-      "agent.py": "\"\"\"Expense review starter for RunAgents catalog.\"\"\"\n\nfrom typing import Any, Dict\n\n\ndef handler(payload: Dict[str, Any]) -> Dict[str, Any]:\n    report = payload.get(\"expense_report\", {})\n    amount = report.get(\"amount\", \"unknown\")\n    employee = report.get(\"employee\", \"employee\")\n    return {\n        \"summary\": f\"Prepared finance review packet for {employee}.\",\n        \"status\": \"needs_approval\",\n        \"highlights\": [f\"Expense amount: {amount}\", \"Attach policy context from ERP and expense system before approval.\"],\n    }\n"
-    }
+    "sourceType": "python_source"
   },
   "metadata": {
     "complexity": "medium",

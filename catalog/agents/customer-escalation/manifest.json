@@ -32,10 +32,7 @@
     "policies": ["support-readonly", "customer-data-guardrails"],
     "accessMode": "authenticated",
     "identityProvider": "corp-sso",
-    "sourceType": "python_source",
-    "sourceFiles": {
-      "agent.py": "\"\"\"Customer escalation starter for RunAgents catalog.\"\"\"\n\nfrom typing import Any, Dict\n\n\ndef handler(payload: Dict[str, Any]) -> Dict[str, Any]:\n    account = payload.get(\"account\", {}) or {}\n    incident = payload.get(\"incident\", {}) or {}\n\n    return {\n        \"headline\": f\"Prepared escalation brief for {account.get('name', 'customer account')}\",\n        \"severity\": incident.get(\"severity\", \"unknown\"),\n        \"business_impact\": incident.get(\"impact\", \"Impact not yet summarized\"),\n        \"recommended_next_step\": \"Align support, success, and engineering on mitigation and owner handoff.\",\n        \"brief_ready\": True,\n    }\n"
-    }
+    "sourceType": "python_source"
   },
   "metadata": {
     "complexity": "medium",

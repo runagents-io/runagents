@@ -32,10 +32,7 @@
     "policies": ["meeting-readonly", "task-write-approval"],
     "accessMode": "authenticated",
     "identityProvider": "corp-sso",
-    "sourceType": "python_source",
-    "sourceFiles": {
-      "agent.py": "\"\"\"Meeting follow-up starter for RunAgents catalog.\"\"\"\n\nfrom typing import Any, Dict, List\n\n\ndef _normalize_items(items: List[Dict[str, Any]]) -> List[Dict[str, str]]:\n    normalized: List[Dict[str, str]] = []\n    for item in items:\n        task = str(item.get(\"task\", \"\")).strip()\n        if not task:\n            continue\n        normalized.append({\n            \"task\": task,\n            \"owner\": str(item.get(\"owner\", \"TBD\")).strip() or \"TBD\",\n            \"due\": str(item.get(\"due\", \"\")).strip() or \"Unspecified\",\n        })\n    return normalized\n\n\ndef handler(payload: Dict[str, Any]) -> Dict[str, Any]:\n    decisions = [str(item).strip() for item in payload.get(\"decisions\", []) if str(item).strip()]\n    action_items = _normalize_items(payload.get(\"action_items\", []) or [])\n    meeting_title = str(payload.get(\"meeting_title\", \"Team meeting\")).strip() or \"Team meeting\"\n\n    return {\n        \"subject\": f\"Follow-up: {meeting_title}\",\n        \"decisions\": decisions,\n        \"action_items\": action_items,\n        \"draft_recap\": \"Prepared a concise recap with decisions, owners, and next steps.\",\n    }\n"
-    }
+    "sourceType": "python_source"
   },
   "metadata": {
     "complexity": "medium",

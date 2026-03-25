@@ -32,10 +32,7 @@
     "policies": ["hr-readonly"],
     "accessMode": "authenticated",
     "identityProvider": "corp-sso",
-    "sourceType": "python_source",
-    "sourceFiles": {
-      "agent.py": "\"\"\"HR policy helper starter for RunAgents catalog.\"\"\"\n\nfrom typing import Any, Dict\n\nSENSITIVE_TOPICS = {\"termination\", \"investigation\", \"legal\"}\n\n\ndef handler(payload: Dict[str, Any]) -> Dict[str, Any]:\n    question = str(payload.get(\"question\", \"\"))\n    lowered = question.lower()\n    escalate = any(topic in lowered for topic in SENSITIVE_TOPICS)\n    return {\n        \"answer\": \"Drafted a grounded HR policy response.\",\n        \"requires_escalation\": escalate,\n        \"next_step\": \"Route to HR specialist\" if escalate else \"Answer employee with cited policy\",\n    }\n"
-    }
+    "sourceType": "python_source"
   },
   "metadata": {
     "complexity": "low",

@@ -1,31 +1,323 @@
-"""Executive briefing starter for RunAgents catalog."""
+"""LangGraph-based executive briefing blueprint for RunAgents catalog."""
 
-from typing import Any, Dict, List
+from __future__ import annotations
+
+import json
+import os
+from typing import Annotated, Any, TypedDict
+
+from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage
+from langchain_openai import ChatOpenAI
+from langgraph.graph import END, START, StateGraph
+from langgraph.graph.message import add_messages
+
+from runagents import Agent
 
 
-def _collect_titles(items: List[Dict[str, Any]], field: str) -> List[str]:
-    titles: List[str] = []
-    for item in items[:5]:
-        value = str(item.get(field, "")).strip()
-        if value:
-            titles.append(value)
-    return titles
+SYSTEM_PROMPT = """You are an executive briefing assistant.
+Produce a concise leadership brief with these sections:
+1. Executive Summary
+2. Today's Critical Meetings
+3. Risks And Decisions
+4. Stakeholder Signals
+5. Recommended Next Step
+
+Separate facts from recommendations. If context is missing, say so plainly.
+"""
 
 
-def handler(payload: Dict[str, Any]) -> Dict[str, Any]:
-    meetings = payload.get("meetings", []) or []
-    project_updates = payload.get("project_updates", []) or []
-    stakeholder_notes = payload.get("stakeholder_notes", []) or []
+class BriefingState(TypedDict, total=False):
+    messages: Annotated[list[AnyMessage], add_messages]
+    objective: str
+    context: dict[str, list[str]]
+    evidence: list[str]
 
-    risks = [item for item in project_updates if str(item.get("status", "")).lower() in {"at_risk", "blocked"}]
-    decisions = _collect_titles(project_updates, "decision")
-    stakeholder_signals = _collect_titles(stakeholder_notes, "signal")
 
-    return {
-        "headline": "Prepared executive daily briefing.",
-        "today": _collect_titles(meetings, "title"),
-        "top_risks": _collect_titles(risks, "title"),
-        "decisions_needed": decisions,
-        "stakeholder_signals": stakeholder_signals,
-        "recommended_next_step": "Review top risks and decisions before the leadership stand-up.",
+tool_client = Agent()
+llm = ChatOpenAI(model=os.environ.get("LLM_MODEL", "gpt-4.1"), temperature=0.1)
+
+
+def _message_text(message: Any) -> str:
+    if isinstance(message, str):
+        return message
+    if isinstance(message, dict):
+        content = message.get("content", "")
+    else:
+        content = getattr(message, "content", "")
+
+    if isinstance(content, str):
+        return content
+    if isinstance(content, list):
+        parts: list[str] = []
+        for item in content:
+            if isinstance(item, str):
+                parts.append(item)
+                continue
+            if isinstance(item, dict):
+                text = item.get("text")
+                if isinstance(text, str) and text.strip():
+                    parts.append(text.strip())
+        return "\n".join(part for part in parts if part)
+    return str(content or "")
+
+
+def _strip_code_fence(text: str) -> str:
+    cleaned = text.strip()
+    if cleaned.startswith("```") and cleaned.endswith("```"):
+        lines = cleaned.splitlines()
+        if len(lines) >= 3:
+            return "\n".join(lines[1:-1]).strip()
+    return cleaned
+
+
+def _stringify_item(item: Any, preferred_fields: tuple[str, ...]) -> str:
+    if isinstance(item, str):
+        return item.strip()
+    if not isinstance(item, dict):
+        return str(item).strip()
+
+    primary = ""
+    for field in preferred_fields:
+        value = item.get(field)
+        if value is not None and str(value).strip():
+            primary = str(value).strip()
+            break
+
+    details: list[str] = []
+    for field in ("status", "decision", "owner", "signal", "summary", "next_step"):
+        value = item.get(field)
+        if value is None:
+            continue
+        text = str(value).strip()
+        if not text or text == primary:
+            continue
+        label = field.replace("_", " ")
+        details.append(f"{label}: {text}")
+
+    if primary and details:
+        return f"{primary} ({'; '.join(details[:3])})"
+    if primary:
+        return primary
+    if details:
+        return "; ".join(details[:3])
+    return ""
+
+
+def _coerce_items(value: Any, preferred_fields: tuple[str, ...]) -> list[str]:
+    if value is None:
+        return []
+    if isinstance(value, list):
+        items = [_stringify_item(item, preferred_fields) for item in value[:6]]
+        return [item for item in items if item]
+    text = _stringify_item(value, preferred_fields)
+    return [text] if text else []
+
+
+def _parse_request(user_prompt: str) -> tuple[str, dict[str, list[str]]]:
+    cleaned = _strip_code_fence(user_prompt)
+    objective = cleaned or "Prepare today's executive briefing."
+    context = {
+        "meetings": [],
+        "project_updates": [],
+        "reference_notes": [],
+        "stakeholder_notes": [],
     }
+
+    try:
+        payload = json.loads(cleaned)
+    except json.JSONDecodeError:
+        return objective, context
+
+    if not isinstance(payload, dict):
+        return objective, context
+
+    objective = str(payload.get("objective") or payload.get("message") or objective).strip() or objective
+    context["meetings"] = _coerce_items(payload.get("meetings"), ("title", "subject", "name"))
+    context["project_updates"] = _coerce_items(payload.get("project_updates"), ("title", "summary", "name"))
+    context["reference_notes"] = _coerce_items(payload.get("reference_notes"), ("title", "summary", "text"))
+    context["stakeholder_notes"] = _coerce_items(payload.get("stakeholder_notes"), ("signal", "summary", "text", "name"))
+    return objective, context
+
+
+def _normalize_tool_items(raw: Any, preferred_fields: tuple[str, ...]) -> list[str]:
+    if isinstance(raw, dict):
+        for key in ("items", "results", "records", "data", "meetings", "updates", "notes", "messages", "documents"):
+            if key in raw:
+                items = _coerce_items(raw.get(key), preferred_fields)
+                if items:
+                    return items
+        return _coerce_items(raw, preferred_fields)
+    return _coerce_items(raw, preferred_fields)
+
+
+def _best_effort_tool_fetch(
+    *,
+    tool_name: str,
+    purpose: str,
+    objective: str,
+    existing_items: list[str],
+    preferred_fields: tuple[str, ...],
+) -> tuple[list[str], str]:
+    if existing_items:
+        return existing_items, f"Used {len(existing_items)} {tool_name} signal(s) supplied in the request payload."
+
+    try:
+        response = tool_client.call_tool(
+            tool_name,
+            payload={
+                "objective": objective,
+                "purpose": purpose,
+                "audience": "executive-briefing",
+                "limit": 5,
+            },
+        )
+    except Exception as exc:
+        return [], f"{tool_name} retrieval unavailable: {exc}"
+
+    items = _normalize_tool_items(response, preferred_fields)
+    if not items:
+        return [], f"{tool_name} responded but returned no reusable briefing items."
+    return items, f"Retrieved {len(items)} item(s) from {tool_name}."
+
+
+def ingest_request(state: BriefingState) -> dict[str, Any]:
+    message = ""
+    if state.get("messages"):
+        message = _message_text(state["messages"][-1])
+    objective, context = _parse_request(message)
+    return {
+        "objective": objective,
+        "context": context,
+        "evidence": [f"Briefing objective: {objective}"],
+    }
+
+
+def gather_calendar(state: BriefingState) -> dict[str, Any]:
+    context = dict(state.get("context", {}))
+    evidence = list(state.get("evidence", []))
+    items, note = _best_effort_tool_fetch(
+        tool_name="calendar",
+        purpose="todays leadership meetings and checkpoints",
+        objective=state.get("objective", ""),
+        existing_items=context.get("meetings", []),
+        preferred_fields=("title", "subject", "name"),
+    )
+    context["meetings"] = items
+    evidence.append(note)
+    return {"context": context, "evidence": evidence}
+
+
+def gather_project_signals(state: BriefingState) -> dict[str, Any]:
+    context = dict(state.get("context", {}))
+    evidence = list(state.get("evidence", []))
+    items, note = _best_effort_tool_fetch(
+        tool_name="project-tracker",
+        purpose="active delivery risks, blockers, and pending executive decisions",
+        objective=state.get("objective", ""),
+        existing_items=context.get("project_updates", []),
+        preferred_fields=("title", "summary", "name"),
+    )
+    context["project_updates"] = items
+    evidence.append(note)
+    return {"context": context, "evidence": evidence}
+
+
+def gather_reference_notes(state: BriefingState) -> dict[str, Any]:
+    context = dict(state.get("context", {}))
+    evidence = list(state.get("evidence", []))
+    items, note = _best_effort_tool_fetch(
+        tool_name="knowledge-base",
+        purpose="reference notes, docs, and background context relevant to the briefing",
+        objective=state.get("objective", ""),
+        existing_items=context.get("reference_notes", []),
+        preferred_fields=("title", "summary", "text"),
+    )
+    context["reference_notes"] = items
+    evidence.append(note)
+    return {"context": context, "evidence": evidence}
+
+
+def gather_stakeholder_signals(state: BriefingState) -> dict[str, Any]:
+    context = dict(state.get("context", {}))
+    evidence = list(state.get("evidence", []))
+    items, note = _best_effort_tool_fetch(
+        tool_name="chat",
+        purpose="stakeholder sentiment, escalations, and notable follow-up signals",
+        objective=state.get("objective", ""),
+        existing_items=context.get("stakeholder_notes", []),
+        preferred_fields=("signal", "summary", "text", "name"),
+    )
+    context["stakeholder_notes"] = items
+    evidence.append(note)
+    return {"context": context, "evidence": evidence}
+
+
+def _section_lines(title: str, items: list[str], empty_message: str) -> list[str]:
+    lines = [title]
+    if items:
+        lines.extend(f"- {item}" for item in items)
+    else:
+        lines.append(f"- {empty_message}")
+    lines.append("")
+    return lines
+
+
+def synthesize_brief(state: BriefingState) -> dict[str, Any]:
+    context = state.get("context", {})
+    evidence = state.get("evidence", [])
+    objective = state.get("objective", "Prepare today's executive briefing.")
+
+    prompt_lines = [f"Objective: {objective}", ""]
+    prompt_lines.extend(
+        _section_lines("Meetings:", context.get("meetings", []), "No meetings were provided or retrieved.")
+    )
+    prompt_lines.extend(
+        _section_lines(
+            "Project updates:",
+            context.get("project_updates", []),
+            "No project updates were provided or retrieved.",
+        )
+    )
+    prompt_lines.extend(
+        _section_lines(
+            "Reference notes:",
+            context.get("reference_notes", []),
+            "No reference notes were provided or retrieved.",
+        )
+    )
+    prompt_lines.extend(
+        _section_lines(
+            "Stakeholder signals:",
+            context.get("stakeholder_notes", []),
+            "No stakeholder signals were provided or retrieved.",
+        )
+    )
+    prompt_lines.extend(_section_lines("Evidence trail:", evidence, "No evidence trail captured."))
+    prompt = "\n".join(prompt_lines)
+
+    response = llm.invoke(
+        [
+            SystemMessage(content=SYSTEM_PROMPT),
+            HumanMessage(content=prompt),
+        ]
+    )
+    return {"messages": [response]}
+
+
+builder = StateGraph(BriefingState)
+builder.add_node("ingest_request", ingest_request)
+builder.add_node("gather_calendar", gather_calendar)
+builder.add_node("gather_project_signals", gather_project_signals)
+builder.add_node("gather_reference_notes", gather_reference_notes)
+builder.add_node("gather_stakeholder_signals", gather_stakeholder_signals)
+builder.add_node("synthesize_brief", synthesize_brief)
+
+builder.add_edge(START, "ingest_request")
+builder.add_edge("ingest_request", "gather_calendar")
+builder.add_edge("gather_calendar", "gather_project_signals")
+builder.add_edge("gather_project_signals", "gather_reference_notes")
+builder.add_edge("gather_reference_notes", "gather_stakeholder_signals")
+builder.add_edge("gather_stakeholder_signals", "synthesize_brief")
+builder.add_edge("synthesize_brief", END)
+
+graph = builder.compile()

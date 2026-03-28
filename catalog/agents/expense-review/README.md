@@ -2,13 +2,32 @@
 
 A LangGraph-based finance operations agent that assembles a review packet from expense submission details and ERP policy context.
 
+## Why teams deploy this
+Finance teams often spend time gathering evidence before they can even begin to review a submission. This example shows how to automate the evidence collection and first-pass reasoning while keeping the workflow policy-aware and approval-friendly.
+
+Use it when you want an agent that can:
+- prepare a clean packet for finance reviewers before they open the case
+- cross-reference an expense against policy and ERP context
+- highlight exceptions, missing receipts, or suspicious line items
+- reduce manual triage while keeping sensitive decisions governed
+
+## What the agent will do for a user
+A finance reviewer, manager, or audit analyst can ask the agent to review an expense packet. The agent will inspect the current submission, gather missing policy context, and return a finance-ready review summary.
+
+A typical result includes:
+- the key facts of the submission
+- which rules or thresholds appear relevant
+- possible exceptions or anomalies
+- follow-up evidence that is still missing
+- the next recommendation for approve, hold, or escalate
+
 ## What it includes
 - Suggested model: `gpt-4.1`
 - Required tools: `erp`, `expense-system`
 - Default policies: `approval-required`, `finance-readonly`
 - Authoring pattern: `LangGraph agent loop + ToolNode`
 
-## Graph flow
+## What happens during a run
 1. `ingest_request`
    Parses plain text or structured JSON and seeds expense submission details if they were already supplied.
 2. `reasoning_agent`
@@ -30,6 +49,10 @@ A LangGraph-based finance operations agent that assembles a review packet from e
 - Each wrapper calls `runagents.Agent().call_tool(...)`, so the deployed agent still uses the tools selected at deploy time.
 - That preserves approval routing, policy checks, audit, and identity propagation for every tool call.
 
+## Why the tools matter
+- `erp`: supplies finance policy context, cost-center rules, and system-of-record data
+- `expense-system`: provides the current report, receipts, line items, and traveler metadata
+
 ## Example input
 Plain text:
 
@@ -45,6 +68,13 @@ Structured JSON:
   "expense_report": [{"merchant": "Hilton", "amount": "1290 USD", "reason": "Conference stay"}]
 }
 ```
+
+## What a strong deployment looks like
+This example is strongest when it is connected to:
+- a system of record for expense submissions and receipts
+- an ERP or finance policy source that exposes reimbursement rules, categories, and approval thresholds
+
+With both in place, the agent can do useful triage before a human approver needs to step in.
 
 ## Deploy from CLI
 If your RunAgents CLI is not configured yet:

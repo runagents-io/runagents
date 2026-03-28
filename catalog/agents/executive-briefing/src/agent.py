@@ -16,8 +16,13 @@ from langgraph.prebuilt import ToolNode
 from runagents import Agent
 
 
-SYSTEM_PROMPT = """You are an executive briefing assistant.
-Produce a concise leadership brief with these sections:
+SYSTEM_PROMPT = """You are an executive briefing assistant operating as a reasoning agent.
+
+Decide whether you already have enough context to answer. If important context is
+missing, call the available tools to gather it. Use as many tool calls as needed,
+but stay disciplined and avoid redundant fetches.
+
+When you answer, produce a concise leadership brief with these sections:
 1. Executive Summary
 2. Today's Critical Meetings
 3. Risks And Decisions
@@ -27,12 +32,22 @@ Produce a concise leadership brief with these sections:
 Separate facts from recommendations. If context is missing, say so plainly.
 """
 
+FINALIZE_PROMPT = """You are finalizing an executive briefing after the tool budget was exhausted.
+
+Do not ask for more tools. Produce the best possible leadership brief from the
+available context and clearly call out any important gaps.
+"""
+
+MAX_TOOL_ROUNDS = 4
+
 
 class BriefingState(TypedDict, total=False):
     messages: Annotated[list[AnyMessage], add_messages]
     objective: str
+    briefing_prompt: str
     context: dict[str, list[str]]
     evidence: list[str]
+    rounds: int
 
 
 TOOL_SPECS = {
@@ -176,6 +191,46 @@ def _normalize_tool_items(raw: Any, preferred_fields: tuple[str, ...]) -> list[s
     return _coerce_items(raw, preferred_fields)
 
 
+def _section_lines(title: str, items: list[str], empty_message: str) -> list[str]:
+    lines = [title]
+    if items:
+        lines.extend(f"- {item}" for item in items)
+    else:
+        lines.append(f"- {empty_message}")
+    lines.append("")
+    return lines
+
+
+def _build_briefing_prompt(objective: str, context: dict[str, list[str]], evidence: list[str]) -> str:
+    prompt_lines = [f"Objective: {objective}", ""]
+    prompt_lines.extend(
+        _section_lines("Meetings:", context.get("meetings", []), "No meetings were provided or retrieved.")
+    )
+    prompt_lines.extend(
+        _section_lines(
+            "Project updates:",
+            context.get("project_updates", []),
+            "No project updates were provided or retrieved.",
+        )
+    )
+    prompt_lines.extend(
+        _section_lines(
+            "Reference notes:",
+            context.get("reference_notes", []),
+            "No reference notes were provided or retrieved.",
+        )
+    )
+    prompt_lines.extend(
+        _section_lines(
+            "Stakeholder signals:",
+            context.get("stakeholder_notes", []),
+            "No stakeholder signals were provided or retrieved.",
+        )
+    )
+    prompt_lines.extend(_section_lines("Evidence trail:", evidence, "No evidence trail captured."))
+    return "\n".join(prompt_lines)
+
+
 def _call_managed_tool(tool_name: str, objective: str) -> str:
     spec = TOOL_SPECS[tool_name]
     try:
@@ -232,6 +287,7 @@ BRIEFING_TOOLS = [
     chat_signals_tool,
 ]
 TOOL_NODE = ToolNode(BRIEFING_TOOLS)
+AGENT_LLM = llm.bind_tools(BRIEFING_TOOLS)
 
 
 def ingest_request(state: BriefingState) -> dict[str, Any]:
@@ -248,44 +304,45 @@ def ingest_request(state: BriefingState) -> dict[str, Any]:
 
     return {
         "objective": objective,
+        "briefing_prompt": _build_briefing_prompt(objective, context, evidence),
         "context": context,
         "evidence": evidence,
+        "rounds": 0,
     }
 
 
-def plan_retrieval(state: BriefingState) -> dict[str, Any]:
-    context = state.get("context", {})
+def reasoning_agent(state: BriefingState) -> dict[str, Any]:
     objective = state.get("objective", "Prepare today's executive briefing.")
-    tool_calls = []
+    context = state.get("context", {})
+    evidence = state.get("evidence", [])
+    briefing_prompt = state.get("briefing_prompt") or _build_briefing_prompt(objective, context, evidence)
 
-    for tool_name, spec in TOOL_SPECS.items():
-        if context.get(spec["context_key"], []):
-            continue
-        tool_calls.append({
-            "name": tool_name,
-            "args": {"objective": objective},
-            "id": f"{tool_name}-briefing",
-            "type": "tool_call",
-        })
+    history = [
+        message
+        for message in state.get("messages", [])
+        if isinstance(message, (AIMessage, ToolMessage))
+    ]
 
-    if not tool_calls:
-        return {}
-
-    return {
-        "messages": [
-            AIMessage(
-                content="Collect the missing context needed for the executive briefing.",
-                tool_calls=tool_calls,
-            )
+    response = AGENT_LLM.invoke(
+        [
+            SystemMessage(content=SYSTEM_PROMPT),
+            HumanMessage(content=briefing_prompt),
+            *history,
         ]
+    )
+    return {
+        "messages": [response],
+        "rounds": state.get("rounds", 0) + 1,
     }
 
 
-def route_after_plan(state: BriefingState) -> str:
+def route_after_agent(state: BriefingState) -> str:
     messages = state.get("messages", [])
     if messages and getattr(messages[-1], "tool_calls", None):
+        if state.get("rounds", 0) >= MAX_TOOL_ROUNDS:
+            return "finalize_brief"
         return "tool_node"
-    return "synthesize_brief"
+    return END
 
 
 def integrate_tool_outputs(state: BriefingState) -> dict[str, Any]:
@@ -309,55 +366,26 @@ def integrate_tool_outputs(state: BriefingState) -> dict[str, Any]:
         if note:
             evidence.append(note)
 
-    return {"context": context, "evidence": evidence}
+    return {
+        "context": context,
+        "evidence": evidence,
+        "briefing_prompt": _build_briefing_prompt(
+            state.get("objective", "Prepare today's executive briefing."),
+            context,
+            evidence,
+        ),
+    }
 
 
-def _section_lines(title: str, items: list[str], empty_message: str) -> list[str]:
-    lines = [title]
-    if items:
-        lines.extend(f"- {item}" for item in items)
-    else:
-        lines.append(f"- {empty_message}")
-    lines.append("")
-    return lines
-
-
-def synthesize_brief(state: BriefingState) -> dict[str, Any]:
+def finalize_brief(state: BriefingState) -> dict[str, Any]:
     context = state.get("context", {})
     evidence = state.get("evidence", [])
     objective = state.get("objective", "Prepare today's executive briefing.")
-
-    prompt_lines = [f"Objective: {objective}", ""]
-    prompt_lines.extend(
-        _section_lines("Meetings:", context.get("meetings", []), "No meetings were provided or retrieved.")
-    )
-    prompt_lines.extend(
-        _section_lines(
-            "Project updates:",
-            context.get("project_updates", []),
-            "No project updates were provided or retrieved.",
-        )
-    )
-    prompt_lines.extend(
-        _section_lines(
-            "Reference notes:",
-            context.get("reference_notes", []),
-            "No reference notes were provided or retrieved.",
-        )
-    )
-    prompt_lines.extend(
-        _section_lines(
-            "Stakeholder signals:",
-            context.get("stakeholder_notes", []),
-            "No stakeholder signals were provided or retrieved.",
-        )
-    )
-    prompt_lines.extend(_section_lines("Evidence trail:", evidence, "No evidence trail captured."))
-    prompt = "\n".join(prompt_lines)
+    prompt = state.get("briefing_prompt") or _build_briefing_prompt(objective, context, evidence)
 
     response = llm.invoke(
         [
-            SystemMessage(content=SYSTEM_PROMPT),
+            SystemMessage(content=FINALIZE_PROMPT),
             HumanMessage(content=prompt),
         ]
     )
@@ -366,23 +394,24 @@ def synthesize_brief(state: BriefingState) -> dict[str, Any]:
 
 builder = StateGraph(BriefingState)
 builder.add_node("ingest_request", ingest_request)
-builder.add_node("plan_retrieval", plan_retrieval)
+builder.add_node("reasoning_agent", reasoning_agent)
 builder.add_node("tool_node", TOOL_NODE)
 builder.add_node("integrate_tool_outputs", integrate_tool_outputs)
-builder.add_node("synthesize_brief", synthesize_brief)
+builder.add_node("finalize_brief", finalize_brief)
 
 builder.add_edge(START, "ingest_request")
-builder.add_edge("ingest_request", "plan_retrieval")
+builder.add_edge("ingest_request", "reasoning_agent")
 builder.add_conditional_edges(
-    "plan_retrieval",
-    route_after_plan,
+    "reasoning_agent",
+    route_after_agent,
     {
         "tool_node": "tool_node",
-        "synthesize_brief": "synthesize_brief",
+        "finalize_brief": "finalize_brief",
+        END: END,
     },
 )
 builder.add_edge("tool_node", "integrate_tool_outputs")
-builder.add_edge("integrate_tool_outputs", "synthesize_brief")
-builder.add_edge("synthesize_brief", END)
+builder.add_edge("integrate_tool_outputs", "reasoning_agent")
+builder.add_edge("finalize_brief", END)
 
 graph = builder.compile()

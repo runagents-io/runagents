@@ -1,6 +1,6 @@
 {
   "id": "executive-briefing-agent",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "name": "Executive Briefing Agent",
   "summary": "Builds a concise daily leadership briefing from meetings, project updates, and internal signals.",
   "description": "Designed for executives, chiefs of staff, and leadership teams that need a dependable morning briefing. It consolidates calendar context, project risk updates, open decisions, and notable stakeholder signals into a structured brief that is easy to review before the day starts.",
@@ -41,6 +41,6 @@
     "authoring_pattern": "langgraph",
     "framework": "langgraph"
   },
-  "changelog": "Reworked as a LangGraph retrieval-and-synthesis workflow with RunAgents-managed tool calls and model-backed briefing generation.",
-  "publishedAt": "2026-03-25T23:45:00Z"
+  "changelog": "Refactored to use standard LangGraph tool wrappers and ToolNode execution while preserving RunAgents-managed tool routing and model-backed synthesis.",
+  "publishedAt": "2026-03-28T00:15:00Z"
 }

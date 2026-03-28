@@ -6,10 +6,12 @@ import json
 import os
 from typing import Annotated, Any, TypedDict
 
-from langchain_core.messages import AnyMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage, ToolMessage
+from langchain_core.tools import tool
 from langchain_openai import ChatOpenAI
 from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
+from langgraph.prebuilt import ToolNode
 
 from runagents import Agent
 
@@ -31,6 +33,30 @@ class BriefingState(TypedDict, total=False):
     objective: str
     context: dict[str, list[str]]
     evidence: list[str]
+
+
+TOOL_SPECS = {
+    "calendar": {
+        "context_key": "meetings",
+        "purpose": "todays leadership meetings and checkpoints",
+        "preferred_fields": ("title", "subject", "name"),
+    },
+    "project-tracker": {
+        "context_key": "project_updates",
+        "purpose": "active delivery risks, blockers, and pending executive decisions",
+        "preferred_fields": ("title", "summary", "name"),
+    },
+    "knowledge-base": {
+        "context_key": "reference_notes",
+        "purpose": "reference notes, docs, and background context relevant to the briefing",
+        "preferred_fields": ("title", "summary", "text"),
+    },
+    "chat": {
+        "context_key": "stakeholder_notes",
+        "purpose": "stakeholder sentiment, escalations, and notable follow-up signals",
+        "preferred_fields": ("signal", "summary", "text", "name"),
+    },
+}
 
 
 tool_client = Agent()
@@ -150,34 +176,62 @@ def _normalize_tool_items(raw: Any, preferred_fields: tuple[str, ...]) -> list[s
     return _coerce_items(raw, preferred_fields)
 
 
-def _best_effort_tool_fetch(
-    *,
-    tool_name: str,
-    purpose: str,
-    objective: str,
-    existing_items: list[str],
-    preferred_fields: tuple[str, ...],
-) -> tuple[list[str], str]:
-    if existing_items:
-        return existing_items, f"Used {len(existing_items)} {tool_name} signal(s) supplied in the request payload."
-
+def _call_managed_tool(tool_name: str, objective: str) -> str:
+    spec = TOOL_SPECS[tool_name]
     try:
         response = tool_client.call_tool(
             tool_name,
             payload={
                 "objective": objective,
-                "purpose": purpose,
+                "purpose": spec["purpose"],
                 "audience": "executive-briefing",
                 "limit": 5,
             },
         )
+        items = _normalize_tool_items(response, spec["preferred_fields"])
+        if items:
+            note = f"Retrieved {len(items)} item(s) from {tool_name}."
+        else:
+            note = f"{tool_name} responded but returned no reusable briefing items."
     except Exception as exc:
-        return [], f"{tool_name} retrieval unavailable: {exc}"
+        items = []
+        note = f"{tool_name} retrieval unavailable: {exc}"
 
-    items = _normalize_tool_items(response, preferred_fields)
-    if not items:
-        return [], f"{tool_name} responded but returned no reusable briefing items."
-    return items, f"Retrieved {len(items)} item(s) from {tool_name}."
+    return json.dumps({
+        "tool": tool_name,
+        "context_key": spec["context_key"],
+        "items": items,
+        "note": note,
+    })
+
+
+@tool("calendar", description="Retrieve today's leadership meetings and checkpoints.")
+def calendar_tool(objective: str) -> str:
+    return _call_managed_tool("calendar", objective)
+
+
+@tool("project-tracker", description="Retrieve active delivery risks, blockers, and pending decisions.")
+def project_tracker_tool(objective: str) -> str:
+    return _call_managed_tool("project-tracker", objective)
+
+
+@tool("knowledge-base", description="Retrieve reference notes and background context for the briefing.")
+def knowledge_base_tool(objective: str) -> str:
+    return _call_managed_tool("knowledge-base", objective)
+
+
+@tool("chat", description="Retrieve stakeholder sentiment, escalations, and notable follow-up signals.")
+def chat_signals_tool(objective: str) -> str:
+    return _call_managed_tool("chat", objective)
+
+
+BRIEFING_TOOLS = [
+    calendar_tool,
+    project_tracker_tool,
+    knowledge_base_tool,
+    chat_signals_tool,
+]
+TOOL_NODE = ToolNode(BRIEFING_TOOLS)
 
 
 def ingest_request(state: BriefingState) -> dict[str, Any]:
@@ -185,70 +239,76 @@ def ingest_request(state: BriefingState) -> dict[str, Any]:
     if state.get("messages"):
         message = _message_text(state["messages"][-1])
     objective, context = _parse_request(message)
+
+    evidence = [f"Briefing objective: {objective}"]
+    for tool_name, spec in TOOL_SPECS.items():
+        items = context.get(spec["context_key"], [])
+        if items:
+            evidence.append(f"Used {len(items)} {tool_name} signal(s) supplied in the request payload.")
+
     return {
         "objective": objective,
         "context": context,
-        "evidence": [f"Briefing objective: {objective}"],
+        "evidence": evidence,
     }
 
 
-def gather_calendar(state: BriefingState) -> dict[str, Any]:
+def plan_retrieval(state: BriefingState) -> dict[str, Any]:
+    context = state.get("context", {})
+    objective = state.get("objective", "Prepare today's executive briefing.")
+    tool_calls = []
+
+    for tool_name, spec in TOOL_SPECS.items():
+        if context.get(spec["context_key"], []):
+            continue
+        tool_calls.append({
+            "name": tool_name,
+            "args": {"objective": objective},
+            "id": f"{tool_name}-briefing",
+            "type": "tool_call",
+        })
+
+    if not tool_calls:
+        return {}
+
+    return {
+        "messages": [
+            AIMessage(
+                content="Collect the missing context needed for the executive briefing.",
+                tool_calls=tool_calls,
+            )
+        ]
+    }
+
+
+def route_after_plan(state: BriefingState) -> str:
+    messages = state.get("messages", [])
+    if messages and getattr(messages[-1], "tool_calls", None):
+        return "tool_node"
+    return "synthesize_brief"
+
+
+def integrate_tool_outputs(state: BriefingState) -> dict[str, Any]:
     context = dict(state.get("context", {}))
     evidence = list(state.get("evidence", []))
-    items, note = _best_effort_tool_fetch(
-        tool_name="calendar",
-        purpose="todays leadership meetings and checkpoints",
-        objective=state.get("objective", ""),
-        existing_items=context.get("meetings", []),
-        preferred_fields=("title", "subject", "name"),
-    )
-    context["meetings"] = items
-    evidence.append(note)
-    return {"context": context, "evidence": evidence}
 
+    for message in state.get("messages", []):
+        if not isinstance(message, ToolMessage):
+            continue
+        try:
+            payload = json.loads(_message_text(message))
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(payload, dict):
+            continue
+        context_key = str(payload.get("context_key", "")).strip()
+        items = payload.get("items")
+        note = str(payload.get("note", "")).strip()
+        if context_key and isinstance(items, list):
+            context[context_key] = [str(item).strip() for item in items if str(item).strip()]
+        if note:
+            evidence.append(note)
 
-def gather_project_signals(state: BriefingState) -> dict[str, Any]:
-    context = dict(state.get("context", {}))
-    evidence = list(state.get("evidence", []))
-    items, note = _best_effort_tool_fetch(
-        tool_name="project-tracker",
-        purpose="active delivery risks, blockers, and pending executive decisions",
-        objective=state.get("objective", ""),
-        existing_items=context.get("project_updates", []),
-        preferred_fields=("title", "summary", "name"),
-    )
-    context["project_updates"] = items
-    evidence.append(note)
-    return {"context": context, "evidence": evidence}
-
-
-def gather_reference_notes(state: BriefingState) -> dict[str, Any]:
-    context = dict(state.get("context", {}))
-    evidence = list(state.get("evidence", []))
-    items, note = _best_effort_tool_fetch(
-        tool_name="knowledge-base",
-        purpose="reference notes, docs, and background context relevant to the briefing",
-        objective=state.get("objective", ""),
-        existing_items=context.get("reference_notes", []),
-        preferred_fields=("title", "summary", "text"),
-    )
-    context["reference_notes"] = items
-    evidence.append(note)
-    return {"context": context, "evidence": evidence}
-
-
-def gather_stakeholder_signals(state: BriefingState) -> dict[str, Any]:
-    context = dict(state.get("context", {}))
-    evidence = list(state.get("evidence", []))
-    items, note = _best_effort_tool_fetch(
-        tool_name="chat",
-        purpose="stakeholder sentiment, escalations, and notable follow-up signals",
-        objective=state.get("objective", ""),
-        existing_items=context.get("stakeholder_notes", []),
-        preferred_fields=("signal", "summary", "text", "name"),
-    )
-    context["stakeholder_notes"] = items
-    evidence.append(note)
     return {"context": context, "evidence": evidence}
 
 
@@ -306,18 +366,23 @@ def synthesize_brief(state: BriefingState) -> dict[str, Any]:
 
 builder = StateGraph(BriefingState)
 builder.add_node("ingest_request", ingest_request)
-builder.add_node("gather_calendar", gather_calendar)
-builder.add_node("gather_project_signals", gather_project_signals)
-builder.add_node("gather_reference_notes", gather_reference_notes)
-builder.add_node("gather_stakeholder_signals", gather_stakeholder_signals)
+builder.add_node("plan_retrieval", plan_retrieval)
+builder.add_node("tool_node", TOOL_NODE)
+builder.add_node("integrate_tool_outputs", integrate_tool_outputs)
 builder.add_node("synthesize_brief", synthesize_brief)
 
 builder.add_edge(START, "ingest_request")
-builder.add_edge("ingest_request", "gather_calendar")
-builder.add_edge("gather_calendar", "gather_project_signals")
-builder.add_edge("gather_project_signals", "gather_reference_notes")
-builder.add_edge("gather_reference_notes", "gather_stakeholder_signals")
-builder.add_edge("gather_stakeholder_signals", "synthesize_brief")
+builder.add_edge("ingest_request", "plan_retrieval")
+builder.add_conditional_edges(
+    "plan_retrieval",
+    route_after_plan,
+    {
+        "tool_node": "tool_node",
+        "synthesize_brief": "synthesize_brief",
+    },
+)
+builder.add_edge("tool_node", "integrate_tool_outputs")
+builder.add_edge("integrate_tool_outputs", "synthesize_brief")
 builder.add_edge("synthesize_brief", END)
 
 graph = builder.compile()

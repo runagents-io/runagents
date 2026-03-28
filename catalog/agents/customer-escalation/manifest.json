@@ -1,11 +1,11 @@
 {
   "id": "customer-escalation-agent",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "Customer Escalation Agent",
   "summary": "Prepares cross-functional escalation briefs for high-priority customer issues.",
   "description": "Built for support, success, and engineering teams that need a fast, consistent handoff when issues escalate. It assembles customer context, incident state, business impact, and next-step recommendations into a shared escalation brief.",
   "category": "Customer Operations",
-  "tags": ["Support", "Escalation", "Customer Success", "Operations"],
+  "tags": ["Support", "Escalation", "Customer Success", "Operations", "LangGraph"],
   "defaultModel": "gpt-4.1",
   "requiredIntegrations": ["crm", "ticketing", "knowledge-base", "chat"],
   "defaultPolicies": ["support-readonly", "customer-data-guardrails"],
@@ -36,8 +36,10 @@
   },
   "metadata": {
     "complexity": "medium",
-    "nandu_ready": true
+    "nandu_ready": true,
+    "authoring_pattern": "langgraph",
+    "framework": "langgraph"
   },
-  "changelog": "Initial release.",
-  "publishedAt": "2026-03-25T17:10:00Z"
+  "changelog": "Upgraded from a starter handler to a LangGraph escalation workflow that uses standard tool wrappers backed by RunAgents-managed tools.",
+  "publishedAt": "2026-03-28T22:20:00Z"
 }

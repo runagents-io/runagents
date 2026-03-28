@@ -1,11 +1,11 @@
 {
   "id": "meeting-follow-up-agent",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "Meeting Follow-Up Agent",
   "summary": "Turns meeting notes into action items, owners, and polished follow-up drafts.",
   "description": "Built for teams that want meetings to result in crisp follow-through instead of loose notes. It organizes discussion notes, extracts decisions and action items, and prepares a ready-to-send recap with next steps.",
   "category": "Enterprise Productivity",
-  "tags": ["Meetings", "Productivity", "Collaboration", "Execution"],
+  "tags": ["Meetings", "Productivity", "Collaboration", "Execution", "LangGraph"],
   "defaultModel": "gpt-4.1-mini",
   "requiredIntegrations": ["calendar", "docs", "project-tracker", "chat"],
   "defaultPolicies": ["meeting-readonly", "task-write-approval"],
@@ -36,8 +36,10 @@
   },
   "metadata": {
     "complexity": "medium",
-    "nandu_ready": true
+    "nandu_ready": true,
+    "authoring_pattern": "langgraph",
+    "framework": "langgraph"
   },
-  "changelog": "Initial release.",
-  "publishedAt": "2026-03-25T17:05:00Z"
+  "changelog": "Upgraded from a starter handler to a LangGraph meeting follow-up workflow with standard tool wrappers backed by RunAgents-managed tools.",
+  "publishedAt": "2026-03-28T22:25:00Z"
 }

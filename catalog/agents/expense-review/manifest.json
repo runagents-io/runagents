@@ -1,18 +1,18 @@
 {
   "id": "expense-review-agent",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "name": "Expense Review Agent",
   "summary": "Triages expense submissions, assembles policy context, and routes exceptions for approval.",
   "description": "Designed for finance teams that want a reliable first-pass review assistant. It normalizes incoming expense data, highlights out-of-policy items, and prepares a grounded decision summary before a human reviewer signs off.",
   "category": "Finance",
-  "tags": ["Approvals", "ERP", "Finance Ops"],
+  "tags": ["Approvals", "ERP", "Finance Ops", "LangGraph"],
   "defaultModel": "gpt-4.1",
-  "requiredIntegrations": ["erp", "expense_system"],
+  "requiredIntegrations": ["erp", "expense-system"],
   "defaultPolicies": ["approval-required", "finance-readonly"],
   "governanceTraits": ["approval-routed", "audit-ready", "least-privilege"],
   "accessRecommendations": [
     "Bind to finance approver policy before production use.",
-    "Scope ERP credentials to expense read and approval APIs only."
+    "Scope ERP and expense-system credentials to expense read and approval preparation APIs only."
   ],
   "useCases": [
     "Employee expense triage",
@@ -28,15 +28,18 @@
   "deploymentTemplate": {
     "agentName": "expense-review-agent",
     "systemPrompt": "You are a finance operations agent. Review each expense report carefully, cite policy reasons, and escalate exceptions rather than guessing.",
-    "requiredTools": ["erp", "expense_system"],
+    "requiredTools": ["erp", "expense-system"],
     "policies": ["approval-required", "finance-readonly"],
     "accessMode": "authenticated",
+    "identityProvider": "corp-sso",
     "sourceType": "python_source"
   },
   "metadata": {
     "complexity": "medium",
-    "nandu_ready": true
+    "nandu_ready": true,
+    "authoring_pattern": "langgraph",
+    "framework": "langgraph"
   },
-  "changelog": "Added enriched finance policy summary and default approval posture.",
-  "publishedAt": "2026-03-20T15:00:00Z"
+  "changelog": "Upgraded from a starter handler to a LangGraph finance review workflow with standard tool wrappers backed by RunAgents-managed tools.",
+  "publishedAt": "2026-03-28T22:30:00Z"
 }

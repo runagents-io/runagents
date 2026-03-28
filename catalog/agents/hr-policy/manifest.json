@@ -1,11 +1,11 @@
 {
   "id": "hr-policy-agent",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "HR Policy Agent",
   "summary": "Answers HR policy questions with citations and escalation guidance.",
   "description": "Built for HR helpdesks that want quick, governed policy answers. It drafts responses with policy references, flags sensitive topics, and recommends escalation when requests touch legal or manager-only workflows.",
   "category": "People Operations",
-  "tags": ["HR", "Knowledge", "Internal Support"],
+  "tags": ["HR", "Knowledge", "Internal Support", "LangGraph"],
   "defaultModel": "gpt-4.1-mini",
   "requiredIntegrations": ["hris", "knowledge-base"],
   "defaultPolicies": ["hr-readonly"],
@@ -35,9 +35,11 @@
     "sourceType": "python_source"
   },
   "metadata": {
-    "complexity": "low",
-    "nandu_ready": true
+    "complexity": "medium",
+    "nandu_ready": true,
+    "authoring_pattern": "langgraph",
+    "framework": "langgraph"
   },
-  "changelog": "Initial release.",
-  "publishedAt": "2026-03-18T11:30:00Z"
+  "changelog": "Upgraded from a starter handler to a LangGraph HR policy workflow with standard tool wrappers backed by RunAgents-managed tools.",
+  "publishedAt": "2026-03-28T22:35:00Z"
 }

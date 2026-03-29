@@ -1,5 +1,6 @@
 {
   "order": [
+    "chief-of-staff-agent",
     "executive-briefing-agent",
     "expense-review-agent",
     "meeting-follow-up-agent",
@@ -7,6 +8,7 @@
     "hr-policy-agent"
   ],
   "featured": [
+    "chief-of-staff-agent",
     "executive-briefing-agent",
     "expense-review-agent",
     "meeting-follow-up-agent",

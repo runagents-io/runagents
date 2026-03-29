@@ -1,0 +1,49 @@
+{
+  "id": "chief-of-staff-agent",
+  "version": "1.0.0",
+  "name": "Chief of Staff Agent",
+  "summary": "Acts like a proactive chief of staff across calendar, inbox, docs, chat, tasks, CRM, and WhatsApp.",
+  "description": "Built for founders, executives, chiefs of staff, and revenue leaders who need one agent to prepare the day, synthesize meetings and customer signals, draft follow-ups, and organize the next actions. It gathers context from the systems leaders already live in and prepares approval-ready actions instead of pretending writes already happened.",
+  "category": "Enterprise Productivity",
+  "tags": ["Productivity", "Chief of Staff", "Executive Operations", "Approvals", "WhatsApp", "LangGraph"],
+  "defaultModel": "gpt-4.1",
+  "requiredIntegrations": ["calendar", "email", "drive", "team-chat", "project-tracker", "meeting-notes"],
+  "defaultPolicies": [],
+  "governanceTraits": ["identity-aware", "approval-ready", "context-grounded", "audit-ready", "multi-channel"],
+  "accessRecommendations": [
+    "Use authenticated access tied to the operator or executive identity.",
+    "Keep read tools broadly available, and mark write actions approval-required through RunAgents policy.",
+    "Bind email, drive, and team-chat to delegated-user connectors where user identity matters."
+  ],
+  "useCases": [
+    "Morning priorities and daily executive brief",
+    "Meeting prep and post-meeting follow-through",
+    "Customer interaction summary and next-step planning",
+    "End-of-day summary with approval-ready drafts",
+    "Mobile-first brief delivery over WhatsApp"
+  ],
+  "prompts": [
+    {
+      "title": "System",
+      "content": "You are a chief of staff assistant. Gather context selectively, surface what matters, and prepare approval-ready actions for anything that would send, post, schedule, update, or create on the user's behalf."
+    }
+  ],
+  "deploymentTemplate": {
+    "agentName": "chief-of-staff-agent",
+    "systemPrompt": "You are a chief of staff assistant. Gather context selectively, surface what matters, and prepare approval-ready actions for anything that would send, post, schedule, update, or create on the user's behalf.",
+    "requiredTools": ["calendar", "email", "drive", "team-chat", "project-tracker", "meeting-notes"],
+    "policies": [],
+    "accessMode": "authenticated",
+    "sourceType": "python_source"
+  },
+  "metadata": {
+    "complexity": "high",
+    "nandu_ready": true,
+    "featured": true,
+    "authoring_pattern": "langgraph",
+    "framework": "langgraph",
+    "optional_tools": ["crm", "knowledge-base", "whatsapp", "imessage"]
+  },
+  "changelog": "Introduced a multi-workflow chief of staff agent with LangGraph reasoning, RunAgents-managed tool routing, and approval-ready actions including WhatsApp delivery guidance.",
+  "publishedAt": "2026-03-29T14:30:00Z"
+}

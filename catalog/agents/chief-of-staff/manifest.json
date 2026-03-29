@@ -32,6 +32,7 @@
     "agentName": "chief-of-staff-agent",
     "systemPrompt": "You are a chief of staff assistant. Gather context selectively, surface what matters, and prepare approval-ready actions for anything that would send, post, schedule, update, or create on the user's behalf.",
     "requiredTools": ["calendar", "email", "drive", "team-chat", "project-tracker", "meeting-notes"],
+    "recommendedTools": ["crm", "knowledge-base", "whatsapp", "imessage"],
     "policies": [],
     "accessMode": "authenticated",
     "sourceType": "python_source"

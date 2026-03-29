@@ -1,6 +1,6 @@
 {
   "id": "chief-of-staff-agent",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "Chief of Staff Agent",
   "summary": "Acts like a proactive chief of staff across calendar, inbox, docs, chat, tasks, CRM, and WhatsApp.",
   "description": "Built for founders, executives, chiefs of staff, and revenue leaders who need one agent to prepare the day, synthesize meetings and customer signals, draft follow-ups, and organize the next actions. It gathers context from the systems leaders already live in and prepares approval-ready actions instead of pretending writes already happened.",

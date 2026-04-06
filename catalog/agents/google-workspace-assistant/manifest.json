@@ -1,6 +1,6 @@
 {
   "id": "google-workspace-assistant-agent",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "name": "Google Workspace Assistant",
   "summary": "Acts like a Google-native work assistant across Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep.",
   "description": "Built for operators, founders, chiefs of staff, and knowledge workers who live inside Google Workspace. It gathers inbox context, meeting schedules, documents, spreadsheets, tasks, and notes to answer questions, prepare briefings, and draft approval-ready next actions without leaving the Google tool stack.",
@@ -45,6 +45,6 @@
     "framework": "langgraph",
     "workspace_family": "google"
   },
-  "changelog": "Introduced a Google Workspace-native assistant blueprint with LangGraph reasoning and tool wrappers for Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep.",
+  "changelog": "Refactored the Google Workspace assistant to use explicit LangGraph tools for Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep instead of generic semantic wrappers.",
   "publishedAt": "2026-04-06T22:00:00Z"
 }

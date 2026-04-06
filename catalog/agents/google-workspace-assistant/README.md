@@ -48,7 +48,7 @@ A typical result includes:
 2. `reasoning_agent`
    Uses the model to decide whether the current context is enough or whether Gmail, Calendar, Drive, Docs, Sheets, Tasks, or Keep should be queried.
 3. `tool_node`
-   Executes standard LangChain tools backed by `runagents.Agent().call_tool(...)`.
+   Executes explicit LangGraph tools such as `gmail_list_messages`, `calendar_list_events`, `drive_list_files`, `docs_get_document`, `sheets_read_range`, `tasks_list_tasks`, and `keep_list_notes`.
 4. `integrate_tool_outputs`
    Normalizes tool results back into one shared assistant dossier.
 5. `finalize_response`
@@ -56,7 +56,20 @@ A typical result includes:
 
 ## How tools are called
 
-Each tool wrapper calls `runagents.Agent().call_tool(...)`, so deploy-time tool binding still controls where the request goes. That keeps identity propagation, policy checks, approvals, and audit inside RunAgents instead of inside example code.
+Each tool wrapper calls `runagents.Agent().call_tool(...)` with an explicit HTTP path and method, so the agent owns the task semantics while deploy-time tool binding still controls where the request goes. That keeps identity propagation, policy checks, approvals, and audit inside RunAgents instead of inside example code.
+
+Examples:
+
+- `gmail_list_messages` -> `GET /gmail/v1/users/me/messages`
+- `gmail_get_message` -> `GET /gmail/v1/users/me/messages/{messageId}`
+- `calendar_list_events` -> `GET /calendar/v3/calendars/primary/events`
+- `drive_list_files` -> `GET /drive/v3/files`
+- `docs_get_document` -> `GET /v1/documents/{documentId}`
+- `sheets_get_spreadsheet` -> `GET /v4/spreadsheets/{spreadsheetId}`
+- `sheets_read_range` -> `GET /v4/spreadsheets/{spreadsheetId}/values/{range}`
+- `tasks_list_tasklists` -> `GET /tasks/v1/users/@me/lists`
+- `tasks_list_tasks` -> `GET /tasks/v1/lists/{tasklistId}/tasks`
+- `keep_list_notes` -> `GET /v1/notes`
 
 ## Example prompts
 

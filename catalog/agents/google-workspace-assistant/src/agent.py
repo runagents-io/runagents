@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import os
+from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any, TypedDict
+from urllib.parse import quote, urlencode
 
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
@@ -13,13 +16,21 @@ from langgraph.graph import END, START, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 
-from runagents import Agent
+from runagents import Agent, ToolNotConfigured
 
 
 SYSTEM_PROMPT = """You are a Google Workspace assistant operating as a disciplined reasoning workflow.
 
 Help the user work across Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep.
 Use tools when the current context is incomplete. Avoid redundant tool calls.
+
+Prefer explicit tool choices over vague retrieval:
+- for email questions, first use gmail_list_messages to find candidates, then gmail_get_message for the specific email you need
+- for meeting questions, use calendar_list_events
+- for file and document questions, use drive_list_files to find IDs before calling docs_get_document or sheets_* tools
+- for spreadsheet questions, use sheets_get_spreadsheet for structure and sheets_read_range for cell values
+- for task questions, use tasks_list_tasklists and tasks_list_tasks
+- for note questions, use keep_list_notes
 
 Your default behavior is:
 - gather only the context needed to answer well
@@ -41,7 +52,9 @@ Do not ask for more tools. Produce the best grounded answer possible from the
 available context and call out missing information plainly.
 """
 
-MAX_TOOL_ROUNDS = 5
+MAX_TOOL_ROUNDS = 6
+MAX_LIST_ITEMS = 8
+MAX_TEXT_CHARS = 1800
 
 
 class WorkspaceState(TypedDict, total=False):
@@ -54,40 +67,33 @@ class WorkspaceState(TypedDict, total=False):
 
 
 TOOL_SPECS = {
-    "email": {
-        "context_key": "email_context",
-        "purpose": "gmail inbox threads, follow-ups, commitments, and draft response context",
-        "preferred_fields": ("subject", "title", "summary"),
+    "email_context": {
+        "title": "Gmail:",
+        "empty": "No Gmail context provided or retrieved.",
     },
-    "calendar": {
-        "context_key": "calendar_context",
-        "purpose": "google calendar events, attendees, deadlines, and scheduling windows",
-        "preferred_fields": ("title", "subject", "name"),
+    "calendar_context": {
+        "title": "Calendar:",
+        "empty": "No Google Calendar context provided or retrieved.",
     },
-    "drive": {
-        "context_key": "drive_context",
-        "purpose": "google drive files, folders, linked notes, and shared reference material",
-        "preferred_fields": ("title", "summary", "name"),
+    "drive_context": {
+        "title": "Drive:",
+        "empty": "No Google Drive context provided or retrieved.",
     },
-    "docs": {
-        "context_key": "docs_context",
-        "purpose": "google docs content, notes, drafts, agendas, and source documents",
-        "preferred_fields": ("title", "summary", "text"),
+    "docs_context": {
+        "title": "Docs:",
+        "empty": "No Google Docs context provided or retrieved.",
     },
-    "sheets": {
-        "context_key": "sheets_context",
-        "purpose": "google sheets metrics, tables, planning cells, and spreadsheet status context",
-        "preferred_fields": ("title", "summary", "sheet", "name"),
+    "sheets_context": {
+        "title": "Sheets:",
+        "empty": "No Google Sheets context provided or retrieved.",
     },
-    "tasks": {
-        "context_key": "tasks_context",
-        "purpose": "google tasks items, deadlines, ownership, and open action context",
-        "preferred_fields": ("title", "task", "summary"),
+    "tasks_context": {
+        "title": "Tasks:",
+        "empty": "No Google Tasks context provided or retrieved.",
     },
-    "keep": {
-        "context_key": "keep_context",
-        "purpose": "google keep notes, reminders, scratchpad context, and captured ideas",
-        "preferred_fields": ("title", "summary", "text"),
+    "keep_context": {
+        "title": "Keep:",
+        "empty": "No Google Keep context provided or retrieved.",
     },
 }
 
@@ -165,22 +171,14 @@ def _coerce_items(value: Any, preferred_fields: tuple[str, ...]) -> list[str]:
     if value is None:
         return []
     if isinstance(value, list):
-        items = [_stringify_item(item, preferred_fields) for item in value[:8]]
+        items = [_stringify_item(item, preferred_fields) for item in value[:MAX_LIST_ITEMS]]
         return [item for item in items if item]
     text = _stringify_item(value, preferred_fields)
     return [text] if text else []
 
 
 def _default_context() -> dict[str, list[str]]:
-    return {
-        "email_context": [],
-        "calendar_context": [],
-        "drive_context": [],
-        "docs_context": [],
-        "sheets_context": [],
-        "tasks_context": [],
-        "keep_context": [],
-    }
+    return {key: [] for key in TOOL_SPECS}
 
 
 def _parse_request(user_prompt: str) -> tuple[str, dict[str, list[str]]]:
@@ -228,17 +226,6 @@ def _parse_request(user_prompt: str) -> tuple[str, dict[str, list[str]]]:
     return objective, context
 
 
-def _normalize_tool_items(raw: Any, preferred_fields: tuple[str, ...]) -> list[str]:
-    if isinstance(raw, dict):
-        for key in ("items", "results", "records", "data", "notes", "messages", "documents", "rows", "tasks"):
-            if key in raw:
-                items = _coerce_items(raw.get(key), preferred_fields)
-                if items:
-                    return items
-        return _coerce_items(raw, preferred_fields)
-    return _coerce_items(raw, preferred_fields)
-
-
 def _section_lines(title: str, items: list[str], empty_message: str) -> list[str]:
     lines = [title]
     if items:
@@ -251,93 +238,452 @@ def _section_lines(title: str, items: list[str], empty_message: str) -> list[str
 
 def _build_prompt(objective: str, context: dict[str, list[str]], evidence: list[str]) -> str:
     prompt_lines = [f"Objective: {objective}", ""]
-    prompt_lines.extend(_section_lines("Gmail:", context.get("email_context", []), "No Gmail context provided or retrieved."))
-    prompt_lines.extend(
-        _section_lines("Calendar:", context.get("calendar_context", []), "No Google Calendar context provided or retrieved.")
-    )
-    prompt_lines.extend(_section_lines("Drive:", context.get("drive_context", []), "No Google Drive context provided or retrieved."))
-    prompt_lines.extend(_section_lines("Docs:", context.get("docs_context", []), "No Google Docs context provided or retrieved."))
-    prompt_lines.extend(
-        _section_lines("Sheets:", context.get("sheets_context", []), "No Google Sheets context provided or retrieved.")
-    )
-    prompt_lines.extend(_section_lines("Tasks:", context.get("tasks_context", []), "No Google Tasks context provided or retrieved."))
-    prompt_lines.extend(_section_lines("Keep:", context.get("keep_context", []), "No Google Keep context provided or retrieved."))
+    for context_key, spec in TOOL_SPECS.items():
+        prompt_lines.extend(_section_lines(spec["title"], context.get(context_key, []), spec["empty"]))
     prompt_lines.extend(_section_lines("Evidence trail:", evidence, "No evidence trail captured."))
     return "\n".join(prompt_lines)
 
 
-def _call_managed_tool(tool_name: str, objective: str) -> str:
-    spec = TOOL_SPECS[tool_name]
+def _truncate_text(text: str, limit: int = MAX_TEXT_CHARS) -> str:
+    compact = " ".join(str(text or "").split())
+    if len(compact) <= limit:
+        return compact
+    return compact[: limit - 3].rstrip() + "..."
+
+
+def _encode_query(params: dict[str, Any]) -> str:
+    filtered: dict[str, Any] = {}
+    for key, value in params.items():
+        if value is None:
+            continue
+        if isinstance(value, str):
+            if not value.strip():
+                continue
+            filtered[key] = value.strip()
+            continue
+        filtered[key] = value
+    if not filtered:
+        return ""
+    return "?" + urlencode(filtered, doseq=True)
+
+
+def _build_path(path: str, **params: Any) -> str:
+    return path + _encode_query(params)
+
+
+def _note(tool_name: str, action: str, count: int) -> str:
+    return f"{tool_name}: {action} ({count} item(s))."
+
+
+def _tool_payload(tool_name: str, context_key: str, items: list[str], note: str) -> str:
+    return json.dumps(
+        {
+            "tool": tool_name,
+            "context_key": context_key,
+            "items": items[:MAX_LIST_ITEMS],
+            "note": note,
+        }
+    )
+
+
+def _parse_error(result: Any) -> str:
+    if isinstance(result, dict) and result.get("error"):
+        detail = str(result.get("detail") or result.get("error") or "tool call failed").strip()
+        auth_url = str(result.get("authorization_url") or "").strip()
+        if auth_url:
+            return f"{detail}. Authorization URL: {auth_url}"
+        return detail
+    return ""
+
+
+def _call_workspace_api(
+    managed_tool_name: str,
+    *,
+    path: str = "/",
+    method: str = "GET",
+    payload: dict[str, Any] | None = None,
+) -> tuple[Any, str]:
     try:
-        response = tool_client.call_tool(
-            tool_name,
-            payload={
-                "objective": objective,
-                "purpose": spec["purpose"],
-                "audience": "google-workspace-assistant",
-                "limit": 6,
-            },
-        )
-        items = _normalize_tool_items(response, spec["preferred_fields"])
-        if items:
-            note = f"Retrieved {len(items)} item(s) from {tool_name}."
-        else:
-            note = f"{tool_name} responded but returned no reusable Google Workspace context."
+        result = tool_client.call_tool(managed_tool_name, path=path, payload=payload, method=method)
+    except ToolNotConfigured as exc:
+        return {}, f"{managed_tool_name} is not configured for this agent: {exc}"
     except Exception as exc:
-        items = []
-        note = f"{tool_name} retrieval unavailable: {exc}"
+        return {}, f"{managed_tool_name} call failed: {exc}"
 
-    return json.dumps({
-        "tool": tool_name,
-        "context_key": spec["context_key"],
-        "items": items,
-        "note": note,
-    })
+    error_text = _parse_error(result)
+    if error_text:
+        return result, f"{managed_tool_name} returned an error: {error_text}"
+    return result, ""
 
 
-@tool("email", description="Retrieve Gmail inbox threads, follow-ups, and message context.")
-def email_tool(objective: str) -> str:
-    return _call_managed_tool("email", objective)
+def _decode_base64url(data: str) -> str:
+    if not data:
+        return ""
+    padded = data + "=" * ((4 - len(data) % 4) % 4)
+    try:
+        decoded = base64.urlsafe_b64decode(padded.encode("utf-8"))
+        return decoded.decode("utf-8", errors="replace")
+    except Exception:
+        return ""
 
 
-@tool("calendar", description="Retrieve Google Calendar events, attendees, and schedule context.")
-def calendar_tool(objective: str) -> str:
-    return _call_managed_tool("calendar", objective)
+def _extract_gmail_body(payload: dict[str, Any]) -> str:
+    body = payload.get("body") or {}
+    data = body.get("data")
+    if isinstance(data, str) and data:
+        return _decode_base64url(data)
+    for part in payload.get("parts") or []:
+        mime_type = str(part.get("mimeType") or "")
+        if mime_type.startswith("text/plain"):
+            nested = _extract_gmail_body(part)
+            if nested:
+                return nested
+    return ""
 
 
-@tool("drive", description="Retrieve Google Drive files, folders, and shared reference material.")
-def drive_tool(objective: str) -> str:
-    return _call_managed_tool("drive", objective)
+def _gmail_headers(message_payload: dict[str, Any]) -> dict[str, str]:
+    headers = {}
+    for header in message_payload.get("headers") or []:
+        name = str(header.get("name") or "").lower()
+        value = str(header.get("value") or "").strip()
+        if name and value:
+            headers[name] = value
+    return headers
 
 
-@tool("docs", description="Retrieve Google Docs notes, drafts, agendas, and source content.")
-def docs_tool(objective: str) -> str:
-    return _call_managed_tool("docs", objective)
+def _format_gmail_message_list(response: Any) -> list[str]:
+    messages = []
+    if isinstance(response, dict):
+        messages = response.get("messages") or []
+    items: list[str] = []
+    for msg in messages[:MAX_LIST_ITEMS]:
+        msg_id = str(msg.get("id") or "").strip()
+        thread_id = str(msg.get("threadId") or "").strip()
+        if not msg_id:
+            continue
+        suffix = f" (thread {thread_id})" if thread_id else ""
+        items.append(f"message_id={msg_id}{suffix}")
+    return items
 
 
-@tool("sheets", description="Retrieve Google Sheets metrics, tables, and spreadsheet planning context.")
-def sheets_tool(objective: str) -> str:
-    return _call_managed_tool("sheets", objective)
+def _format_gmail_message(response: Any) -> list[str]:
+    if not isinstance(response, dict):
+        return []
+    payload = response.get("payload") or {}
+    headers = _gmail_headers(payload)
+    snippet = _truncate_text(str(response.get("snippet") or ""), 280)
+    body_text = _truncate_text(_extract_gmail_body(payload), 700)
+    parts = [
+        f"subject: {headers.get('subject', '(no subject)')}",
+        f"from: {headers.get('from', 'unknown')}",
+        f"date: {headers.get('date', 'unknown')}",
+    ]
+    if snippet:
+        parts.append(f"snippet: {snippet}")
+    if body_text:
+        parts.append(f"body: {body_text}")
+    return [" | ".join(parts)]
 
 
-@tool("tasks", description="Retrieve Google Tasks items, due dates, and action context.")
-def tasks_tool(objective: str) -> str:
-    return _call_managed_tool("tasks", objective)
+def _format_calendar_events(response: Any) -> list[str]:
+    events = response.get("items") if isinstance(response, dict) else []
+    items: list[str] = []
+    for event in (events or [])[:MAX_LIST_ITEMS]:
+        start = (event.get("start") or {}).get("dateTime") or (event.get("start") or {}).get("date") or "unscheduled"
+        end = (event.get("end") or {}).get("dateTime") or (event.get("end") or {}).get("date") or ""
+        title = str(event.get("summary") or "Untitled event")
+        attendees = []
+        for attendee in (event.get("attendees") or [])[:3]:
+            email = str(attendee.get("email") or "").strip()
+            if email:
+                attendees.append(email)
+        suffix = f" | attendees: {', '.join(attendees)}" if attendees else ""
+        if end:
+            items.append(f"{title} | {start} -> {end}{suffix}")
+        else:
+            items.append(f"{title} | {start}{suffix}")
+    return items
 
 
-@tool("keep", description="Retrieve Google Keep notes, reminders, and captured ideas.")
-def keep_tool(objective: str) -> str:
-    return _call_managed_tool("keep", objective)
+def _format_drive_files(response: Any) -> list[str]:
+    files = response.get("files") if isinstance(response, dict) else []
+    items: list[str] = []
+    for file in (files or [])[:MAX_LIST_ITEMS]:
+        file_id = str(file.get("id") or "").strip()
+        name = str(file.get("name") or "Unnamed file")
+        mime_type = str(file.get("mimeType") or "unknown")
+        modified = str(file.get("modifiedTime") or "")
+        suffix = f" | modified: {modified}" if modified else ""
+        items.append(f"{name} | id: {file_id} | type: {mime_type}{suffix}")
+    return items
+
+
+def _extract_doc_text(response: dict[str, Any]) -> str:
+    chunks: list[str] = []
+    body = response.get("body") or {}
+    for element in body.get("content") or []:
+        paragraph = element.get("paragraph") or {}
+        for part in paragraph.get("elements") or []:
+            text_run = part.get("textRun") or {}
+            content = str(text_run.get("content") or "")
+            if content:
+                chunks.append(content)
+    return _truncate_text("".join(chunks), 1000)
+
+
+def _format_document(response: Any) -> list[str]:
+    if not isinstance(response, dict):
+        return []
+    title = str(response.get("title") or "Untitled document")
+    doc_id = str(response.get("documentId") or "")
+    text = _extract_doc_text(response)
+    summary = f"{title} | id: {doc_id}"
+    if text:
+        summary += f" | excerpt: {text}"
+    return [summary]
+
+
+def _format_spreadsheet(response: Any) -> list[str]:
+    if not isinstance(response, dict):
+        return []
+    props = response.get("properties") or {}
+    title = str(props.get("title") or "Untitled spreadsheet")
+    spreadsheet_id = str(response.get("spreadsheetId") or "")
+    sheet_names = []
+    for sheet in (response.get("sheets") or [])[:10]:
+        sheet_props = sheet.get("properties") or {}
+        name = str(sheet_props.get("title") or "").strip()
+        if name:
+            sheet_names.append(name)
+    suffix = f" | sheets: {', '.join(sheet_names)}" if sheet_names else ""
+    return [f"{title} | id: {spreadsheet_id}{suffix}"]
+
+
+def _format_sheet_values(response: Any) -> list[str]:
+    if not isinstance(response, dict):
+        return []
+    range_name = str(response.get("range") or "")
+    values = response.get("values") or []
+    rows: list[str] = []
+    for row in values[:10]:
+        if isinstance(row, list):
+            rows.append(" | ".join(str(cell) for cell in row))
+    if not rows:
+        rows.append("No values returned.")
+    return [f"range: {range_name}"] + rows
+
+
+def _format_tasklists(response: Any) -> list[str]:
+    lists = response.get("items") if isinstance(response, dict) else []
+    items: list[str] = []
+    for tasklist in (lists or [])[:MAX_LIST_ITEMS]:
+        tasklist_id = str(tasklist.get("id") or "").strip()
+        title = str(tasklist.get("title") or "Untitled task list")
+        updated = str(tasklist.get("updated") or "")
+        suffix = f" | updated: {updated}" if updated else ""
+        items.append(f"{title} | id: {tasklist_id}{suffix}")
+    return items
+
+
+def _format_tasks(response: Any) -> list[str]:
+    tasks = response.get("items") if isinstance(response, dict) else []
+    items: list[str] = []
+    for task in (tasks or [])[:MAX_LIST_ITEMS]:
+        title = str(task.get("title") or "Untitled task")
+        task_id = str(task.get("id") or "").strip()
+        status = str(task.get("status") or "unknown")
+        due = str(task.get("due") or "")
+        notes = _truncate_text(str(task.get("notes") or ""), 240)
+        parts = [f"{title}", f"id: {task_id}", f"status: {status}"]
+        if due:
+            parts.append(f"due: {due}")
+        if notes:
+            parts.append(f"notes: {notes}")
+        items.append(" | ".join(parts))
+    return items
+
+
+def _format_keep_notes(response: Any) -> list[str]:
+    notes = response.get("notes") if isinstance(response, dict) else []
+    items: list[str] = []
+    for note in (notes or [])[:MAX_LIST_ITEMS]:
+        title = str(note.get("title") or "Untitled note")
+        note_name = str(note.get("name") or "").strip()
+        body = note.get("body") or {}
+        text = _truncate_text(((body.get("text") or {}).get("content") or ""), 260)
+        parts = [f"{title}", f"name: {note_name}"]
+        if text:
+            parts.append(f"text: {text}")
+        items.append(" | ".join(parts))
+    return items
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)
+
+
+@tool("gmail_list_messages", description="Search Gmail for relevant messages. Use this first when you need candidate email IDs before reading a specific email.")
+def gmail_list_messages(query: str = "", max_results: int = 5) -> str:
+    response, error_note = _call_workspace_api(
+        "email",
+        method="GET",
+        path=_build_path("/gmail/v1/users/me/messages", maxResults=max(1, min(max_results, 10)), q=query),
+    )
+    items = _format_gmail_message_list(response)
+    note = error_note or _note("gmail_list_messages", "searched Gmail", len(items))
+    return _tool_payload("gmail_list_messages", "email_context", items, note)
+
+
+@tool("gmail_get_message", description="Read a specific Gmail message by message ID after identifying the right candidate email.")
+def gmail_get_message(message_id: str) -> str:
+    response, error_note = _call_workspace_api(
+        "email",
+        method="GET",
+        path=_build_path(f"/gmail/v1/users/me/messages/{quote(message_id.strip(), safe='')}", format="full"),
+    )
+    items = _format_gmail_message(response)
+    note = error_note or _note("gmail_get_message", "read Gmail message", len(items))
+    return _tool_payload("gmail_get_message", "email_context", items, note)
+
+
+@tool("calendar_list_events", description="List Google Calendar events in a time window. Use for schedule, meeting, and deadline questions.")
+def calendar_list_events(query: str = "", start_iso: str = "", end_iso: str = "", max_results: int = 8) -> str:
+    now = _utc_now()
+    time_min = start_iso.strip() or now.isoformat().replace("+00:00", "Z")
+    time_max = end_iso.strip() or (now + timedelta(days=7)).isoformat().replace("+00:00", "Z")
+    response, error_note = _call_workspace_api(
+        "calendar",
+        method="GET",
+        path=_build_path(
+            "/calendar/v3/calendars/primary/events",
+            singleEvents="true",
+            orderBy="startTime",
+            maxResults=max(1, min(max_results, 10)),
+            q=query,
+            timeMin=time_min,
+            timeMax=time_max,
+        ),
+    )
+    items = _format_calendar_events(response)
+    note = error_note or _note("calendar_list_events", "listed calendar events", len(items))
+    return _tool_payload("calendar_list_events", "calendar_context", items, note)
+
+
+@tool("drive_list_files", description="Search Google Drive for candidate files, documents, and spreadsheets. Use this first when you need a Google file ID.")
+def drive_list_files(query: str = "", max_results: int = 8, mime_type: str = "") -> str:
+    filters = ["trashed = false"]
+    if query.strip():
+        escaped = query.strip().replace("'", "\\'")
+        filters.append(f"fullText contains '{escaped}'")
+    if mime_type.strip():
+        escaped_mime = mime_type.strip().replace("'", "\\'")
+        filters.append(f"mimeType = '{escaped_mime}'")
+    response, error_note = _call_workspace_api(
+        "drive",
+        method="GET",
+        path=_build_path(
+            "/drive/v3/files",
+            pageSize=max(1, min(max_results, 10)),
+            q=" and ".join(filters),
+            fields="files(id,name,mimeType,modifiedTime,webViewLink),nextPageToken",
+        ),
+    )
+    items = _format_drive_files(response)
+    note = error_note or _note("drive_list_files", "searched Drive", len(items))
+    return _tool_payload("drive_list_files", "drive_context", items, note)
+
+
+@tool("docs_get_document", description="Read the contents of a Google Doc by document ID. Use after finding the document ID via Drive or user input.")
+def docs_get_document(document_id: str) -> str:
+    response, error_note = _call_workspace_api(
+        "docs",
+        method="GET",
+        path=f"/v1/documents/{quote(document_id.strip(), safe='')}",
+    )
+    items = _format_document(response)
+    note = error_note or _note("docs_get_document", "read Google Doc", len(items))
+    return _tool_payload("docs_get_document", "docs_context", items, note)
+
+
+@tool("sheets_get_spreadsheet", description="Read spreadsheet metadata and sheet names by spreadsheet ID. Use to understand workbook structure before reading a range.")
+def sheets_get_spreadsheet(spreadsheet_id: str) -> str:
+    response, error_note = _call_workspace_api(
+        "sheets",
+        method="GET",
+        path=_build_path(
+            f"/v4/spreadsheets/{quote(spreadsheet_id.strip(), safe='')}",
+            fields="spreadsheetId,properties.title,sheets.properties",
+        ),
+    )
+    items = _format_spreadsheet(response)
+    note = error_note or _note("sheets_get_spreadsheet", "read spreadsheet metadata", len(items))
+    return _tool_payload("sheets_get_spreadsheet", "sheets_context", items, note)
+
+
+@tool("sheets_read_range", description="Read a specific A1 range from a Google Sheet. Use after identifying the spreadsheet and the range you need.")
+def sheets_read_range(spreadsheet_id: str, range_a1: str) -> str:
+    encoded_range = quote(range_a1.strip(), safe="!:$,')(")
+    response, error_note = _call_workspace_api(
+        "sheets",
+        method="GET",
+        path=f"/v4/spreadsheets/{quote(spreadsheet_id.strip(), safe='')}/values/{encoded_range}",
+    )
+    items = _format_sheet_values(response)
+    note = error_note or _note("sheets_read_range", "read sheet range", max(len(items) - 1, 0))
+    return _tool_payload("sheets_read_range", "sheets_context", items, note)
+
+
+@tool("tasks_list_tasklists", description="List Google Task lists. Use before reading tasks when you do not yet know which task list matters.")
+def tasks_list_tasklists(max_results: int = 10) -> str:
+    response, error_note = _call_workspace_api(
+        "tasks",
+        method="GET",
+        path=_build_path("/tasks/v1/users/@me/lists", maxResults=max(1, min(max_results, 20))),
+    )
+    items = _format_tasklists(response)
+    note = error_note or _note("tasks_list_tasklists", "listed task lists", len(items))
+    return _tool_payload("tasks_list_tasklists", "tasks_context", items, note)
+
+
+@tool("tasks_list_tasks", description="List tasks from a Google Task list. Use @default for the default list when no specific list ID is known.")
+def tasks_list_tasks(tasklist_id: str = "@default", max_results: int = 10, show_completed: bool = False) -> str:
+    response, error_note = _call_workspace_api(
+        "tasks",
+        method="GET",
+        path=_build_path(
+            f"/tasks/v1/lists/{quote(tasklist_id.strip() or '@default', safe='@')}/tasks",
+            maxResults=max(1, min(max_results, 20)),
+            showCompleted=str(show_completed).lower(),
+        ),
+    )
+    items = _format_tasks(response)
+    note = error_note or _note("tasks_list_tasks", "listed tasks", len(items))
+    return _tool_payload("tasks_list_tasks", "tasks_context", items, note)
+
+
+@tool("keep_list_notes", description="List Google Keep notes. Use for note, reminder, and scratchpad questions.")
+def keep_list_notes(filter_query: str = "", page_size: int = 10) -> str:
+    response, error_note = _call_workspace_api(
+        "keep",
+        method="GET",
+        path=_build_path("/v1/notes", pageSize=max(1, min(page_size, 20)), filter=filter_query),
+    )
+    items = _format_keep_notes(response)
+    note = error_note or _note("keep_list_notes", "listed Keep notes", len(items))
+    return _tool_payload("keep_list_notes", "keep_context", items, note)
 
 
 WORKSPACE_TOOLS = [
-    email_tool,
-    calendar_tool,
-    drive_tool,
-    docs_tool,
-    sheets_tool,
-    tasks_tool,
-    keep_tool,
+    gmail_list_messages,
+    gmail_get_message,
+    calendar_list_events,
+    drive_list_files,
+    docs_get_document,
+    sheets_get_spreadsheet,
+    sheets_read_range,
+    tasks_list_tasklists,
+    tasks_list_tasks,
+    keep_list_notes,
 ]
 TOOL_NODE = ToolNode(WORKSPACE_TOOLS)
 AGENT_LLM = llm.bind_tools(WORKSPACE_TOOLS)
@@ -350,10 +696,9 @@ def ingest_request(state: WorkspaceState) -> dict[str, Any]:
     objective, context = _parse_request(message)
 
     evidence = [f"Workspace objective: {objective}"]
-    for tool_name, spec in TOOL_SPECS.items():
-        items = context.get(spec["context_key"], [])
+    for context_key, items in context.items():
         if items:
-            evidence.append(f"Used {len(items)} {tool_name} item(s) provided in the request.")
+            evidence.append(f"Seeded {len(items)} item(s) for {context_key} from the request.")
 
     return {
         "objective": objective,
@@ -398,6 +743,16 @@ def route_after_agent(state: WorkspaceState) -> str:
     return END
 
 
+def _merge_context_items(existing: list[str], new_items: list[str]) -> list[str]:
+    merged = list(existing)
+    seen = set(existing)
+    for item in new_items:
+        if item not in seen:
+            merged.append(item)
+            seen.add(item)
+    return merged[: MAX_LIST_ITEMS * 2]
+
+
 def integrate_tool_outputs(state: WorkspaceState) -> dict[str, Any]:
     context = dict(state.get("context", {}))
     evidence = list(state.get("evidence", []))
@@ -411,11 +766,14 @@ def integrate_tool_outputs(state: WorkspaceState) -> dict[str, Any]:
             continue
         if not isinstance(payload, dict):
             continue
+
         context_key = str(payload.get("context_key", "")).strip()
         items = payload.get("items")
         note = str(payload.get("note", "")).strip()
         if context_key and isinstance(items, list):
-            context[context_key] = [str(item).strip() for item in items if str(item).strip()]
+            current_items = context.get(context_key, [])
+            new_items = [str(item).strip() for item in items if str(item).strip()]
+            context[context_key] = _merge_context_items(current_items, new_items)
         if note:
             evidence.append(note)
 

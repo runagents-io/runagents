@@ -1,0 +1,50 @@
+{
+  "id": "google-workspace-assistant",
+  "version": "1.0.0",
+  "name": "Google Workspace Assistant",
+  "summary": "Acts like a Google-native work assistant across Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep.",
+  "description": "Built for operators, founders, chiefs of staff, and knowledge workers who live inside Google Workspace. It gathers inbox context, meeting schedules, documents, spreadsheets, tasks, and notes to answer questions, prepare briefings, and draft approval-ready next actions without leaving the Google tool stack.",
+  "category": "Enterprise Productivity",
+  "tags": ["Google Workspace", "Productivity", "Gmail", "Docs", "Drive", "Sheets", "Tasks", "LangGraph"],
+  "defaultModel": "gpt-4.1",
+  "requiredIntegrations": ["gmail", "google-calendar", "google-drive", "google-docs", "google-sheets", "google-tasks", "google-keep"],
+  "defaultPolicies": [],
+  "governanceTraits": ["identity-aware", "context-grounded", "approval-ready", "audit-ready", "workspace-centric"],
+  "accessRecommendations": [
+    "Use delegated-user Google Workspace connectors so the agent works with the signed-in user's Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep data.",
+    "Keep reads broadly available, but route sends, edits, task mutations, and document changes through approval until the workflow is tuned.",
+    "Register the Google tools under explicit names so deploy-time wiring is unambiguous: gmail, google-calendar, google-drive, google-docs, google-sheets, google-tasks, and google-keep."
+  ],
+  "useCases": [
+    "Inbox and calendar triage for the day",
+    "Meeting prep with linked docs and action items",
+    "Google Docs and Drive research synthesis",
+    "Spreadsheet-aware status and planning support",
+    "Task and note consolidation from Google Tasks and Keep"
+  ],
+  "prompts": [
+    {
+      "title": "System",
+      "content": "You are a Google Workspace assistant. Use Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep context to answer clearly, stay grounded in retrieved evidence, and prepare approval-ready actions instead of pretending writes already happened."
+    }
+  ],
+  "deploymentTemplate": {
+    "agentName": "google-workspace-assistant",
+    "systemPrompt": "You are a Google Workspace assistant. Use Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep context to answer clearly, stay grounded in retrieved evidence, and prepare approval-ready actions instead of pretending writes already happened.",
+    "requiredTools": ["gmail", "google-calendar", "google-drive", "google-docs", "google-sheets", "google-tasks", "google-keep"],
+    "policies": [],
+    "accessMode": "authenticated",
+    "identityProvider": "corp-sso",
+    "sourceType": "python_source"
+  },
+  "metadata": {
+    "complexity": "high",
+    "nandu_ready": true,
+    "featured": true,
+    "authoring_pattern": "langgraph",
+    "framework": "langgraph",
+    "workspace_family": "google"
+  },
+  "changelog": "Introduced a Google Workspace-native assistant blueprint with LangGraph reasoning and tool wrappers for Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep.",
+  "publishedAt": "2026-04-06T22:00:00Z"
+}

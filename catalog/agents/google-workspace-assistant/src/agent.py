@@ -54,37 +54,37 @@ class WorkspaceState(TypedDict, total=False):
 
 
 TOOL_SPECS = {
-    "gmail": {
+    "email": {
         "context_key": "email_context",
         "purpose": "gmail inbox threads, follow-ups, commitments, and draft response context",
         "preferred_fields": ("subject", "title", "summary"),
     },
-    "google-calendar": {
+    "calendar": {
         "context_key": "calendar_context",
         "purpose": "google calendar events, attendees, deadlines, and scheduling windows",
         "preferred_fields": ("title", "subject", "name"),
     },
-    "google-drive": {
+    "drive": {
         "context_key": "drive_context",
         "purpose": "google drive files, folders, linked notes, and shared reference material",
         "preferred_fields": ("title", "summary", "name"),
     },
-    "google-docs": {
+    "docs": {
         "context_key": "docs_context",
         "purpose": "google docs content, notes, drafts, agendas, and source documents",
         "preferred_fields": ("title", "summary", "text"),
     },
-    "google-sheets": {
+    "sheets": {
         "context_key": "sheets_context",
         "purpose": "google sheets metrics, tables, planning cells, and spreadsheet status context",
         "preferred_fields": ("title", "summary", "sheet", "name"),
     },
-    "google-tasks": {
+    "tasks": {
         "context_key": "tasks_context",
         "purpose": "google tasks items, deadlines, ownership, and open action context",
         "preferred_fields": ("title", "task", "summary"),
     },
-    "google-keep": {
+    "keep": {
         "context_key": "keep_context",
         "purpose": "google keep notes, reminders, scratchpad context, and captured ideas",
         "preferred_fields": ("title", "summary", "text"),
@@ -295,39 +295,39 @@ def _call_managed_tool(tool_name: str, objective: str) -> str:
     })
 
 
-@tool("gmail", description="Retrieve Gmail inbox threads, follow-ups, and message context.")
+@tool("email", description="Retrieve Gmail inbox threads, follow-ups, and message context.")
 def email_tool(objective: str) -> str:
-    return _call_managed_tool("gmail", objective)
+    return _call_managed_tool("email", objective)
 
 
-@tool("google-calendar", description="Retrieve Google Calendar events, attendees, and schedule context.")
+@tool("calendar", description="Retrieve Google Calendar events, attendees, and schedule context.")
 def calendar_tool(objective: str) -> str:
-    return _call_managed_tool("google-calendar", objective)
+    return _call_managed_tool("calendar", objective)
 
 
-@tool("google-drive", description="Retrieve Google Drive files, folders, and shared reference material.")
+@tool("drive", description="Retrieve Google Drive files, folders, and shared reference material.")
 def drive_tool(objective: str) -> str:
-    return _call_managed_tool("google-drive", objective)
+    return _call_managed_tool("drive", objective)
 
 
-@tool("google-docs", description="Retrieve Google Docs notes, drafts, agendas, and source content.")
+@tool("docs", description="Retrieve Google Docs notes, drafts, agendas, and source content.")
 def docs_tool(objective: str) -> str:
-    return _call_managed_tool("google-docs", objective)
+    return _call_managed_tool("docs", objective)
 
 
-@tool("google-sheets", description="Retrieve Google Sheets metrics, tables, and spreadsheet planning context.")
+@tool("sheets", description="Retrieve Google Sheets metrics, tables, and spreadsheet planning context.")
 def sheets_tool(objective: str) -> str:
-    return _call_managed_tool("google-sheets", objective)
+    return _call_managed_tool("sheets", objective)
 
 
-@tool("google-tasks", description="Retrieve Google Tasks items, due dates, and action context.")
+@tool("tasks", description="Retrieve Google Tasks items, due dates, and action context.")
 def tasks_tool(objective: str) -> str:
-    return _call_managed_tool("google-tasks", objective)
+    return _call_managed_tool("tasks", objective)
 
 
-@tool("google-keep", description="Retrieve Google Keep notes, reminders, and captured ideas.")
+@tool("keep", description="Retrieve Google Keep notes, reminders, and captured ideas.")
 def keep_tool(objective: str) -> str:
-    return _call_managed_tool("google-keep", objective)
+    return _call_managed_tool("keep", objective)
 
 
 WORKSPACE_TOOLS = [

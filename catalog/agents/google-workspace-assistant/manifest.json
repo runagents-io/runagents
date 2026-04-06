@@ -1,5 +1,5 @@
 {
-  "id": "google-workspace-assistant",
+  "id": "google-workspace-assistant-agent",
   "version": "1.0.0",
   "name": "Google Workspace Assistant",
   "summary": "Acts like a Google-native work assistant across Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep.",
@@ -7,13 +7,13 @@
   "category": "Enterprise Productivity",
   "tags": ["Google Workspace", "Productivity", "Gmail", "Docs", "Drive", "Sheets", "Tasks", "LangGraph"],
   "defaultModel": "gpt-4.1",
-  "requiredIntegrations": ["gmail", "google-calendar", "google-drive", "google-docs", "google-sheets", "google-tasks", "google-keep"],
+  "requiredIntegrations": ["email", "calendar", "drive", "docs", "sheets", "tasks", "keep"],
   "defaultPolicies": [],
   "governanceTraits": ["identity-aware", "context-grounded", "approval-ready", "audit-ready", "workspace-centric"],
   "accessRecommendations": [
     "Use delegated-user Google Workspace connectors so the agent works with the signed-in user's Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep data.",
     "Keep reads broadly available, but route sends, edits, task mutations, and document changes through approval until the workflow is tuned.",
-    "Register the Google tools under explicit names so deploy-time wiring is unambiguous: gmail, google-calendar, google-drive, google-docs, google-sheets, google-tasks, and google-keep."
+    "Bind these tool slots to the Google Workspace-backed connectors in your environment so the agent stays Google-native while matching the existing catalog shape."
   ],
   "useCases": [
     "Inbox and calendar triage for the day",
@@ -29,9 +29,9 @@
     }
   ],
   "deploymentTemplate": {
-    "agentName": "google-workspace-assistant",
+    "agentName": "google-workspace-assistant-agent",
     "systemPrompt": "You are a Google Workspace assistant. Use Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep context to answer clearly, stay grounded in retrieved evidence, and prepare approval-ready actions instead of pretending writes already happened.",
-    "requiredTools": ["gmail", "google-calendar", "google-drive", "google-docs", "google-sheets", "google-tasks", "google-keep"],
+    "requiredTools": ["email", "calendar", "drive", "docs", "sheets", "tasks", "keep"],
     "policies": [],
     "accessMode": "authenticated",
     "identityProvider": "corp-sso",

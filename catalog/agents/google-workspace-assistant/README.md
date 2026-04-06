@@ -15,17 +15,15 @@ Use it when you want an assistant that can:
 
 ## Tool mapping
 
-This catalog entry assumes explicit Google-specific tool registrations:
+This catalog entry follows the existing RunAgents catalog pattern: the manifest uses normalized tool names, and you bind those slots to Google-backed tools at deploy time.
 
-- `gmail`
-- `google-calendar`
-- `google-drive`
-- `google-docs`
-- `google-sheets`
-- `google-tasks`
-- `google-keep`
-
-That keeps deployment wiring explicit and avoids ambiguity with Outlook, OneDrive, or other generic productivity tools.
+- `email` -> Gmail
+- `calendar` -> Google Calendar
+- `drive` -> Google Drive
+- `docs` -> Google Docs
+- `sheets` -> Google Sheets
+- `tasks` -> Google Tasks
+- `keep` -> Google Keep
 
 ## What the agent will do for a user
 
@@ -40,7 +38,7 @@ A typical result includes:
 ## What it includes
 
 - Suggested model: `gpt-4.1`
-- Required tools: `gmail`, `google-calendar`, `google-drive`, `google-docs`, `google-sheets`, `google-tasks`, `google-keep`
+- Required tools: `email`, `calendar`, `drive`, `docs`, `sheets`, `tasks`, `keep`
 - Authoring pattern: `LangGraph agent loop + ToolNode`
 
 ## What happens during a run
@@ -109,15 +107,15 @@ Then deploy this example:
 cd catalog/agents/google-workspace-assistant
 
 runagents deploy \
-  --name google-workspace-assistant \
+  --name google-workspace-assistant-agent \
   --file src/agent.py \
-  --tool gmail \
-  --tool google-calendar \
-  --tool google-drive \
-  --tool google-docs \
-  --tool google-sheets \
-  --tool google-tasks \
-  --tool google-keep \
+  --tool email \
+  --tool calendar \
+  --tool drive \
+  --tool docs \
+  --tool sheets \
+  --tool tasks \
+  --tool keep \
   --model openai/gpt-4.1
 ```
 

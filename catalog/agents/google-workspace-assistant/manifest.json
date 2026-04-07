@@ -1,6 +1,6 @@
 {
   "id": "google-workspace-assistant-agent",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "name": "Google Workspace Assistant",
   "summary": "Acts like a Google-native work assistant across Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep.",
   "description": "Built for operators, founders, chiefs of staff, and knowledge workers who live inside Google Workspace. It gathers inbox context, meeting schedules, documents, spreadsheets, tasks, and notes to answer questions, prepare briefings, and draft approval-ready next actions without leaving the Google tool stack.",
@@ -45,6 +45,6 @@
     "framework": "langgraph",
     "workspace_family": "google"
   },
-  "changelog": "Refined the Google Workspace assistant to surface Google consent-required responses as connect links and return a clearer message when Google rate limits a tool call.",
+  "changelog": "Removed the agent-side consent workaround now that the platform surfaces OAuth connect links directly, while keeping the clearer retry message for true Google rate limits.",
   "publishedAt": "2026-04-06T22:00:00Z"
 }

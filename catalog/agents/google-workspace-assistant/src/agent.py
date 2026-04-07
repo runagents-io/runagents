@@ -17,6 +17,7 @@ from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode
 
 from runagents import Agent, ToolNotConfigured
+from runagents.runtime import ConsentRequired
 
 
 SYSTEM_PROMPT = """You are a Google Workspace assistant operating as a disciplined reasoning workflow.
@@ -364,6 +365,8 @@ def _call_workspace_api(
 ) -> tuple[Any, dict[str, str]]:
     try:
         result = tool_client.call_tool(managed_tool_name, path=path, payload=payload, method=method)
+    except ConsentRequired:
+        raise
     except ToolNotConfigured as exc:
         return {}, {
             "code": "TOOL_NOT_CONFIGURED",
@@ -960,13 +963,10 @@ def finalize_response(state: WorkspaceState) -> dict[str, Any]:
     return {"messages": [response]}
 
 
-def _extract_tool_directive(messages: list[AnyMessage]) -> dict[str, str]:
-    consent_required: dict[str, str] = {}
+def _extract_rate_limit_directive(messages: list[AnyMessage]) -> dict[str, str]:
     rate_limited: dict[str, str] = {}
 
     for message in messages:
-        if not isinstance(message, ToolMessage):
-            continue
         try:
             payload = json.loads(_message_text(message))
         except json.JSONDecodeError:
@@ -975,22 +975,22 @@ def _extract_tool_directive(messages: list[AnyMessage]) -> dict[str, str]:
             continue
 
         error_code = str(payload.get("error_code") or "").strip()
-        if error_code == "CONSENT_REQUIRED" and not consent_required:
-            consent_required = {
-                "code": "CONSENT_REQUIRED",
-                "tool": str(payload.get("tool") or "").strip(),
-                "message": str(payload.get("message") or "You need to connect Google access before I can continue.").strip(),
-                "authorization_url": str(payload.get("authorization_url") or "").strip(),
-            }
-        elif error_code == "HTTP_429" and not rate_limited:
+        if not error_code and str(payload.get("error") or "").strip().startswith("HTTP 429"):
+            error_code = "HTTP_429"
+        if not error_code and str(payload.get("code") or "").strip() in {"HTTP_429", "RATE_LIMITED"}:
+            error_code = "HTTP_429"
+
+        if error_code == "HTTP_429" and not rate_limited:
             rate_limited = {
                 "code": "RATE_LIMITED",
                 "tool": str(payload.get("tool") or "").strip(),
-                "message": str(payload.get("message") or "Google temporarily rate limited that request. Please wait a minute and try again.").strip(),
+                "message": str(
+                    payload.get("message")
+                    or payload.get("detail")
+                    or "Google temporarily rate limited that request. Please wait a minute and try again."
+                ).strip(),
             }
 
-    if consent_required:
-        return consent_required
     return rate_limited
 
 
@@ -1001,17 +1001,7 @@ def handler(request: dict[str, Any], context: Any = None) -> dict[str, Any]:
         messages = [{"role": "user", "content": str(request.get("message") or "")}]
 
     result = graph.invoke({"messages": messages})
-    directive = _extract_tool_directive(result.get("messages", []))
-    if directive.get("code") == "CONSENT_REQUIRED":
-        auth_url = directive.get("authorization_url", "").strip()
-        message = directive.get("message") or "You need to connect Google access before I can continue."
-        response = message + (f" {auth_url}" if auth_url else "")
-        return {
-            "code": "CONSENT_REQUIRED",
-            "message": message,
-            "authorization_url": auth_url,
-            "response": response,
-        }
+    directive = _extract_rate_limit_directive(result.get("messages", []))
     if directive.get("code") == "RATE_LIMITED":
         message = directive.get("message") or "Google temporarily rate limited that request. Please wait a minute and try again."
         return {

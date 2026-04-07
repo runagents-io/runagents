@@ -286,14 +286,73 @@ def _tool_payload(tool_name: str, context_key: str, items: list[str], note: str)
     )
 
 
-def _parse_error(result: Any) -> str:
-    if isinstance(result, dict) and result.get("error"):
-        detail = str(result.get("detail") or result.get("error") or "tool call failed").strip()
-        auth_url = str(result.get("authorization_url") or "").strip()
-        if auth_url:
-            return f"{detail}. Authorization URL: {auth_url}"
-        return detail
-    return ""
+def _tool_payload_with_error(
+    tool_name: str,
+    context_key: str,
+    items: list[str],
+    note: str,
+    *,
+    error_code: str = "",
+    authorization_url: str = "",
+    detail: str = "",
+    message: str = "",
+) -> str:
+    payload = {
+        "tool": tool_name,
+        "context_key": context_key,
+        "items": items[:MAX_LIST_ITEMS],
+        "note": note,
+    }
+    if error_code:
+        payload["error_code"] = error_code
+    if authorization_url:
+        payload["authorization_url"] = authorization_url
+    if detail:
+        payload["detail"] = detail
+    if message:
+        payload["message"] = message
+    return json.dumps(payload)
+
+
+def _parse_error_info(result: Any) -> dict[str, str]:
+    if not isinstance(result, dict) or not result.get("error"):
+        return {}
+
+    error = str(result.get("error") or "").strip()
+    detail = str(result.get("detail") or error or "tool call failed").strip()
+    authorization_url = str(result.get("authorization_url") or "").strip()
+
+    if error == "CONSENT_REQUIRED":
+        message = "You need to connect Google access before I can continue."
+        if authorization_url:
+            message += f" {authorization_url}"
+        return {
+            "code": "CONSENT_REQUIRED",
+            "detail": detail or "User must grant OAuth consent for this tool",
+            "authorization_url": authorization_url,
+            "message": message,
+        }
+
+    if error.startswith("HTTP 429"):
+        return {
+            "code": "HTTP_429",
+            "detail": detail or "Google temporarily rate limited this request",
+            "message": "Google temporarily rate limited that request. Please wait a minute and try again.",
+        }
+
+    if error.startswith("HTTP "):
+        return {
+            "code": error.replace(" ", "_"),
+            "detail": detail,
+            "message": detail,
+        }
+
+    return {
+        "code": "TOOL_ERROR",
+        "detail": detail,
+        "authorization_url": authorization_url,
+        "message": detail,
+    }
 
 
 def _call_workspace_api(
@@ -302,18 +361,26 @@ def _call_workspace_api(
     path: str = "/",
     method: str = "GET",
     payload: dict[str, Any] | None = None,
-) -> tuple[Any, str]:
+) -> tuple[Any, dict[str, str]]:
     try:
         result = tool_client.call_tool(managed_tool_name, path=path, payload=payload, method=method)
     except ToolNotConfigured as exc:
-        return {}, f"{managed_tool_name} is not configured for this agent: {exc}"
+        return {}, {
+            "code": "TOOL_NOT_CONFIGURED",
+            "detail": f"{managed_tool_name} is not configured for this agent: {exc}",
+            "message": f"{managed_tool_name} is not configured for this agent.",
+        }
     except Exception as exc:
-        return {}, f"{managed_tool_name} call failed: {exc}"
+        return {}, {
+            "code": "TOOL_CALL_FAILED",
+            "detail": f"{managed_tool_name} call failed: {exc}",
+            "message": f"{managed_tool_name} call failed.",
+        }
 
-    error_text = _parse_error(result)
-    if error_text:
-        return result, f"{managed_tool_name} returned an error: {error_text}"
-    return result, ""
+    error_info = _parse_error_info(result)
+    if error_info:
+        return result, error_info
+    return result, {}
 
 
 def _decode_base64url(data: str) -> str:
@@ -524,26 +591,44 @@ def _utc_now() -> datetime:
 
 @tool("gmail_list_messages", description="Search Gmail for relevant messages. Use this first when you need candidate email IDs before reading a specific email.")
 def gmail_list_messages(query: str = "", max_results: int = 5) -> str:
-    response, error_note = _call_workspace_api(
+    response, error_info = _call_workspace_api(
         "email",
         method="GET",
         path=_build_path("/gmail/v1/users/me/messages", maxResults=max(1, min(max_results, 10)), q=query),
     )
     items = _format_gmail_message_list(response)
-    note = error_note or _note("gmail_list_messages", "searched Gmail", len(items))
-    return _tool_payload("gmail_list_messages", "email_context", items, note)
+    note = error_info.get("detail") or _note("gmail_list_messages", "searched Gmail", len(items))
+    return _tool_payload_with_error(
+        "gmail_list_messages",
+        "email_context",
+        items,
+        note,
+        error_code=error_info.get("code", ""),
+        authorization_url=error_info.get("authorization_url", ""),
+        detail=error_info.get("detail", ""),
+        message=error_info.get("message", ""),
+    )
 
 
 @tool("gmail_get_message", description="Read a specific Gmail message by message ID after identifying the right candidate email.")
 def gmail_get_message(message_id: str) -> str:
-    response, error_note = _call_workspace_api(
+    response, error_info = _call_workspace_api(
         "email",
         method="GET",
         path=_build_path(f"/gmail/v1/users/me/messages/{quote(message_id.strip(), safe='')}", format="full"),
     )
     items = _format_gmail_message(response)
-    note = error_note or _note("gmail_get_message", "read Gmail message", len(items))
-    return _tool_payload("gmail_get_message", "email_context", items, note)
+    note = error_info.get("detail") or _note("gmail_get_message", "read Gmail message", len(items))
+    return _tool_payload_with_error(
+        "gmail_get_message",
+        "email_context",
+        items,
+        note,
+        error_code=error_info.get("code", ""),
+        authorization_url=error_info.get("authorization_url", ""),
+        detail=error_info.get("detail", ""),
+        message=error_info.get("message", ""),
+    )
 
 
 @tool("calendar_list_events", description="List Google Calendar events in a time window. Use for schedule, meeting, and deadline questions.")
@@ -551,7 +636,7 @@ def calendar_list_events(query: str = "", start_iso: str = "", end_iso: str = ""
     now = _utc_now()
     time_min = start_iso.strip() or now.isoformat().replace("+00:00", "Z")
     time_max = end_iso.strip() or (now + timedelta(days=7)).isoformat().replace("+00:00", "Z")
-    response, error_note = _call_workspace_api(
+    response, error_info = _call_workspace_api(
         "calendar",
         method="GET",
         path=_build_path(
@@ -565,8 +650,17 @@ def calendar_list_events(query: str = "", start_iso: str = "", end_iso: str = ""
         ),
     )
     items = _format_calendar_events(response)
-    note = error_note or _note("calendar_list_events", "listed calendar events", len(items))
-    return _tool_payload("calendar_list_events", "calendar_context", items, note)
+    note = error_info.get("detail") or _note("calendar_list_events", "listed calendar events", len(items))
+    return _tool_payload_with_error(
+        "calendar_list_events",
+        "calendar_context",
+        items,
+        note,
+        error_code=error_info.get("code", ""),
+        authorization_url=error_info.get("authorization_url", ""),
+        detail=error_info.get("detail", ""),
+        message=error_info.get("message", ""),
+    )
 
 
 @tool("drive_list_files", description="Search Google Drive for candidate files, documents, and spreadsheets. Use this first when you need a Google file ID.")
@@ -578,7 +672,7 @@ def drive_list_files(query: str = "", max_results: int = 8, mime_type: str = "")
     if mime_type.strip():
         escaped_mime = mime_type.strip().replace("'", "\\'")
         filters.append(f"mimeType = '{escaped_mime}'")
-    response, error_note = _call_workspace_api(
+    response, error_info = _call_workspace_api(
         "drive",
         method="GET",
         path=_build_path(
@@ -589,25 +683,43 @@ def drive_list_files(query: str = "", max_results: int = 8, mime_type: str = "")
         ),
     )
     items = _format_drive_files(response)
-    note = error_note or _note("drive_list_files", "searched Drive", len(items))
-    return _tool_payload("drive_list_files", "drive_context", items, note)
+    note = error_info.get("detail") or _note("drive_list_files", "searched Drive", len(items))
+    return _tool_payload_with_error(
+        "drive_list_files",
+        "drive_context",
+        items,
+        note,
+        error_code=error_info.get("code", ""),
+        authorization_url=error_info.get("authorization_url", ""),
+        detail=error_info.get("detail", ""),
+        message=error_info.get("message", ""),
+    )
 
 
 @tool("docs_get_document", description="Read the contents of a Google Doc by document ID. Use after finding the document ID via Drive or user input.")
 def docs_get_document(document_id: str) -> str:
-    response, error_note = _call_workspace_api(
+    response, error_info = _call_workspace_api(
         "docs",
         method="GET",
         path=f"/v1/documents/{quote(document_id.strip(), safe='')}",
     )
     items = _format_document(response)
-    note = error_note or _note("docs_get_document", "read Google Doc", len(items))
-    return _tool_payload("docs_get_document", "docs_context", items, note)
+    note = error_info.get("detail") or _note("docs_get_document", "read Google Doc", len(items))
+    return _tool_payload_with_error(
+        "docs_get_document",
+        "docs_context",
+        items,
+        note,
+        error_code=error_info.get("code", ""),
+        authorization_url=error_info.get("authorization_url", ""),
+        detail=error_info.get("detail", ""),
+        message=error_info.get("message", ""),
+    )
 
 
 @tool("sheets_get_spreadsheet", description="Read spreadsheet metadata and sheet names by spreadsheet ID. Use to understand workbook structure before reading a range.")
 def sheets_get_spreadsheet(spreadsheet_id: str) -> str:
-    response, error_note = _call_workspace_api(
+    response, error_info = _call_workspace_api(
         "sheets",
         method="GET",
         path=_build_path(
@@ -616,38 +728,65 @@ def sheets_get_spreadsheet(spreadsheet_id: str) -> str:
         ),
     )
     items = _format_spreadsheet(response)
-    note = error_note or _note("sheets_get_spreadsheet", "read spreadsheet metadata", len(items))
-    return _tool_payload("sheets_get_spreadsheet", "sheets_context", items, note)
+    note = error_info.get("detail") or _note("sheets_get_spreadsheet", "read spreadsheet metadata", len(items))
+    return _tool_payload_with_error(
+        "sheets_get_spreadsheet",
+        "sheets_context",
+        items,
+        note,
+        error_code=error_info.get("code", ""),
+        authorization_url=error_info.get("authorization_url", ""),
+        detail=error_info.get("detail", ""),
+        message=error_info.get("message", ""),
+    )
 
 
 @tool("sheets_read_range", description="Read a specific A1 range from a Google Sheet. Use after identifying the spreadsheet and the range you need.")
 def sheets_read_range(spreadsheet_id: str, range_a1: str) -> str:
     encoded_range = quote(range_a1.strip(), safe="!:$,')(")
-    response, error_note = _call_workspace_api(
+    response, error_info = _call_workspace_api(
         "sheets",
         method="GET",
         path=f"/v4/spreadsheets/{quote(spreadsheet_id.strip(), safe='')}/values/{encoded_range}",
     )
     items = _format_sheet_values(response)
-    note = error_note or _note("sheets_read_range", "read sheet range", max(len(items) - 1, 0))
-    return _tool_payload("sheets_read_range", "sheets_context", items, note)
+    note = error_info.get("detail") or _note("sheets_read_range", "read sheet range", max(len(items) - 1, 0))
+    return _tool_payload_with_error(
+        "sheets_read_range",
+        "sheets_context",
+        items,
+        note,
+        error_code=error_info.get("code", ""),
+        authorization_url=error_info.get("authorization_url", ""),
+        detail=error_info.get("detail", ""),
+        message=error_info.get("message", ""),
+    )
 
 
 @tool("tasks_list_tasklists", description="List Google Task lists. Use before reading tasks when you do not yet know which task list matters.")
 def tasks_list_tasklists(max_results: int = 10) -> str:
-    response, error_note = _call_workspace_api(
+    response, error_info = _call_workspace_api(
         "tasks",
         method="GET",
         path=_build_path("/tasks/v1/users/@me/lists", maxResults=max(1, min(max_results, 20))),
     )
     items = _format_tasklists(response)
-    note = error_note or _note("tasks_list_tasklists", "listed task lists", len(items))
-    return _tool_payload("tasks_list_tasklists", "tasks_context", items, note)
+    note = error_info.get("detail") or _note("tasks_list_tasklists", "listed task lists", len(items))
+    return _tool_payload_with_error(
+        "tasks_list_tasklists",
+        "tasks_context",
+        items,
+        note,
+        error_code=error_info.get("code", ""),
+        authorization_url=error_info.get("authorization_url", ""),
+        detail=error_info.get("detail", ""),
+        message=error_info.get("message", ""),
+    )
 
 
 @tool("tasks_list_tasks", description="List tasks from a Google Task list. Use @default for the default list when no specific list ID is known.")
 def tasks_list_tasks(tasklist_id: str = "@default", max_results: int = 10, show_completed: bool = False) -> str:
-    response, error_note = _call_workspace_api(
+    response, error_info = _call_workspace_api(
         "tasks",
         method="GET",
         path=_build_path(
@@ -657,20 +796,38 @@ def tasks_list_tasks(tasklist_id: str = "@default", max_results: int = 10, show_
         ),
     )
     items = _format_tasks(response)
-    note = error_note or _note("tasks_list_tasks", "listed tasks", len(items))
-    return _tool_payload("tasks_list_tasks", "tasks_context", items, note)
+    note = error_info.get("detail") or _note("tasks_list_tasks", "listed tasks", len(items))
+    return _tool_payload_with_error(
+        "tasks_list_tasks",
+        "tasks_context",
+        items,
+        note,
+        error_code=error_info.get("code", ""),
+        authorization_url=error_info.get("authorization_url", ""),
+        detail=error_info.get("detail", ""),
+        message=error_info.get("message", ""),
+    )
 
 
 @tool("keep_list_notes", description="List Google Keep notes. Use for note, reminder, and scratchpad questions.")
 def keep_list_notes(filter_query: str = "", page_size: int = 10) -> str:
-    response, error_note = _call_workspace_api(
+    response, error_info = _call_workspace_api(
         "keep",
         method="GET",
         path=_build_path("/v1/notes", pageSize=max(1, min(page_size, 20)), filter=filter_query),
     )
     items = _format_keep_notes(response)
-    note = error_note or _note("keep_list_notes", "listed Keep notes", len(items))
-    return _tool_payload("keep_list_notes", "keep_context", items, note)
+    note = error_info.get("detail") or _note("keep_list_notes", "listed Keep notes", len(items))
+    return _tool_payload_with_error(
+        "keep_list_notes",
+        "keep_context",
+        items,
+        note,
+        error_code=error_info.get("code", ""),
+        authorization_url=error_info.get("authorization_url", ""),
+        detail=error_info.get("detail", ""),
+        message=error_info.get("message", ""),
+    )
 
 
 WORKSPACE_TOOLS = [
@@ -801,6 +958,72 @@ def finalize_response(state: WorkspaceState) -> dict[str, Any]:
         ]
     )
     return {"messages": [response]}
+
+
+def _extract_tool_directive(messages: list[AnyMessage]) -> dict[str, str]:
+    consent_required: dict[str, str] = {}
+    rate_limited: dict[str, str] = {}
+
+    for message in messages:
+        if not isinstance(message, ToolMessage):
+            continue
+        try:
+            payload = json.loads(_message_text(message))
+        except json.JSONDecodeError:
+            continue
+        if not isinstance(payload, dict):
+            continue
+
+        error_code = str(payload.get("error_code") or "").strip()
+        if error_code == "CONSENT_REQUIRED" and not consent_required:
+            consent_required = {
+                "code": "CONSENT_REQUIRED",
+                "tool": str(payload.get("tool") or "").strip(),
+                "message": str(payload.get("message") or "You need to connect Google access before I can continue.").strip(),
+                "authorization_url": str(payload.get("authorization_url") or "").strip(),
+            }
+        elif error_code == "HTTP_429" and not rate_limited:
+            rate_limited = {
+                "code": "RATE_LIMITED",
+                "tool": str(payload.get("tool") or "").strip(),
+                "message": str(payload.get("message") or "Google temporarily rate limited that request. Please wait a minute and try again.").strip(),
+            }
+
+    if consent_required:
+        return consent_required
+    return rate_limited
+
+
+def handler(request: dict[str, Any], context: Any = None) -> dict[str, Any]:
+    try:
+        messages = [HumanMessage(content=str(request.get("message") or ""))]
+    except Exception:
+        messages = [{"role": "user", "content": str(request.get("message") or "")}]
+
+    result = graph.invoke({"messages": messages})
+    directive = _extract_tool_directive(result.get("messages", []))
+    if directive.get("code") == "CONSENT_REQUIRED":
+        auth_url = directive.get("authorization_url", "").strip()
+        message = directive.get("message") or "You need to connect Google access before I can continue."
+        response = message + (f" {auth_url}" if auth_url else "")
+        return {
+            "code": "CONSENT_REQUIRED",
+            "message": message,
+            "authorization_url": auth_url,
+            "response": response,
+        }
+    if directive.get("code") == "RATE_LIMITED":
+        message = directive.get("message") or "Google temporarily rate limited that request. Please wait a minute and try again."
+        return {
+            "code": "RATE_LIMITED",
+            "message": message,
+            "response": message,
+        }
+
+    messages = result.get("messages", [])
+    if messages:
+        return {"response": _message_text(messages[-1])}
+    return {"response": str(result)}
 
 
 builder = StateGraph(WorkspaceState)

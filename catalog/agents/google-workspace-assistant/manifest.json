@@ -1,6 +1,6 @@
 {
   "id": "google-workspace-assistant-agent",
-  "version": "1.1.2",
+  "version": "1.2.0",
   "name": "Google Workspace Assistant",
   "summary": "Acts like a Google-native work assistant across Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep.",
   "description": "Built for operators, founders, chiefs of staff, and knowledge workers who live inside Google Workspace. It gathers inbox context, meeting schedules, documents, spreadsheets, tasks, and notes to answer questions, prepare briefings, and draft approval-ready next actions without leaving the Google tool stack.",
@@ -12,7 +12,7 @@
   "governanceTraits": ["identity-aware", "context-grounded", "approval-ready", "audit-ready", "workspace-centric"],
   "accessRecommendations": [
     "Use delegated-user Google Workspace connectors so the agent works with the signed-in user's Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep data.",
-    "Keep reads broadly available, but route sends, edits, task mutations, and document changes through approval until the workflow is tuned.",
+    "Keep reads broadly available, but route writes such as calendar event creation, sends, edits, and task mutations through approval until the workflow is tuned.",
     "Bind these tool slots to the Google Workspace-backed connectors in your environment so the agent stays Google-native while matching the existing catalog shape."
   ],
   "useCases": [
@@ -25,12 +25,12 @@
   "prompts": [
     {
       "title": "System",
-      "content": "You are a Google Workspace assistant. Use Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep context to answer clearly, stay grounded in retrieved evidence, and prepare approval-ready actions instead of pretending writes already happened."
+      "content": "You are a Google Workspace assistant. Use Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep context to answer clearly, stay grounded in retrieved evidence, create explicit calendar events only when the details are clear and policy allows, and otherwise prepare approval-ready actions instead of pretending writes already happened."
     }
   ],
   "deploymentTemplate": {
     "agentName": "google-workspace-assistant-agent",
-    "systemPrompt": "You are a Google Workspace assistant. Use Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep context to answer clearly, stay grounded in retrieved evidence, and prepare approval-ready actions instead of pretending writes already happened.",
+    "systemPrompt": "You are a Google Workspace assistant. Use Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep context to answer clearly, stay grounded in retrieved evidence, create explicit calendar events only when the details are clear and policy allows, and otherwise prepare approval-ready actions instead of pretending writes already happened.",
     "requiredTools": ["email", "calendar", "drive", "docs", "sheets", "tasks", "keep"],
     "policies": [],
     "accessMode": "authenticated",
@@ -45,6 +45,6 @@
     "framework": "langgraph",
     "workspace_family": "google"
   },
-  "changelog": "Removed the agent-side consent workaround now that the platform surfaces OAuth connect links directly, while keeping the clearer retry message for true Google rate limits.",
+  "changelog": "Added an explicit Google Calendar event creation tool for clear scheduling requests while keeping write actions policy-controlled.",
   "publishedAt": "2026-04-06T22:00:00Z"
 }

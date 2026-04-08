@@ -10,7 +10,8 @@ Use it when you want an assistant that can:
 - triage the day from Gmail and Calendar
 - pull supporting context from Drive, Docs, and Sheets
 - consolidate action items from Tasks and Keep
-- draft approval-ready replies, follow-ups, or document changes
+- create explicit Google Calendar events when the timing details are clear
+- draft approval-ready replies, follow-ups, or document changes when a write should stay gated
 - stay inside RunAgents governance instead of bypassing policy and audit
 
 ## Tool mapping
@@ -48,7 +49,7 @@ A typical result includes:
 2. `reasoning_agent`
    Uses the model to decide whether the current context is enough or whether Gmail, Calendar, Drive, Docs, Sheets, Tasks, or Keep should be queried.
 3. `tool_node`
-   Executes explicit LangGraph tools such as `gmail_list_messages`, `calendar_list_events`, `drive_list_files`, `docs_get_document`, `sheets_read_range`, `tasks_list_tasks`, and `keep_list_notes`.
+   Executes explicit LangGraph tools such as `gmail_list_messages`, `calendar_list_events`, `calendar_create_event`, `drive_list_files`, `docs_get_document`, `sheets_read_range`, `tasks_list_tasks`, and `keep_list_notes`.
 4. `integrate_tool_outputs`
    Normalizes tool results back into one shared assistant dossier.
 5. `finalize_response`
@@ -63,6 +64,7 @@ Examples:
 - `gmail_list_messages` -> `GET /gmail/v1/users/me/messages`
 - `gmail_get_message` -> `GET /gmail/v1/users/me/messages/{messageId}`
 - `calendar_list_events` -> `GET /calendar/v3/calendars/primary/events`
+- `calendar_create_event` -> `POST /calendar/v3/calendars/primary/events`
 - `drive_list_files` -> `GET /drive/v3/files`
 - `docs_get_document` -> `GET /v1/documents/{documentId}`
 - `sheets_get_spreadsheet` -> `GET /v4/spreadsheets/{spreadsheetId}`
@@ -77,6 +79,12 @@ Plain text:
 
 ```text
 Give me a Google Workspace morning brief and tell me what needs my attention first.
+```
+
+Explicit write:
+
+```text
+Create a 30 minute calendar event titled "Policy Test" on 2026-04-09T14:00:00-04:00 and invite alex@example.com.
 ```
 
 Structured JSON:
@@ -134,4 +142,4 @@ runagents deploy \
 
 ## Deployment intent
 
-Use this as the default Google Workspace assistant when you want one agent to work across Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep instead of forcing the user to think in per-API silos.
+Use this as the default Google Workspace assistant when you want one agent to work across Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep instead of forcing the user to think in per-API silos. Keep explicit write methods such as `calendar_create_event` behind policy or approval until the workflow is tuned for your environment.

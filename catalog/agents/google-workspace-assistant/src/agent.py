@@ -8,6 +8,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Annotated, Any, TypedDict
 from urllib.parse import quote, urlencode
+from zoneinfo import ZoneInfo
 
 from langchain_core.messages import AIMessage, AnyMessage, HumanMessage, SystemMessage, ToolMessage
 from langchain_core.tools import tool
@@ -28,6 +29,7 @@ Use tools when the current context is incomplete. Avoid redundant tool calls.
 Prefer explicit tool choices over vague retrieval:
 - for email questions, first use gmail_list_messages to find candidates, then gmail_get_message for the specific email you need
 - for meeting questions, use calendar_list_events
+- for explicit scheduling requests with clear details, use calendar_create_event
 - for file and document questions, use drive_list_files to find IDs before calling docs_get_document or sheets_* tools
 - for spreadsheet questions, use sheets_get_spreadsheet for structure and sheets_read_range for cell values
 - for task questions, use tasks_list_tasklists and tasks_list_tasks
@@ -37,7 +39,8 @@ Your default behavior is:
 - gather only the context needed to answer well
 - stay grounded in retrieved evidence
 - separate facts from recommendations
-- prepare approval-ready actions for writes instead of pretending they already happened
+- use explicit write tools only when the user has given enough detail and the action is appropriate
+- otherwise prepare approval-ready actions instead of pretending writes already happened
 
 When a write would be required, return a concise approval-ready action with:
 - system
@@ -238,7 +241,15 @@ def _section_lines(title: str, items: list[str], empty_message: str) -> list[str
 
 
 def _build_prompt(objective: str, context: dict[str, list[str]], evidence: list[str]) -> str:
-    prompt_lines = [f"Objective: {objective}", ""]
+    now_utc = _utc_now()
+    now_local = now_utc.astimezone()
+    local_tz = now_local.tzname() or "local"
+    prompt_lines = [
+        f"Objective: {objective}",
+        f"Current UTC time: {now_utc.isoformat().replace('+00:00', 'Z')}",
+        f"Current local time: {now_local.isoformat()} ({local_tz})",
+        "",
+    ]
     for context_key, spec in TOOL_SPECS.items():
         prompt_lines.extend(_section_lines(spec["title"], context.get(context_key, []), spec["empty"]))
     prompt_lines.extend(_section_lines("Evidence trail:", evidence, "No evidence trail captured."))
@@ -475,6 +486,29 @@ def _format_calendar_events(response: Any) -> list[str]:
     return items
 
 
+def _format_calendar_write_result(response: Any) -> list[str]:
+    if not isinstance(response, dict):
+        return []
+    start = (response.get("start") or {}).get("dateTime") or (response.get("start") or {}).get("date") or "unscheduled"
+    end = (response.get("end") or {}).get("dateTime") or (response.get("end") or {}).get("date") or ""
+    title = str(response.get("summary") or "Untitled event")
+    event_id = str(response.get("id") or "").strip()
+    status = str(response.get("status") or "").strip()
+    html_link = str(response.get("htmlLink") or "").strip()
+    parts = [title]
+    if event_id:
+        parts.append(f"id: {event_id}")
+    if end:
+        parts.append(f"time: {start} -> {end}")
+    else:
+        parts.append(f"time: {start}")
+    if status:
+        parts.append(f"status: {status}")
+    if html_link:
+        parts.append(f"link: {html_link}")
+    return [" | ".join(parts)]
+
+
 def _format_drive_files(response: Any) -> list[str]:
     files = response.get("files") if isinstance(response, dict) else []
     items: list[str] = []
@@ -592,6 +626,32 @@ def _utc_now() -> datetime:
     return datetime.now(timezone.utc)
 
 
+def _parse_event_datetime(value: str, time_zone: str = "") -> datetime:
+    cleaned = value.strip()
+    if not cleaned:
+        raise ValueError("start and end times must be ISO 8601 values")
+    if cleaned.endswith("Z"):
+        cleaned = cleaned[:-1] + "+00:00"
+    parsed = datetime.fromisoformat(cleaned)
+    if parsed.tzinfo is not None:
+        return parsed
+    tz_name = time_zone.strip()
+    if tz_name:
+        try:
+            return parsed.replace(tzinfo=ZoneInfo(tz_name))
+        except Exception as exc:
+            raise ValueError(f"unknown time zone: {tz_name}") from exc
+    return parsed.replace(tzinfo=timezone.utc)
+
+
+def _calendar_event_time_payload(moment: datetime, time_zone: str = "") -> dict[str, str]:
+    payload = {"dateTime": moment.isoformat().replace("+00:00", "Z")}
+    tz_name = time_zone.strip()
+    if tz_name:
+        payload["timeZone"] = tz_name
+    return payload
+
+
 @tool("gmail_list_messages", description="Search Gmail for relevant messages. Use this first when you need candidate email IDs before reading a specific email.")
 def gmail_list_messages(query: str = "", max_results: int = 5) -> str:
     response, error_info = _call_workspace_api(
@@ -656,6 +716,97 @@ def calendar_list_events(query: str = "", start_iso: str = "", end_iso: str = ""
     note = error_info.get("detail") or _note("calendar_list_events", "listed calendar events", len(items))
     return _tool_payload_with_error(
         "calendar_list_events",
+        "calendar_context",
+        items,
+        note,
+        error_code=error_info.get("code", ""),
+        authorization_url=error_info.get("authorization_url", ""),
+        detail=error_info.get("detail", ""),
+        message=error_info.get("message", ""),
+    )
+
+
+@tool("calendar_create_event", description="Create a Google Calendar event when the user explicitly wants to schedule something and the event details are clear.")
+def calendar_create_event(
+    summary: str,
+    start_iso: str,
+    end_iso: str = "",
+    duration_minutes: int = 30,
+    description: str = "",
+    location: str = "",
+    attendees_csv: str = "",
+    time_zone: str = "",
+) -> str:
+    title = summary.strip()
+    if not title:
+        return _tool_payload_with_error(
+            "calendar_create_event",
+            "calendar_context",
+            [],
+            "calendar_create_event: could not create the event.",
+            error_code="INVALID_INPUT",
+            detail="summary is required to create a calendar event",
+            message="I need an event title before I can create a calendar event.",
+        )
+
+    try:
+        start = _parse_event_datetime(start_iso, time_zone=time_zone)
+        if end_iso.strip():
+            end = _parse_event_datetime(end_iso, time_zone=time_zone)
+        else:
+            safe_duration = max(15, min(duration_minutes, 8 * 60))
+            end = start + timedelta(minutes=safe_duration)
+    except ValueError as exc:
+        detail = str(exc)
+        return _tool_payload_with_error(
+            "calendar_create_event",
+            "calendar_context",
+            [],
+            "calendar_create_event: could not create the event.",
+            error_code="INVALID_INPUT",
+            detail=detail,
+            message=detail,
+        )
+
+    if end <= start:
+        detail = "end time must be after start time"
+        return _tool_payload_with_error(
+            "calendar_create_event",
+            "calendar_context",
+            [],
+            "calendar_create_event: could not create the event.",
+            error_code="INVALID_INPUT",
+            detail=detail,
+            message=detail,
+        )
+
+    payload: dict[str, Any] = {
+        "summary": title,
+        "start": _calendar_event_time_payload(start, time_zone=time_zone),
+        "end": _calendar_event_time_payload(end, time_zone=time_zone),
+    }
+    if description.strip():
+        payload["description"] = description.strip()
+    if location.strip():
+        payload["location"] = location.strip()
+    attendees = [
+        {"email": email.strip()}
+        for email in attendees_csv.split(",")
+        if email.strip()
+    ]
+    if attendees:
+        payload["attendees"] = attendees
+
+    response, error_info = _call_workspace_api(
+        "calendar",
+        method="POST",
+        path="/calendar/v3/calendars/primary/events",
+        payload=payload,
+    )
+    items = [] if error_info else _format_calendar_write_result(response)
+    note = error_info.get("detail") or _note("calendar_create_event", "created calendar event", len(items))
+    return _tool_payload_with_error(
+        "calendar_create_event",
         "calendar_context",
         items,
         note,
@@ -837,6 +988,7 @@ WORKSPACE_TOOLS = [
     gmail_list_messages,
     gmail_get_message,
     calendar_list_events,
+    calendar_create_event,
     drive_list_files,
     docs_get_document,
     sheets_get_spreadsheet,

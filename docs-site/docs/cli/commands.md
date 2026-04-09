@@ -301,6 +301,56 @@ If the catalog manifest contains a bare `defaultModel` such as `gpt-4.1`, `catal
 
 ---
 
+## `runagents policies`
+
+Manage policy rules and approval routing.
+
+### `policies list`
+
+```bash
+runagents policies list
+```
+
+Lists policies with rule count, approval count, readiness, and bound-agent usage.
+
+### `policies get`
+
+```bash
+runagents policies get workspace-write-approval
+```
+
+Shows the full policy shape plus which deployed agents are currently bound to it.
+
+### `policies apply`
+
+```bash
+runagents policies apply -f policy.yaml
+runagents policies apply -f policy.yaml --name workspace-write-approval
+```
+
+Accepts either:
+
+- a full request document with `name` and `spec`
+- or a raw `spec` document when `--name` is supplied
+
+Both YAML and JSON are supported.
+
+### `policies delete`
+
+```bash
+runagents policies delete workspace-write-approval
+```
+
+### `policies translate`
+
+```bash
+runagents policies translate --from "Allow Google Workspace reads and require approval for writes"
+```
+
+Returns structured policy rules suitable for review before applying.
+
+---
+
 ## `runagents agents`
 
 Manage agents.

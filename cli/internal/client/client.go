@@ -63,6 +63,15 @@ func (c *Client) Patch(path string, payload interface{}) ([]byte, error) {
 	return c.do(req)
 }
 
+// Put performs a PUT request with a JSON body and returns the response body.
+func (c *Client) Put(path string, payload interface{}) ([]byte, error) {
+	req, err := c.newRequest(http.MethodPut, path, nil, payload)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	return c.do(req)
+}
+
 // Delete performs a DELETE request to the given path.
 func (c *Client) Delete(path string) error {
 	req, err := c.newRequest(http.MethodDelete, path, nil, nil)

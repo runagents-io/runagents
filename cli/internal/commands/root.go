@@ -88,6 +88,7 @@ func init() {
 	rootCmd.AddCommand(newRunsCmd())
 	rootCmd.AddCommand(newDeployCmd())
 	rootCmd.AddCommand(newCatalogCmd())
+	rootCmd.AddCommand(newPoliciesCmd())
 	rootCmd.AddCommand(newApprovalsCmd())
 	rootCmd.AddCommand(newStarterKitCmd())
 	rootCmd.AddCommand(newAnalyzeCmd())

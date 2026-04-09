@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -49,10 +48,7 @@ func newToolsListCmd() *cobra.Command {
 				return fmt.Errorf("failed to parse response: %w", err)
 			}
 
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"NAME", "TOPOLOGY", "BASE_URL", "ACCESS", "STATUS"})
-			table.SetBorder(false)
-			table.SetAutoWrapText(false)
+			table := newTable("NAME", "TOPOLOGY", "BASE_URL", "ACCESS", "STATUS")
 
 			for _, t := range tools {
 				name := stringField(t, "name")

@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -119,10 +118,7 @@ func printModelUsages(data interface{}) {
 		return
 	}
 
-	table := tablewriter.NewWriter(os.Stdout)
-	table.SetHeader([]string{"ROLE", "MODEL", "FILE", "LINE"})
-	table.SetBorder(false)
-	table.SetAutoWrapText(false)
+	table := newTable("ROLE", "MODEL", "FILE", "LINE")
 
 	for _, item := range items {
 		m, ok := item.(map[string]interface{})

@@ -6,7 +6,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -50,10 +49,7 @@ func newModelsListCmd() *cobra.Command {
 				return fmt.Errorf("failed to parse response: %w", err)
 			}
 
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"NAME", "PROVIDER", "MODELS", "STATUS"})
-			table.SetBorder(false)
-			table.SetAutoWrapText(false)
+			table := newTable("NAME", "PROVIDER", "MODELS", "STATUS")
 
 			for _, p := range providers {
 				name := stringField(p, "name")

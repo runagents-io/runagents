@@ -91,6 +91,24 @@ The exact deploy command depends on the catalog agent, but the overall pattern i
 
 For example, the Google Workspace assistant can be deployed from the catalog and used as the starting point for a governed Google workflow.
 
+From the CLI:
+
+```bash
+runagents catalog list --search google
+runagents catalog show google-workspace-assistant-agent
+runagents catalog deploy google-workspace-assistant-agent \
+  --name google-workspace-assistant-agent \
+  --tool email \
+  --tool calendar \
+  --tool drive \
+  --tool docs \
+  --tool sheets \
+  --tool tasks \
+  --tool keep \
+  --policy workspace-write-approval \
+  --identity-provider google-oidc
+```
+
 <figure class="ra-shot">
   <img src="https://runagents-releases.s3.amazonaws.com/docs/screenshots/docs-refresh/agent-detail-runs.png" alt="Agent detail page showing runs">
   <figcaption>After deployment, the agent detail view becomes the main operational surface for tracking runs, review states, and execution history for that agent.</figcaption>

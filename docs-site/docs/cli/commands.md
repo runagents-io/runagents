@@ -213,6 +213,94 @@ Model:   openai/gpt-4o-mini
 
 ---
 
+## `runagents catalog`
+
+Discover, inspect, initialize, and deploy agents from the RunAgents catalog.
+
+### `catalog list`
+
+```bash
+runagents catalog list
+runagents catalog list --search google --integration calendar
+runagents catalog list --category "Enterprise Productivity" --tag Gmail
+```
+
+Useful filters:
+
+- `--search`
+- `--category`
+- `--tag`
+- `--integration`
+- `--governance`
+- `--page`
+- `--page-size`
+
+### `catalog show`
+
+```bash
+runagents catalog show google-workspace-assistant-agent
+runagents catalog show google-workspace-assistant-agent --version 1.2.0
+```
+
+Shows the deployment-ready manifest, including:
+
+- summary and governance traits
+- required integrations
+- required and recommended tools
+- source file list
+- default identity provider and policy hints
+
+### `catalog versions`
+
+```bash
+runagents catalog versions google-workspace-assistant-agent
+```
+
+Lists published versions in descending semantic-version order.
+
+### `catalog init`
+
+```bash
+runagents catalog init google-workspace-assistant-agent
+runagents catalog init google-workspace-assistant-agent ./workspace-assistant
+runagents catalog init google-workspace-assistant-agent ./workspace-assistant --force
+```
+
+Writes the catalog source files locally and saves the fetched manifest as `runagents.catalog.json`.
+
+### `catalog deploy`
+
+```bash
+runagents catalog deploy google-workspace-assistant-agent
+runagents catalog deploy google-workspace-assistant-agent \
+  --name workspace-assistant \
+  --tool email \
+  --tool calendar \
+  --tool drive \
+  --tool docs \
+  --tool sheets \
+  --tool tasks \
+  --tool keep \
+  --policy workspace-write-approval \
+  --identity-provider google-oidc
+```
+
+Useful flags:
+
+| Flag | Description |
+|------|-------------|
+| `--version` | Deploy a specific catalog version |
+| `--name` | Override the deployed agent name |
+| `--tool` | Override required tool names |
+| `--model` | Override the suggested model as `provider/model` |
+| `--policy` | Attach policies during deploy |
+| `--identity-provider` | Override the identity provider |
+| `--dry-run` | Print the deploy payload instead of sending it |
+
+If the catalog manifest contains a bare `defaultModel` such as `gpt-4.1`, `catalog deploy` treats it as `openai/gpt-4.1` unless you pass `--model`.
+
+---
+
 ## `runagents agents`
 
 Manage agents.

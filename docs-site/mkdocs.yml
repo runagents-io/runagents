@@ -134,6 +134,7 @@ nav:
     - Overview: sdk/index.md
   - API Reference:
     - Overview: api/overview.md
+    - Catalog: api/catalog.md
     - Deploy: api/deploy.md
     - Agents: api/agents.md
     - Tools: api/tools.md

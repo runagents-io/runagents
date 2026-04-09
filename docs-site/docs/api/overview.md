@@ -104,6 +104,7 @@ Stable, versioned APIs (e.g., `/v1/...`) are planned for general availability. S
 
 | Endpoint Group | Description | Documentation |
 |----------------|-------------|---------------|
+| `/api/catalog` | Discover catalog agents and versions | [Catalog API](catalog.md) |
 | `/api/deploy` | Deploy agents programmatically | [Deploy API](deploy.md) |
 | `/api/agents` | List, get, and delete agents | [Agents API](agents.md) |
 | `/api/tools` | Register and manage tools | [Tools API](tools.md) |

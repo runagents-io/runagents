@@ -111,6 +111,24 @@ A strong next step is deploying a catalog agent such as the Google Workspace ass
 - approval-required operations
 - pause and resume behavior across real tools
 
+Example:
+
+```bash
+runagents catalog list --search google
+runagents catalog show google-workspace-assistant-agent
+runagents catalog deploy google-workspace-assistant-agent \
+  --name google-workspace-assistant-agent \
+  --tool email \
+  --tool calendar \
+  --tool drive \
+  --tool docs \
+  --tool sheets \
+  --tool tasks \
+  --tool keep \
+  --policy workspace-write-approval \
+  --identity-provider google-oidc
+```
+
 See [Agent Catalog](../platform/agent-catalog.md) for the recommended production-style path.
 
 ---

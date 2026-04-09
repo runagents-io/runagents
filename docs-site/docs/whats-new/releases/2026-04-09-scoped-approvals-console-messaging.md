@@ -16,6 +16,7 @@ The biggest improvements in this release are:
 - **A clearer operations console** that separates approval work from consent work and makes runs easier to follow from the agent view
 - **Google Workspace calendar writes under policy control** for the Google Workspace assistant
 - **Stronger messaging-surface continuity** so resumed runs are more likely to complete back in the original conversation
+- **A new public RunAgents skills library** for Codex, Claude Code, Cursor, and similar assistants
 
 ## Who should care
 
@@ -25,6 +26,7 @@ This release is especially relevant if you are running:
 - delegated-user OAuth tools such as Google Workspace
 - customer-facing agents on chat, messaging, or support channels
 - multi-agent workspaces where operators need a clearer view of pending work
+- assistant-driven deployment and operations workflows from tools such as Codex, Claude Code, and Cursor
 
 ## What’s New
 
@@ -113,6 +115,29 @@ while the messaging surface remains responsible for:
 
 The result is a smoother user experience when a request pauses for approval or consent and then resumes back into the same conversation.
 
+### A public skills library for external assistants
+
+This release also adds a first-party public skills library for AI coding assistants working with RunAgents.
+
+These skills are designed as reusable workflow packs rather than one-off prompt snippets. They are written to be external-facing, so customers and partners can use them across their own environments without depending on private internal setup.
+
+The library now covers:
+
+- **Build** workflows such as agent authoring and action-plan-driven changes
+- **Wire** workflows such as catalog deployment, tool onboarding, identity providers, and model providers
+- **Govern** workflows such as approval policy design and OAuth consent debugging
+- **Operate** workflows such as run debugging and observability triage
+- **Interface** workflows for web apps, WhatsApp, Slack, internal portals, and other surfaces
+- **Connector** workflows for policy, approval, and observability integrations with external systems
+
+It is designed to work well with:
+
+- Codex and skill-native environments
+- Claude Code through `CLAUDE.md` imports or project slash commands
+- Cursor and other assistants through project rules and shared workflow files
+
+This makes the assistant story more production-ready. Teams can give their coding assistants reusable RunAgents operating workflows instead of repeating the same context and guidance in every prompt.
+
 ## What You Can Do With This Release
 
 ### Run approval-gated writes with less friction
@@ -152,6 +177,20 @@ That is especially useful for workflows such as:
 This release does not require teams to adopt a new operator workflow.
 
 The public CLI, SDK, and API remain the main external surfaces for deploying agents, inspecting runs, and handling approvals. The release improves the runtime behavior behind those interfaces without forcing customers to relearn the platform.
+
+### Standardize assistant-driven workflows
+
+If you deploy and operate RunAgents through AI coding assistants, this release now gives you a public skills library that can be reused across projects.
+
+That means teams can standardize workflows such as:
+
+- deploying the Google Workspace assistant from the catalog
+- registering tools with the right capabilities and OAuth scopes
+- designing approval-required policies for sensitive writes
+- tracing paused, resumed, and failed runs
+- wiring RunAgents behind user-facing surfaces such as WhatsApp or Slack
+
+The result is less prompt churn, more consistent operator behavior, and a better path from experimentation to production.
 
 ## Public CLI Commands You Can Use Today
 
@@ -215,6 +254,25 @@ runagents approvals reject <request-id>
 ```bash
 runagents context export -o json
 ```
+
+### Use the public skills library
+
+The public skills library is documented here:
+
+```text
+https://docs.runagents.io/cli/skills/
+https://github.com/runagents-io/runagents/tree/main/skills
+```
+
+For Codex-style skill folders:
+
+```bash
+git clone https://github.com/runagents-io/runagents.git
+mkdir -p ~/.codex/skills
+cp -R runagents/skills/runagents-approval-policy ~/.codex/skills/
+```
+
+For Claude Code, the same skills can be imported into `CLAUDE.md` or wrapped as project slash commands under `.claude/commands/`.
 
 ## Public Python SDK Examples
 
@@ -515,7 +573,7 @@ A write-capable tool definition still needs a matching write-capable token grant
 
 The public CLI, SDK, and API entry points remain the same in this release.
 
-The main changes are in runtime behavior, operator experience, and approval scope semantics.
+The main changes are in runtime behavior, operator experience, approval scope semantics, and the new public skills library for assistant-driven workflows.
 
 ## Recommended Next Steps
 
@@ -525,6 +583,7 @@ After upgrading, we recommend:
 2. test one approval-gated write workflow end to end from the surface your users actually use
 3. verify OAuth-backed tools have the scopes required for the operations you want to support
 4. update any internal runbooks that still describe approvals as temporary policy-binding workflows
+5. if you use Codex, Claude Code, Cursor, or similar tools, adopt the public RunAgents skills library for repeatable deployment and operations workflows
 
 ## Summary
 
@@ -537,5 +596,6 @@ It gives teams:
 - a clearer operations experience
 - better Google Workspace support
 - more reliable messaging-surface workflows
+- a stronger public assistant workflow story through the new skills library
 
 without forcing changes to the public CLI, SDK, or API patterns customers already use today.

@@ -3,9 +3,6 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -48,10 +45,7 @@ func newAgentsListCmd() *cobra.Command {
 				return fmt.Errorf("failed to parse response: %w", err)
 			}
 
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"NAME", "STATUS", "IMAGE"})
-			table.SetBorder(false)
-			table.SetAutoWrapText(false)
+			table := newTable("NAME", "STATUS", "IMAGE")
 
 			for _, a := range agents {
 				name := stringField(a, "name")

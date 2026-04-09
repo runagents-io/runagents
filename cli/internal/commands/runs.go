@@ -3,10 +3,8 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
+	"net/url"
 )
 
 func newRunsCmd() *cobra.Command {
@@ -35,12 +33,12 @@ func newRunsListCmd() *cobra.Command {
 				return err
 			}
 
-			path := "/runs"
+			query := url.Values{}
 			if agentFilter != "" {
-				path = fmt.Sprintf("/runs?agent=%s", agentFilter)
+				query.Set("agent_id", agentFilter)
 			}
 
-			data, err := c.Get(path)
+			data, err := c.GetWithQuery("/runs", query)
 			if err != nil {
 				return err
 			}
@@ -55,10 +53,7 @@ func newRunsListCmd() *cobra.Command {
 				return fmt.Errorf("failed to parse response: %w", err)
 			}
 
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"ID", "AGENT", "STATUS", "CREATED"})
-			table.SetBorder(false)
-			table.SetAutoWrapText(false)
+			table := newTable("ID", "AGENT", "STATUS", "CREATED")
 
 			for _, r := range runs {
 				id := stringField(r, "id")
@@ -153,10 +148,7 @@ func newRunsEventsCmd() *cobra.Command {
 				return nil
 			}
 
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"SEQ", "TYPE", "MESSAGE", "TIMESTAMP"})
-			table.SetBorder(false)
-			table.SetAutoWrapText(false)
+			table := newTable("SEQ", "TYPE", "MESSAGE", "TIMESTAMP")
 
 			for _, e := range events {
 				seq := stringField(e, "sequence")

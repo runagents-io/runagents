@@ -3,9 +3,6 @@ package commands
 import (
 	"encoding/json"
 	"fmt"
-	"os"
-
-	"github.com/olekukonko/tablewriter"
 	"github.com/spf13/cobra"
 )
 
@@ -53,10 +50,7 @@ func newApprovalsListCmd() *cobra.Command {
 				return nil
 			}
 
-			table := tablewriter.NewWriter(os.Stdout)
-			table.SetHeader([]string{"ID", "AGENT", "TOOL", "STATUS", "CREATED"})
-			table.SetBorder(false)
-			table.SetAutoWrapText(false)
+			table := newTable("ID", "AGENT", "TOOL", "STATUS", "CREATED")
 
 			for _, r := range requests {
 				id := stringField(r, "id")

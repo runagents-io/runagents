@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Run Debugging"
+  short_description: "Debug paused and failed runs"
+  default_prompt: "Use $runagents-run-debugging to trace this RunAgents run and tell me exactly where it stopped or failed."

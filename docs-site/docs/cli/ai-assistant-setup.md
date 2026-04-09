@@ -125,6 +125,12 @@ Environment variables take precedence over the config file.
 
 ---
 
+## RunAgents Skills
+
+If you want more than templates and raw MCP access, use the public RunAgents skills library. These first-party skills package common production workflows for AI coding assistants, including catalog deployment, tool onboarding, approvals, run debugging, and anywhere-interface integration such as WhatsApp.
+
+- [RunAgents Skills](skills.md)
+
 ## What You Can Do
 
 With the template file and MCP server configured, your AI assistant can:

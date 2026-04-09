@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Approval Policy"
+  short_description: "Design safe approval workflows"
+  default_prompt: "Use $runagents-approval-policy to create or debug approval-required policy for this RunAgents workflow."

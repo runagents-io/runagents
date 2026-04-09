@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Surface Integration"
+  short_description: "Connect RunAgents to any interface"
+  default_prompt: "Use $runagents-surface-integration to design this RunAgents interface flow and preserve approval, consent, and resume behavior."

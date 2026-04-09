@@ -151,6 +151,7 @@ nav:
     - Action Plan Examples: cli/plan-examples.md
     - External Assistants: cli/external-assistants.md
     - AI Assistant Setup: cli/ai-assistant-setup.md
+    - RunAgents Skills: cli/skills.md
   - Concepts:
     - Architecture: concepts/architecture.md
     - Identity Propagation: concepts/identity-propagation.md

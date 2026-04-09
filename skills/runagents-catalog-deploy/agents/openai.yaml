@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Catalog Deploy"
+  short_description: "Deploy and adapt catalog agents"
+  default_prompt: "Use $runagents-catalog-deploy to deploy or adapt a catalog agent and verify its production prerequisites."

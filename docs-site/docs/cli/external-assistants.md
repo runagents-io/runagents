@@ -47,6 +47,12 @@ runagents action validate --file plan.json -o json
 runagents action apply --file plan.json -o json
 ```
 
+## Add workflow skills when the task is non-trivial
+
+For production work, pair exported context and action plans with the public RunAgents skills library. The skills help assistants reason about catalog deployment, approvals, tooling, debugging, and interfaces such as WhatsApp or Slack with much less prompt churn.
+
+See [RunAgents Skills](skills.md).
+
 ## Recommended Loop
 
 1. `context export`

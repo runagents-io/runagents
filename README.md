@@ -107,6 +107,7 @@ Add to `.mcp.json`:
 ```
 
 See [AI Assistant Setup](https://docs.runagents.io/cli/ai-assistant-setup/) for full guide.
+Use the public RunAgents skills library for reusable assistant workflows around catalog deployment, tool onboarding, approvals, run debugging, and interface integrations such as WhatsApp: [RunAgents Skills](https://docs.runagents.io/cli/skills/).
 
 ## Get Access
 

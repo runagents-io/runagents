@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Tool Onboarding"
+  short_description: "Register tools with safe contracts"
+  default_prompt: "Use $runagents-tool-onboarding to design or fix this RunAgents tool contract with the right capabilities and auth model."

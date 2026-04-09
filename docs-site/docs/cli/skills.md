@@ -1,6 +1,6 @@
 ---
 title: RunAgents Skills
-description: First-party workflow skills for Codex-style assistants and other AI coding tools working with RunAgents.
+description: First-party workflow skills for Codex, Claude Code, Cursor, and other AI coding assistants working with RunAgents.
 ---
 
 # RunAgents Skills
@@ -9,7 +9,7 @@ RunAgents ships with a public skills library for AI coding assistants that need 
 
 Source folder: [`skills/` on GitHub](https://github.com/runagents-io/runagents/tree/main/skills).
 
-These skills are designed to feel closer to workflow packs than prompt snippets. Each one captures a specific RunAgents job to be done: deploying catalog agents, onboarding governed tools, designing approval policy, debugging runs, or wiring RunAgents behind interfaces such as WhatsApp, Slack, web apps, and internal portals.
+These skills are external-facing workflow packs. They are written to be reusable across customer environments and to avoid private infrastructure assumptions. Each one captures a specific RunAgents job to be done: deploying catalog agents, onboarding governed tools, designing approval policy, debugging runs, or wiring RunAgents behind interfaces such as WhatsApp, Slack, web apps, and internal portals.
 
 ## Why skills instead of only templates?
 
@@ -23,6 +23,29 @@ That means:
 - more consistent outputs
 - safer production workflows
 - better handoff across operators and assistants
+
+## Design principles
+
+The public RunAgents skills library is designed to be:
+
+- **assistant-agnostic** — usable with Codex, Claude Code, Cursor, and similar tools
+- **external-facing** — written for customer and partner environments, not only internal operators
+- **workflow-scoped** — each skill solves one concrete RunAgents job to be done
+- **composable** — skills can be paired with templates, MCP tools, and action plans
+- **platform-aware** — they assume RunAgents owns identity propagation, policy, approvals, consent, and tool auth
+
+## Coverage review
+
+The current library is broad across the core RunAgents lifecycle:
+
+- **Build** — authoring agents and plan-driven changes
+- **Wire** — catalog deployment, tools, identity providers, and model providers
+- **Govern** — approval policy and OAuth consent debugging
+- **Operate** — run debugging and observability triage
+- **Interface** — web, WhatsApp, Slack, internal portals, and other user-facing surfaces
+- **Connectors** — policy, approval, and observability integrations with external systems
+
+That is a strong first-party baseline for public use. The highest-value future additions would be self-hosted rollout, org-wide governance rollout, and incident-response playbooks, but the current set already covers the most common external deployment and operations paths.
 
 ## Available skills
 
@@ -70,9 +93,9 @@ That means:
 | `runagents-approval-connector` | Integrate approvals with custom inboxes, messaging apps, and internal workflows |
 | `runagents-observability-connector` | Export runs and event signals into external observability and analytics systems |
 
-## Installing skills for Codex-style assistants
+## Use with Codex and skill-native environments
 
-Clone the repository and copy the skills you want into your local skills directory:
+If your assistant supports local skill folders, clone the repository and copy the skills you want into your local skills directory:
 
 ```bash
 git clone https://github.com/runagents-io/runagents.git
@@ -87,7 +110,36 @@ Then invoke them explicitly in your prompt, for example:
 Use $runagents-approval-policy to design a safe approval flow for this Google Workspace assistant.
 ```
 
-## Using the same skills with other assistants
+## Use with Claude Code
+
+Claude Code does not use the same local skill-folder format as Codex, but the public RunAgents skills still map cleanly into Claude Code using project memory and custom slash commands.
+
+### Option 1: Import a skill into `CLAUDE.md`
+
+```md
+# RunAgents workflows
+@skills/runagents-approval-policy/SKILL.md
+@skills/runagents-surface-integration/SKILL.md
+```
+
+This works well when you want those workflows available throughout a project.
+
+### Option 2: Create project slash commands
+
+```bash
+mkdir -p .claude/commands/runagents
+cat > .claude/commands/runagents/approval-policy.md <<'EOF'
+Review @skills/runagents-approval-policy/SKILL.md and apply it to this request: $ARGUMENTS
+EOF
+```
+
+Then use it inside Claude Code like:
+
+```text
+/runagents/approval-policy Design approvals for Google Workspace calendar writes
+```
+
+## Use with Cursor and other assistants
 
 If your assistant does not support native skill folders, you can still use the same material.
 

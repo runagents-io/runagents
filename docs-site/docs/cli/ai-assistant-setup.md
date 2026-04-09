@@ -127,7 +127,9 @@ Environment variables take precedence over the config file.
 
 ## RunAgents Skills
 
-If you want more than templates and raw MCP access, use the public RunAgents skills library. These first-party skills package common production workflows for AI coding assistants, including catalog deployment, tool onboarding, approvals, run debugging, and anywhere-interface integration such as WhatsApp.
+If you want more than templates and raw MCP access, use the public RunAgents skills library. These first-party skills package common production workflows for Codex, Claude Code, Cursor, and similar assistants, including catalog deployment, tool onboarding, approvals, run debugging, and anywhere-interface integration such as WhatsApp.
+
+For Claude Code specifically, the skills can be imported through `CLAUDE.md` or wrapped as project slash commands under `.claude/commands/`.
 
 - [RunAgents Skills](skills.md)
 

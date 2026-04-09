@@ -424,7 +424,7 @@ Claude Code config:
 
 Public skills library: https://docs.runagents.io/cli/skills/
 
-Use it when you want reusable workflows for catalog deployment, tool onboarding, approvals, run debugging, or anywhere-interface design such as WhatsApp and Slack.
+Use it when you want reusable workflows for Codex, Claude Code, Cursor, and similar assistants across catalog deployment, tool onboarding, approvals, run debugging, or anywhere-interface design such as WhatsApp and Slack.
 
 ---
 

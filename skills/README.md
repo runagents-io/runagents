@@ -2,7 +2,7 @@
 
 This folder contains first-party workflow skills for AI coding assistants working with RunAgents.
 
-These skills are designed for assistants that support structured skill folders such as Codex-compatible environments. They can also be used as high-signal workflow guides in other assistant setups by copying the `SKILL.md` contents into project context.
+These skills are external-facing workflow packs. They are written so customers, partners, and internal teams can reuse the same material across Codex, Claude Code, Cursor, and similar assistants without depending on private infrastructure assumptions.
 
 ## Included skills
 
@@ -38,7 +38,7 @@ These skills are designed for assistants that support structured skill folders s
 - `runagents-approval-connector` — integrate approvals with custom inboxes, messaging apps, and internal workflows
 - `runagents-observability-connector` — export runs and event signals into external observability and analytics systems
 
-## Using these skills with Codex-style assistants
+## Using these skills with Codex and skill-native environments
 
 1. Copy the skill folder you want into your local skills directory.
 2. Invoke it explicitly in your prompt, for example: `$runagents-approval-policy`.
@@ -51,7 +51,27 @@ mkdir -p ~/.codex/skills
 cp -R skills/runagents-approval-policy ~/.codex/skills/
 ```
 
-## Using these skills with other assistants
+## Using these skills with Claude Code
+
+Claude Code can use the same public skills through `CLAUDE.md` imports or project slash commands.
+
+Example `CLAUDE.md` import:
+
+```md
+@skills/runagents-approval-policy/SKILL.md
+@skills/runagents-run-debugging/SKILL.md
+```
+
+Example project command:
+
+```bash
+mkdir -p .claude/commands/runagents
+cat > .claude/commands/runagents/run-debug.md <<'EOF'
+Review @skills/runagents-run-debugging/SKILL.md and apply it to: $ARGUMENTS
+EOF
+```
+
+## Using these skills with Cursor and other assistants
 
 If your assistant does not support skills natively:
 

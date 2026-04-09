@@ -39,6 +39,39 @@ hide:
 
 ---
 
+<!-- ── WHAT'S NEW ────────────────────────────────────────────────────────── -->
+<p class="ra-flow-label">New in April 2026</p>
+<p class="ra-section-heading">Scoped approvals, clearer operations, and stronger messaging workflows</p>
+<p class="ra-section-sub">RunAgents now supports scoped approval choices, a cleaner approval-versus-consent operating model, and more reliable pause-and-resume behavior for governed workflows.</p>
+
+<div class="grid cards" markdown>
+
+-   :material-clipboard-check-outline:{ .lg .middle } **Scoped approvals**
+
+    ---
+
+    Approve one action, one run, or a short-lived user/agent/tool work window for governed writes.
+
+-   :material-google:{ .lg .middle } **Google Workspace writes**
+
+    ---
+
+    Use policy-controlled Google Calendar event creation alongside delegated-user OAuth and approval workflows.
+
+-   :material-message-text-fast:{ .lg .middle } **Better pause and resume**
+
+    ---
+
+    Approval and consent workflows resume more cleanly across the console and messaging surfaces such as WhatsApp.
+
+</div>
+
+<div style="margin:1rem 0 2rem">
+  <a href="whats-new/releases/2026-04-09-scoped-approvals-console-messaging/" class="md-button md-button--primary">Read the latest release notes</a>
+</div>
+
+---
+
 <!-- ── FEATURES GRID ──────────────────────────────────────────────────────── -->
 <p class="ra-flow-label">Platform capabilities</p>
 <p class="ra-section-heading">Everything your agent needs to act safely in production</p>
@@ -53,6 +86,14 @@ hide:
     Upload Python or TypeScript, auto-detect tools and models, wire, deploy. No Dockerfile, no Kubernetes, no infra.
 
     [:octicons-arrow-right-24: Quickstart](getting-started/quickstart.md)
+
+-   :material-bookshelf:{ .lg .middle } **Agent Catalog**
+
+    ---
+
+    Start from maintained production-style blueprints such as the Google Workspace assistant when you want to validate real policy, approval, and OAuth flows.
+
+    [:octicons-arrow-right-24: Agent Catalog](platform/agent-catalog.md)
 
 -   :material-console-line:{ .lg .middle } **CLI & Natural Language Copilot**
 

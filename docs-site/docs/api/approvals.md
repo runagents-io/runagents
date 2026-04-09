@@ -1,6 +1,6 @@
 # Approvals API
 
-Manage just-in-time approval requests.
+Manage policy-driven approval requests for governed tool calls.
 
 Requests are typically created by the platform when policy evaluation returns `approval_required` for a tool call.
 
@@ -10,7 +10,9 @@ Requests are typically created by the platform when policy evaluation returns `a
 
 <span class="method-post">POST</span> <span class="endpoint">/governance/requests</span>
 
-Creates a new request. Idempotent for the same pending `subject + tool_id` pair.
+Creates a new request.
+
+If the same blocked action is retried in the same pending run context, RunAgents may return the existing pending request instead of creating a new one.
 
 ### Request Body
 
@@ -18,8 +20,8 @@ Creates a new request. Idempotent for the same pending `subject + tool_id` pair.
 |-------|------|----------|-------------|
 | `subject` | string | Yes | Requesting identity (user or service) |
 | `tool_id` | string | Yes | Tool name |
-| `agent_id` | string | No | Agent service account / agent name |
-| `duration` | string | No | Requested TTL (e.g. `4h`) |
+| `agent_id` | string | No | Agent identity / agent name |
+| `duration` | string | No | Requested approval window (for example `4h`) |
 | `run_id` | string | No | Run ID for pause/resume linkage |
 | `capability` | string | No | Capability name |
 | `payload_hash` | string | No | Payload integrity hash |
@@ -84,13 +86,14 @@ Returns the full request record.
 
 Approves a pending request.
 
-On approval, RunAgents creates a temporary allow policy + policy binding and sets `expires_at`.
+On approval, RunAgents creates a scoped runtime approval outcome that can be applied to one blocked action, one run, or a short-lived user-agent-tool work window.
 
 ### Optional Body
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `duration` | string | No | Override TTL for this approval |
+| `scope` | string | No | Approval scope: `once`, `run`, or `agent_user_ttl` |
+| `duration` | string | No | Approval window for time-bound approvals |
 | `reason` | string | No | Approval note |
 
 ### Response
@@ -100,6 +103,7 @@ On approval, RunAgents creates a temporary allow policy + policy binding and set
   "id": "req-a1b2c3",
   "status": "APPROVED",
   "approver_id": "admin@example.com",
+  "scope": "agent_user_ttl",
   "duration": "4h",
   "expires_at": "2026-03-12T16:00:00Z"
 }
@@ -141,7 +145,7 @@ stateDiagram-v2
     APPROVED --> EXPIRED
 ```
 
-`EXPIRED` is set when the temporary grant TTL elapses and cleanup runs.
+`EXPIRED` is used when a time-bound approval window elapses.
 
 ---
 
@@ -159,3 +163,4 @@ stateDiagram-v2
 
 - Approval triggering is policy-driven (`approval_required`), not tool `requireApproval` flags.
 - When `run_id` is present, approvals integrate with run pause/resume and blocked actions.
+- The exact approval scope available to operators depends on the platform surface they are using.

@@ -244,7 +244,7 @@ runagents agents delete <namespace> <name>
 ```
 
 !!! warning
-    Deleting an agent removes its deployment and all associated resources. Active runs will be terminated.
+    Deleting an agent removes the live deployment. Historical run data may still be retained for audit depending on platform configuration.
 
 ---
 
@@ -444,7 +444,7 @@ ID                       AGENT         TOOL          STATUS     CREATED
 runagents approvals approve <request-id>
 ```
 
-Approves the access request, creating a time-limited policy binding (default 4h).
+Approves the access request using the platform's current approval behavior. On current platform versions, approvals may be scoped to one action, one run, or a time-bound user/agent/tool window depending on the operator surface and request context.
 
 ### `approvals reject`
 

@@ -1,76 +1,86 @@
 # Dashboard
 
-The **Dashboard** is the home screen of the RunAgents Console. It provides an at-a-glance overview of your platform's health, resource counts, active runs, and pending approvals -- everything you need to stay on top of your AI agent fleet.
+The **Dashboard** is the home screen of the RunAgents Console. It gives operators a quick view of workspace health, current activity, and the work that still needs human action.
 
 ---
 
-## First Visit: Welcome Hero
+## First visit: welcome hero
 
-When your platform has no resources yet (no agents, tools, or models registered), the Dashboard displays a **welcome hero** card with two options:
+When your workspace has no resources yet, the Dashboard shows a welcome hero with two paths:
 
-- **Deploy Hello World Agent** -- Seeds a starter kit (a built-in echo tool and a playground model provider) and walks you through deploying a sample agent in three clicks. No external API keys or accounts required.
-- **I have my own code** -- Takes you directly to the deploy wizard so you can upload your own agent source code.
+- **Deploy Hello World Agent**: seeds a starter kit and walks you through a sample deployment
+- **I have my own code**: takes you directly to the deploy wizard
 
-!!! tip "Get started in under a minute"
-    Click **Deploy Hello World Agent** to experience the full deploy flow -- upload, wire, deploy -- with zero configuration. The starter kit provides everything you need.
-
-Once any resource exists on the platform, the welcome hero is replaced by the standard dashboard view.
+Once the workspace has resources, the welcome hero is replaced by the standard dashboard.
 
 ---
 
-## Summary Cards
+## Summary cards
 
-The top of the Dashboard shows five summary cards that link to their respective sections:
+The top of the Dashboard focuses on the operational questions most teams care about first.
+
+Typical cards include:
 
 | Card | What it shows | Links to |
 |------|--------------|----------|
-| **Tools** | Total number of registered tools | Tools page |
-| **Agents** | Running agents / total agents | Agents page |
-| **Active Runs** | Number of currently executing runs (plus paused count if any) | Agents page |
-| **Identity Providers** | Number of configured identity providers | Identity page |
-| **Pending Requests** | Access requests awaiting admin review | Approvals page |
+| **Agents** | Healthy agents / total agents | Agents page |
+| **Running Runs** | Currently executing runs | Agent and run views |
+| **Pending Approvals** | Approval requests awaiting review | Approvals page |
+| **Pending Consents** | Runs waiting for end-user OAuth completion | Agent and run views |
 
-Cards that need attention (pending requests, paused runs) are highlighted with a visual indicator.
-
----
-
-## Getting Started Checklist
-
-When the platform has some resources but setup is incomplete, the Dashboard displays a **Getting Started** checklist:
-
-1. **Register a Tool** -- create at least one tool for your agents to call
-2. **Deploy an Agent** -- deploy your first AI agent
-3. **Set up identity provider** *(optional)* -- configure JWT-based authentication for client applications
-
-Each step shows a green checkmark when complete and a **Start** link when pending. The checklist disappears once all required steps are done.
+Depending on workspace state, the dashboard may also surface setup progress and resource counts for tools, identity providers, or model providers.
 
 ---
 
-## Runs Awaiting Approval
+## Getting Started checklist
 
-If any active runs are paused because policy evaluation returned `approval_required`, a **Runs Awaiting Approval** section appears. Each row shows:
+When the workspace is partially configured, the Dashboard shows a lightweight setup checklist:
 
-- The run's current status
-- The agent that initiated the run
-- The user identity associated with the run
-- A **Review** link that navigates to the run detail page
+1. register a tool
+2. deploy an agent
+3. set up an identity provider, if needed
 
----
-
-## Pending Approvals
-
-When there are pending access requests (policy-driven JIT approvals), a **Pending Approvals** section shows up to five recent requests. Each row displays:
-
-- The requesting user
-- The target tool
-- The agent making the request
-- A **Review** link to the approval detail
+The checklist disappears once the core setup is complete.
 
 ---
 
-## Sidebar Navigation
+## Pending approvals
 
-The Console sidebar is organized into three sections:
+If there are approval requests awaiting review, the Dashboard shows a **Pending Approvals** section. Each row highlights:
+
+- the requesting user or subject
+- the target tool
+- the requesting agent
+- a review link into the approvals workflow
+
+---
+
+## Pending consents
+
+If there are runs waiting on end-user OAuth, the Dashboard shows a **Pending Consents** section. Each row highlights:
+
+- the paused run
+- the agent involved
+- the user identity
+- a review link into the run detail
+
+This makes it easier to distinguish operator work from end-user action.
+
+---
+
+## Agent-centric operations view
+
+The dashboard is designed to route operators into the right working surface quickly:
+
+- use **Agents** when you want to understand deployment health and current runs for a specific agent
+- use **Approvals** when an operator must review a governed action
+- use **Runs** and run detail views when you need event-level execution history
+
+---
+
+## Sidebar navigation
+
+The Console sidebar groups the workspace into a few top-level areas:
 
 | Section | Pages |
 |---------|-------|
@@ -78,11 +88,11 @@ The Console sidebar is organized into three sections:
 | **Platform** | Agents, Tools, Models, Identity |
 | **Governance** | Approvals |
 
-The currently active page is highlighted in the sidebar. All navigation is one click away from any page.
+Badges should reflect the type of action needed. Approval work and consent work are separate operational concerns.
 
 ---
 
-## What's Next
+## What's next
 
 | Goal | Where to go |
 |------|------------|
@@ -90,4 +100,4 @@ The currently active page is highlighted in the sidebar. All navigation is one c
 | Register an external API | [Registering Tools](registering-tools.md) |
 | Configure an LLM provider | [Model Providers](model-providers.md) |
 | Set up user authentication | [Identity Providers](identity-providers.md) |
-| Review access requests | [Approvals](approvals.md) |
+| Review governed actions | [Approvals](approvals.md) |

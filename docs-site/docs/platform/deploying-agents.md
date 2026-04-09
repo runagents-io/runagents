@@ -6,6 +6,17 @@ Navigate to **Agents** in the sidebar, then click **+ New Agent** to open the de
 
 ---
 
+## Two good starting paths
+
+RunAgents supports two useful ways to get to a running agent:
+
+- **Hello World** for the fastest possible first deploy with no external dependencies
+- **Agent Catalog** for a more production-shaped starting point with real tools, policy, approval, and OAuth considerations
+
+If you want the second path, start with [Agent Catalog](agent-catalog.md). The Google Workspace assistant is a strong example of a catalog agent that exercises real platform behavior.
+
+---
+
 ## How Deployment Works
 
 When you deploy an agent, the platform decides how to run it based on your code:
@@ -158,6 +169,31 @@ answer = ask_llm("Summarize what RunAgents does in one sentence.")
 ```
 
 No external API keys or accounts are needed.
+
+---
+
+## Deploy from the agent catalog
+
+If you want to start from a more realistic workflow, deploy a catalog agent instead of the sample.
+
+Catalog agents are maintained blueprints that combine:
+
+- real tool contracts
+- recommended model defaults
+- operational guidance
+- policy, approval, and OAuth expectations
+
+One strong example is the **Google Workspace assistant**, which brings together:
+
+- Gmail
+- Calendar
+- Drive
+- Docs
+- Sheets
+- Tasks
+- Keep
+
+This is a better starting point when you want to validate governed writes, delegated-user OAuth, and approval workflows end to end.
 
 ---
 

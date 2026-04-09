@@ -7,6 +7,8 @@ description: Deploy your first AI agent in 5 minutes using the RunAgents console
 
 Deploy your first agent in 5 minutes using the RunAgents console. No code to write, no configuration to manage — the platform provides a sample agent and built-in tools to get you started instantly.
 
+If you want a more production-shaped starting point, use the [Agent Catalog](../platform/agent-catalog.md) after this quickstart. The catalog includes richer examples such as the Google Workspace assistant.
+
 !!! info "Prerequisites"
 
     You need a RunAgents account. If you do not have one yet, sign up at [try.runagents.io](https://try.runagents.io).
@@ -112,6 +114,7 @@ Now that you have a running agent, explore further:
 
 - **Register your own tools** -- Add external APIs and SaaS services that your agents need to call. See [Registering Tools](../platform/registering-tools.md).
 - **Deploy your own agent** -- Upload your own code instead of the sample. The analysis engine supports Python agents with LangChain, LangGraph, CrewAI, and more.
+- **Deploy from the agent catalog** -- Start from a production-style blueprint such as the Google Workspace assistant. See [Agent Catalog](../platform/agent-catalog.md).
 - **Set up identity providers** -- Configure JWT-based authentication so your client applications can call agents with user identity. See [Identity Providers](../platform/identity-providers.md).
 - **Configure approvals** -- Add `approval_required` policy rules and approver groups for sensitive operations. See [Approvals](../platform/approvals.md).
 

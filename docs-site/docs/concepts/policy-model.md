@@ -150,8 +150,8 @@ When a matching policy rule returns `approval_required`:
 1. The call is blocked with `403` and `code=APPROVAL_REQUIRED`.
 2. An access request is created.
 3. If the call is part of a run, the run moves to `PAUSED_APPROVAL`.
-4. On approval, RunAgents creates a temporary allow policy + binding and resumes work.
-5. On expiry, that temporary grant is cleaned up automatically.
+4. On approval, RunAgents records a scoped runtime approval outcome and resumes work automatically.
+5. Time-bound approval windows expire automatically.
 
 ---
 

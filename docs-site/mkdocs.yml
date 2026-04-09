@@ -117,9 +117,14 @@ nav:
     - Copilot: getting-started/copilot.md
     - Writing Agents: getting-started/writing-agents.md
     - Deploy from AI Tools: getting-started/deploy-from-ai-tools.md
+  - What's New:
+    - Overview: whats-new/index.md
+    - Release Notes:
+      - April 2026: whats-new/releases/2026-04-09-scoped-approvals-console-messaging.md
   - Platform Guide:
     - Dashboard: platform/dashboard.md
     - Agent Runtime: platform/agent-runtime.md
+    - Agent Catalog: platform/agent-catalog.md
     - Deploying Agents: platform/deploying-agents.md
     - Registering Tools: platform/registering-tools.md
     - Model Providers: platform/model-providers.md

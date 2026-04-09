@@ -1,36 +1,37 @@
 ---
 title: Run Lifecycle
-description: How agent runs are created, tracked, paused for approval, and resumed in RunAgents, including events, blocked actions, and payload integrity.
+description: How agent runs are created, tracked, paused for approval or consent, and resumed in RunAgents, including events, blocked actions, and payload integrity.
 ---
 
 # Run Lifecycle
 
-A **run** represents a single invocation of an agent -- from the initial request to completion. RunAgents tracks every run through a defined state machine, logs events, and manages approval workflows when the agent encounters a restricted tool.
+A **run** represents one end-to-end execution of an agent, from the initial request to completion. RunAgents tracks each run through a defined state machine, logs events, and coordinates approval or consent when a governed tool call cannot continue immediately.
 
 ---
 
-## Creating a Run
+## Creating a run
 
-Runs are created when an agent is invoked, either through:
+Runs are created when an agent is invoked through:
 
-- A client application sending a request to the agent's endpoint
-- An API call to the agent's invoke URL
-- A background trigger or scheduled invocation
+- a client application
+- an API call to the agent's invoke URL
+- a background trigger or scheduled invocation
 
 Each run is assigned a unique ID and begins in the `RUNNING` state.
 
 ---
 
-## Run States
+## Run states
 
 | Status | Description |
 |---|---|
 | `RUNNING` | The agent is actively executing |
-| `PAUSED_APPROVAL` | The agent hit a tool that requires approval; execution is paused until an admin approves or rejects |
+| `PAUSED_APPROVAL` | The agent hit a governed action that requires approval |
+| `PAUSED_CONSENT` | The agent needs the end user to complete or refresh OAuth consent |
 | `COMPLETED` | The agent finished successfully |
-| `FAILED` | The agent encountered an error |
+| `FAILED` | The agent encountered an error or could not continue |
 
-### State Transitions
+### State transitions
 
 ```mermaid
 stateDiagram-v2
@@ -38,33 +39,36 @@ stateDiagram-v2
     RUNNING --> COMPLETED: Agent finished successfully
     RUNNING --> FAILED: Runtime or tool error
     RUNNING --> PAUSED_APPROVAL: approval_required decision
-    PAUSED_APPROVAL --> RUNNING: Admin approved
-    PAUSED_APPROVAL --> FAILED: Rejected / timed out
+    RUNNING --> PAUSED_CONSENT: consent required
+    PAUSED_APPROVAL --> RUNNING: Approved and resumed
+    PAUSED_CONSENT --> RUNNING: Consent completed and resumed
+    PAUSED_APPROVAL --> FAILED: Rejected or unrecoverable error
+    PAUSED_CONSENT --> FAILED: Consent not completed or unrecoverable error
 ```
 
-!!! info "Only forward transitions"
-
-    Runs follow a strict state machine. A `COMPLETED` or `FAILED` run cannot be restarted. A `PAUSED_APPROVAL` run can only transition to `RUNNING` (on approval) or `FAILED` (on rejection or timeout).
+!!! info "Forward-only state changes"
+    Completed and failed runs are terminal. Paused runs resume into `RUNNING` only when the blocking condition is resolved.
 
 ---
 
 ## Events
 
-Every run has an ordered **event log** that records what happened during execution. Events are automatically sequenced -- each event gets a monotonically increasing sequence number.
+Every run has an ordered event log that records what happened during execution.
 
 | Event Type | Description |
 |---|---|
 | `TOOL_CALL` | Agent called an external tool |
 | `LLM_CALL` | Agent called the LLM gateway |
-| `APPROVAL_REQUIRED` | Agent's tool call was blocked pending approval |
-| `APPROVAL_GRANTED` | Admin approved the access request |
-| `APPROVAL_REJECTED` | Admin rejected the access request |
+| `APPROVAL_REQUIRED` | A tool call was blocked pending approval |
+| `CONSENT_REQUIRED` | A delegated-user tool call requires OAuth consent |
+| `APPROVAL_GRANTED` | An approval request was approved |
+| `APPROVAL_REJECTED` | An approval request was rejected |
 | `ERROR` | An error occurred during execution |
 | `COMPLETED` | Run finished successfully |
 
-Events provide a complete audit trail of agent behavior. Use them for debugging, compliance, and understanding agent decision-making.
+Events provide a full audit trail for debugging, compliance, and operator review.
 
-### Viewing Events
+### Viewing events
 
 === "Console"
 
@@ -73,181 +77,141 @@ Events provide a complete audit trail of agent behavior. Use them for debugging,
 === "API"
 
     ```bash
-    # List events for a run
     curl https://your-platform/runs/{run_id}/events
     ```
 
 ---
 
-## Blocked Actions and Approval Workflow
+## Blocked actions and approval workflow
 
-When an agent calls a tool and policy evaluation resolves to `approval_required`, the following sequence occurs:
+When an agent calls a tool and policy evaluation resolves to `approval_required`, the following happens:
 
-### 1. Request Blocked
+### 1. Request blocked
 
 The platform intercepts the tool call and blocks it because the effective policy decision is `approval_required`.
 
-### 2. Blocked Action Created
+### 2. Blocked action created
 
-A **blocked action** is created with:
+A blocked action is recorded with details such as:
 
 | Field | Description |
 |---|---|
-| `tool` | The name of the tool the agent tried to call |
-| `capability` | The specific operation (method + path) |
+| `tool` | The tool the agent tried to call |
+| `capability` | The specific operation, usually method plus path |
 | `payload_hash` | A SHA-256 hash of the request body |
 | `status` | Initially `PENDING` |
 
-### 3. Run Paused
+### 3. Run paused
 
-The run transitions to `PAUSED_APPROVAL`. An `APPROVAL_REQUIRED` event is logged with the details of the blocked action.
+The run transitions to `PAUSED_APPROVAL`. An `APPROVAL_REQUIRED` event is recorded with the blocked action details.
 
-### 4. Admin Reviews
+### 4. Operator reviews
 
-Administrators can see pending approvals in the console (**Approvals** page) or via the API. Each approval request shows:
+Operators can review pending approvals in the console or via the API. Each request shows:
 
-- Which agent is requesting access
-- Which tool and operation
-- The payload hash (for integrity verification)
-- When the request was created
+- which agent is requesting access
+- which tool and operation
+- the payload hash, when available
+- when the request was created
 
-### 5. Approval or Rejection
+### 5. Approval or rejection
 
 === "Approve"
 
-    The admin approves the request. A time-limited policy binding is created for the agent + tool combination. The blocked action status changes to `APPROVED`.
+    The operator approves the request. RunAgents records a scoped runtime approval and marks the blocked action approved.
 
 === "Reject"
 
-    The admin rejects the request. The blocked action status changes to `REJECTED`. The run transitions to `FAILED`.
+    The operator rejects the request. The blocked action is marked rejected and the run transitions to `FAILED`.
 
-### 6. Automatic Resumption
+### 6. Automatic resumption
 
-After approval, a background worker detects the approved action and automatically:
+After approval, a background worker resumes the blocked work automatically:
 
-1. Invokes the agent to resume execution
-2. Marks the blocked action as `EXECUTED`
-3. Transitions the run back to `RUNNING`
-4. Logs an `APPROVAL_GRANTED` event
+1. the blocked action is replayed
+2. the run transitions back to `RUNNING`
+3. an `APPROVAL_GRANTED` event is logged
+4. the tool call is retried under the approved scope
 
-The agent retries the tool call, which now succeeds because the policy binding exists.
-
-!!! tip "No manual intervention needed after approval"
-
-    Once an admin approves the request, the platform automatically resumes the agent. There is no need to manually re-trigger the run.
+!!! tip "No manual retry required"
+    Once a request is approved, RunAgents resumes the run automatically.
 
 ---
 
-## Payload Hash Integrity
+## Consent workflow
 
-Blocked actions include a cryptographic hash of the original request payload. This serves as a tamper-detection mechanism:
+For delegated-user OAuth tools, a tool call may pause for consent instead of approval.
 
-- When the admin approves the action, the hash is recorded
-- When the agent resumes and retries the tool call, the platform verifies the payload hash matches
-- If the payload has changed (e.g., the agent modified the request), the call is rejected with a `409 Conflict`
+In that case:
 
-This prevents a scenario where an agent modifies its request after receiving approval for a different payload.
+1. the run enters `PAUSED_CONSENT`
+2. the user is prompted to complete or refresh OAuth consent
+3. RunAgents resumes the run automatically after consent is completed
 
-!!! warning "Hash mismatch = rejection"
-
-    If the payload hash does not match, the retried call fails even though the action was approved. The agent must submit the exact same request that was originally blocked.
+This is separate from approval. A run can require consent, approval, or both over its lifetime depending on the tool and policy involved.
 
 ---
 
-## Run Correlation
+## Payload hash integrity
 
-When a tool call is blocked and an approval is needed, RunAgents correlates the access request with the run:
+Blocked actions include a cryptographic hash of the original request payload.
 
-- The `run_id` is attached to the access request
-- The blocked action is linked to both the run and the access request
-- Events reference the action ID for traceability
+This protects the approval workflow by ensuring the resumed call still matches what was originally reviewed.
 
-This allows you to trace from a run event back to the approval decision, and from an approval back to the specific run that triggered it.
+- the hash is recorded when the action is first blocked
+- when the tool call is retried, RunAgents verifies the payload still matches
+- if the payload changes, the retried call is rejected
+
+!!! warning "Hash mismatch blocks resumption"
+    A request approved for one payload cannot be reused for a different payload.
 
 ---
 
-## Viewing Runs
+## Run correlation
+
+When a tool call is blocked, RunAgents correlates the approval request with the run:
+
+- `run_id` is attached to the request when applicable
+- the blocked action is linked to both the run and the request
+- events reference the action ID for traceability
+
+This makes it possible to move from a run event to the approval decision and back again.
+
+---
+
+## Viewing runs
 
 === "Console"
 
-    - **Agent Detail page** > **Runs** tab: See all runs for a specific agent
-    - **Dashboard**: See recent runs across all agents
-    - Each run shows its status, duration, and event count
-    - Click a run to see the full event timeline
+    - **Agents** > **Runs** shows runs for a specific agent
+    - the Dashboard shows recent activity across the workspace
+    - each run shows status, timestamps, and event history
 
 === "API"
 
     ```bash
-    # List all runs
     curl https://your-platform/runs
-
-    # Get a specific run
     curl https://your-platform/runs/{run_id}
-
-    # List events for a run
     curl https://your-platform/runs/{run_id}/events
-
-    # Get a blocked action
     curl https://your-platform/runs/{run_id}/actions/{action_id}
     ```
 
 ---
 
-## Audit Export and Forwarding
+## Audit export and forwarding
 
-Run events form a complete audit trail. You can export or forward them to external systems for compliance, monitoring, or alerting.
+Run events form a complete audit trail and can be exported or forwarded to external systems for compliance, monitoring, or alerting.
 
 ### Export
 
-Download a run's audit trail as a file:
-
 === "Console"
 
-    On the run detail page, click the **Export** button and choose the output format.
+    On the run detail page, click **Export** and choose the output format.
 
 === "API"
 
     ```bash
-    # Export as JSON (default)
     curl https://your-platform/runs/{run_id}/audit/export
-
-    # Export as NDJSON for streaming ingestion
     curl https://your-platform/runs/{run_id}/audit/export?format=ndjson
-
-    # Export in Splunk HEC format
     curl https://your-platform/runs/{run_id}/audit/export?schema=splunk_hec
     ```
-
-Supported schemas: `runagents` (default), `ecs` (Elastic), `ocsf`, `splunk_hec`, `cef`, `leef`.
-
-### Forward
-
-Push events to a configured destination in real-time:
-
-```bash
-curl -X POST https://your-platform/runs/{run_id}/audit/forward \
-  -H "Content-Type: application/json" \
-  -d '{"destination_id": "datadog-prod", "schema": "ecs"}'
-```
-
-Configure forwarding destinations in **Settings > Audit Destinations**.
-
----
-
-## Summary
-
-| Concept | Description |
-|---|---|
-| **Run** | A single agent invocation with a unique ID and state |
-| **State machine** | `RUNNING` > `PAUSED_APPROVAL` > `RUNNING` > `COMPLETED` or `FAILED` |
-| **Events** | Ordered log of everything that happened during a run |
-| **Blocked action** | A tool call that was intercepted pending approval |
-| **Payload hash** | Tamper detection ensuring the approved request matches the retried request |
-| **Auto-resumption** | Background worker automatically resumes the agent after approval |
-
----
-
-## Next Steps
-
-- [Policy Model](../concepts/policy-model.md) -- Understand how access control modes trigger the approval workflow
-- [Troubleshooting](troubleshooting.md) -- Common run issues and how to resolve them

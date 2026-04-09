@@ -6,19 +6,19 @@ Navigate to **Approvals** in the sidebar to review, approve, or reject requests.
 
 ---
 
-## When A Request Is Created
+## When a request is created
 
-A JIT approval request is created when all of the following are true:
+A just-in-time approval request is created when all of the following are true:
 
-1. The tool call matches the tool and operation.
-2. The agent has a bound policy whose matching rule resolves to `approval_required`.
-3. The call is blocked pending approval.
+1. the tool call matches the tool and operation
+2. the agent has a bound policy whose matching rule resolves to `approval_required`
+3. the call is blocked pending approval
 
 A `403` is returned with `code: APPROVAL_REQUIRED`, and if the call is part of a run, the run moves to `PAUSED_APPROVAL`.
 
 ---
 
-## Approval Flow
+## Approval flow
 
 ```mermaid
 flowchart TD
@@ -28,12 +28,12 @@ flowchart TD
     req["Create approval request<br/>Status: PENDING"]
     block["Return 403 APPROVAL_REQUIRED"]
     pause["Pause run (if run-backed)<br/>Status: PAUSED_APPROVAL"]
-    review["Reviewer action<br/>(Console or Connector)"]
+    review["Reviewer action<br/>(Console or API)"]
     approve["Approve request"]
     reject["Reject request"]
-    grant["Create temporary allow grant<br/>(TTL-bound)"]
+    scoped["Create scoped runtime approval"]
     resume["Resume blocked action"]
-    rejected["Mark request REJECTED<br/>Run remains failed/blocked"]
+    rejected["Mark request REJECTED<br/>Run remains failed or blocked"]
 
     call --> decision
     decision -->|"allow"| allow
@@ -43,46 +43,69 @@ flowchart TD
     pause --> review
     review --> approve
     review --> reject
-    approve --> grant
-    grant --> resume
+    approve --> scoped
+    scoped --> resume
     reject --> rejected
 ```
 
-On approval, RunAgents creates a temporary allow grant with TTL (default 4h unless overridden), then resumes the blocked action.
+On approval, RunAgents records a scoped approval outcome and automatically resumes the blocked work.
 
 ---
 
-## What You See In The Approvals Page
+## Approval choices
+
+Depending on the operator surface, approvals can be scoped in three useful ways:
+
+- **Once**: approve one exact blocked action
+- **This run**: approve matching actions for the current run
+- **Time-bound window**: approve matching actions for the same user, agent, and tool for a limited period
+
+This lets teams keep sensitive writes tightly controlled without forcing repeated approval for safe retries or short operator work windows.
+
+---
+
+## Approval versus consent
+
+Approval and consent solve different problems:
+
+- **Approval** means a reviewer must allow a governed action
+- **Consent** means an end user must grant or refresh OAuth access to a delegated-user tool
+
+In the console, these should be treated as distinct operational states even though both may pause a run.
+
+---
+
+## What you see on the Approvals page
 
 Each request includes:
 
 - agent
 - tool
-- subject (user/service identity)
-- capability / operation (when available)
+- subject (user or service identity)
+- capability or operation, when available
 - status (`PENDING`, `APPROVED`, `REJECTED`, `EXPIRED`)
 - timestamps and approver metadata
 
-Approving or rejecting optionally records a reason for audit.
+Approving or rejecting can optionally record a reason for audit.
 
 ---
 
-## Request Lifecycle
+## Request lifecycle
 
 ```mermaid
 stateDiagram-v2
     [*] --> PENDING
     PENDING --> APPROVED: Reviewer approves
     PENDING --> REJECTED: Reviewer rejects
-    APPROVED --> EXPIRED: TTL elapsed + cleanup
+    APPROVED --> EXPIRED: Time-bound approval elapses
 ```
 
 !!! info "Automatic expiry"
-    Approved access is time-limited. Expired grants are automatically cleaned up.
+    Time-bound approval windows expire automatically.
 
 ---
 
-## Policy Configuration For Approvals
+## Policy configuration for approvals
 
 Use policy rules to trigger approvals:
 
@@ -114,7 +137,7 @@ spec:
 
 ## Connectors
 
-Approval requests can be dispatched to external systems:
+Approval requests can be dispatched to external systems such as:
 
 - Slack
 - PagerDuty
@@ -125,20 +148,21 @@ Configure connectors in **Settings → Approval Connectors**, then reference con
 
 ---
 
-## Run Integration
+## Run integration
 
 For run-backed calls:
 
-1. Request is created and run becomes `PAUSED_APPROVAL`.
-2. Approval updates blocked action status.
-3. Resume worker replays the blocked action.
-4. Run continues without manual retry from the end user.
+1. the request is created and the run becomes `PAUSED_APPROVAL`
+2. the operator approves or rejects the request
+3. the blocked action is updated
+4. the resume worker replays the blocked action automatically
+5. the run continues without the end user manually retrying
 
-This preserves full auditability for who approved what, when, and for which run/action.
+This preserves auditability for who approved what, when, and for which run or action.
 
 ---
 
-## Next Steps
+## Next steps
 
 | Goal | Where to go |
 |------|------------|

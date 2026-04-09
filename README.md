@@ -7,6 +7,17 @@
 - **Just-In-Time Approvals** — high-risk tool access pauses for admin sign-off with TTL expiry
 - **LLM Gateway** — unified OpenAI-compatible endpoint for all model providers
 
+## What's New
+
+- **Scoped approvals** — approve one action, one run, or a short-lived user/agent/tool work window for governed writes
+- **Agent catalog workflows** — start from richer blueprints such as the Google Workspace assistant for real policy, approval, and OAuth flows
+- **Improved pause and resume behavior** — stronger operator and messaging-surface handling for approvals and consent
+
+Read the latest release notes:
+
+- [What's New](https://docs.runagents.io/whats-new/)
+- [April 9, 2026 release notes](https://docs.runagents.io/whats-new/releases/2026-04-09-scoped-approvals-console-messaging/)
+
 ## Documentation
 
 **[docs.runagents.io](https://docs.runagents.io)**

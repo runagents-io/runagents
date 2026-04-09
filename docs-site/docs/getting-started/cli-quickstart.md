@@ -100,6 +100,21 @@ runagents approvals reject <request-id>
 
 ---
 
+## Production-oriented path: deploy from the catalog
+
+The quickest first-run path is still Hello World, but many teams want to validate a real workflow next.
+
+A strong next step is deploying a catalog agent such as the Google Workspace assistant. That path is better when you want to test:
+
+- delegated-user OAuth
+- policy-controlled writes
+- approval-required operations
+- pause and resume behavior across real tools
+
+See [Agent Catalog](../platform/agent-catalog.md) for the recommended production-style path.
+
+---
+
 ## Useful Commands
 
 ```bash

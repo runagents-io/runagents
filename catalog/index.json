@@ -1,5 +1,6 @@
 {
   "order": [
+    "google-workspace-assistant-agent",
     "chief-of-staff-agent",
     "executive-briefing-agent",
     "expense-review-agent",
@@ -8,6 +9,7 @@
     "hr-policy-agent"
   ],
   "featured": [
+    "google-workspace-assistant-agent",
     "chief-of-staff-agent",
     "executive-briefing-agent",
     "expense-review-agent",

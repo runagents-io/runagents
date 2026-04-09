@@ -2,11 +2,31 @@
 
 > RunAgents is a platform for deploying and orchestrating AI agents with secure, policy-driven access to external tools and services. It handles identity propagation, credential injection, approval workflows, and access control so agent developers can focus on logic instead of security plumbing.
 
+The same governed runtime can sit behind many interfaces, including a web app, WhatsApp, Slack, an internal portal, or a custom client. RunAgents keeps execution, identity propagation, policy enforcement, approval workflows, and outbound tool security consistent regardless of the user-facing surface.
+
+---
+
+## What's New
+
+Recent updates are published in the public `What's New` section:
+
+- Scoped approvals for governed writes
+- Clearer approval-versus-consent operations UX
+- Google Workspace calendar writes under policy control
+- Stronger pause-and-resume behavior for messaging surfaces such as WhatsApp
+
+See:
+
+- https://docs.runagents.io/whats-new/
+- https://docs.runagents.io/whats-new/releases/2026-04-09-scoped-approvals-console-messaging/
+
 ---
 
 ## Architecture
 
 RunAgents processes every agent interaction through three stages: Ingress, Runtime, and Egress.
+
+The initiating surface can live anywhere: a traditional web app, WhatsApp, Slack, an internal operator UI, or a custom client.
 
 ```
 Client App --JWT--> [RunAgents Ingress] --X-End-User-ID--> Agent
@@ -69,6 +89,22 @@ Prerequisites: A RunAgents account. Sign up at try.runagents.io.
 5. Click Deploy
 
 The platform analyzes the sample code, wires tools and LLM, creates access policies, and deploys the agent. The agent is live and all requests to the Echo Tool are automatically policy-checked, credential-enriched, and identity-forwarded.
+
+For a more production-shaped starting point, use the Agent Catalog instead of starting only with Hello World.
+
+---
+
+## Agent Catalog
+
+The Agent Catalog gives teams maintained starting points for real workflows.
+
+Use it when you want:
+
+- a richer example than Hello World
+- policy, approval, and OAuth behavior to be part of the starting point
+- a production-shaped blueprint instead of a pure demo
+
+One strong example is the Google Workspace assistant, which combines Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep with policy-controlled writes and delegated-user OAuth.
 
 ---
 

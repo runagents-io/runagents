@@ -2,6 +2,13 @@
 
 > RunAgents is a platform for deploying and orchestrating AI agents with secure, policy-driven access to external tools and services. It handles identity propagation, credential injection, approval workflows, and access control so agent developers can focus on logic instead of security plumbing.
 
+The same governed runtime can sit behind a web app, WhatsApp, Slack, an internal portal, or a custom client. RunAgents owns execution, identity propagation, policy enforcement, approval workflows, and outbound tool security behind that surface.
+
+## What's New
+
+- [What's New](https://docs.runagents.io/whats-new/): Release-oriented overview of recent platform updates
+- [April 9, 2026 release notes](https://docs.runagents.io/whats-new/releases/2026-04-09-scoped-approvals-console-messaging/): Scoped approvals, clearer operations, Google Workspace calendar writes, and stronger messaging-surface workflows
+
 ## Getting Started
 
 - [Quickstart](https://docs.runagents.io/getting-started/quickstart/): Deploy your first agent in 5 minutes using the console
@@ -15,11 +22,12 @@
 
 - [Dashboard](https://docs.runagents.io/platform/dashboard/): Platform overview, run counts, setup checklist
 - [Agent Runtime](https://docs.runagents.io/platform/agent-runtime/): How the built-in runtime executes agents (tiers, tool loop, SSE streaming)
+- [Agent Catalog](https://docs.runagents.io/platform/agent-catalog/): Production-shaped starting points such as the Google Workspace assistant
 - [Deploying Agents](https://docs.runagents.io/platform/deploying-agents/): Three-step deploy wizard — Upload, Wire, Deploy
 - [Registering Tools](https://docs.runagents.io/platform/registering-tools/): Register external APIs with auth, access control, and capabilities
 - [Model Providers](https://docs.runagents.io/platform/model-providers/): Configure LLM providers (OpenAI, Anthropic, Bedrock, Ollama)
 - [Identity Providers](https://docs.runagents.io/platform/identity-providers/): JWT-based client authentication
-- [Approvals](https://docs.runagents.io/platform/approvals/): Just-in-time access request workflow for sensitive tools
+- [Approvals](https://docs.runagents.io/platform/approvals/): Policy-driven approval workflow with scoped approvals for sensitive actions
 
 ## API Reference
 
@@ -58,14 +66,14 @@
 
 ## Concepts
 
-- [Architecture](https://docs.runagents.io/concepts/architecture/): Three-stage flow — Ingress, Runtime, Egress
+- [Architecture](https://docs.runagents.io/concepts/architecture/): Three-stage flow — Ingress, Runtime, Egress — behind any user-facing interface
 - [Identity Propagation](https://docs.runagents.io/concepts/identity-propagation/): How user identity flows from client to agent to tool
 - [Policy Model](https://docs.runagents.io/concepts/policy-model/): Access control rules and evaluation
 - [OAuth & Consent](https://docs.runagents.io/concepts/oauth-consent/): OAuth2 consent flow for tools requiring user authorization
 
 ## Operations
 
-- [Run Lifecycle](https://docs.runagents.io/operations/runs/): Run states, events, approval workflow
+- [Run Lifecycle](https://docs.runagents.io/operations/runs/): Run states, events, approval, consent, and automatic resume behavior
 - [Troubleshooting](https://docs.runagents.io/operations/troubleshooting/): Common issues and fixes
 
 ## Self-Hosted

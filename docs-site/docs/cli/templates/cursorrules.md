@@ -17,7 +17,8 @@ runagents tools list                                  # List registered tools
 runagents models list                                 # List model providers
 runagents runs list --agent my-agent                  # Monitor runs
 runagents approvals list                              # Check pending approvals
-runagents approvals approve <id>                      # Approve access request
+runagents approvals approve <id> --scope once         # Approve one blocked action
+runagents approvals approve <id> --scope window --duration 1h  # Temporary work window
 ```
 
 ## Agent Code Patterns

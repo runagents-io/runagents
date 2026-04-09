@@ -30,7 +30,7 @@ Install: `npm install -g @runagents/cli` or `brew install runagents-io/tap/runag
 | `runagents models list` | List model providers |
 | `runagents runs list --agent NAME` | List runs for an agent |
 | `runagents approvals list` | List pending access requests |
-| `runagents approvals approve ID` | Approve an access request |
+| `runagents approvals approve ID --scope once` | Approve one blocked action |
 | `runagents starter-kit` | Seed demo tools and model provider |
 
 ### RunAgents MCP Server (`runagents-mcp`)
@@ -55,7 +55,8 @@ Provides 14 tools for direct platform access: `list_agents`, `get_agent`, `list_
 ### Handle approvals
 1. Check: `runagents approvals list`
 2. Review the request details
-3. Approve: `runagents approvals approve <request-id>`
+3. Approve: `runagents approvals approve <request-id> --scope once`
+4. For a temporary work window: `runagents approvals approve <request-id> --scope window --duration 1h`
 
 ## References
 

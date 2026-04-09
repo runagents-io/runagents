@@ -580,9 +580,18 @@ ID                       AGENT         TOOL          STATUS     CREATED
 
 ```bash
 runagents approvals approve <request-id>
+runagents approvals approve <request-id> --scope once
+runagents approvals approve <request-id> --scope run
+runagents approvals approve <request-id> --scope window --duration 4h
 ```
 
-Approves the access request using the platform's current approval behavior. On current platform versions, approvals may be scoped to one action, one run, or a time-bound user/agent/tool window depending on the operator surface and request context.
+Approves the access request with an optional explicit scope:
+
+- `--scope once` for a single blocked action
+- `--scope run` for the current run only
+- `--scope window --duration 1h|4h|24h` for a time-bound user/agent/tool window
+
+If you provide `--duration` without `--scope`, the CLI treats it as a time window approval.
 
 ### `approvals reject`
 

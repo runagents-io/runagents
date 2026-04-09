@@ -93,7 +93,9 @@ If a policy rule returns `approval_required`, use:
 
 ```bash
 runagents approvals list
-runagents approvals approve <request-id>
+runagents approvals approve <request-id> --scope once
+# or approve the current run for one hour
+runagents approvals approve <request-id> --scope window --duration 1h
 # or
 runagents approvals reject <request-id>
 ```

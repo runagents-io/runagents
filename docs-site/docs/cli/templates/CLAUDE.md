@@ -39,7 +39,8 @@ runagents runs get <run-id>
 
 # Manage approvals
 runagents approvals list
-runagents approvals approve <request-id>
+runagents approvals approve <request-id> --scope once
+runagents approvals approve <request-id> --scope window --duration 1h
 
 # Action plan workflow (validate before apply)
 runagents action validate --file plan.json
@@ -88,7 +89,7 @@ client = openai.OpenAI()
 3. Register any new tools via `runagents tools create --file tool.json` or the console
 4. Deploy with `runagents deploy --name my-agent --file agent.py`
 5. Monitor with `runagents runs list --agent my-agent`
-6. Handle approvals with `runagents approvals list` and `runagents approvals approve`
+6. Handle approvals with `runagents approvals list` and choose the approval scope that matches the request
 
 ## Important
 

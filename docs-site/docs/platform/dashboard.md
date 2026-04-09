@@ -3,7 +3,7 @@
 The **Dashboard** is the home screen of the RunAgents Console. It gives operators a quick view of workspace health, current activity, and the work that still needs human action.
 
 <figure class="ra-shot">
-  <img src="../assets/screenshots/docs-refresh/dashboard-overview.png" alt="RunAgents dashboard overview">
+  <img src="https://runagents-releases.s3.amazonaws.com/docs/screenshots/docs-refresh/dashboard-overview.png" alt="RunAgents dashboard overview">
   <figcaption>The dashboard is optimized for operator triage: current activity, pending approvals, and pending consents are visible from the first screen.</figcaption>
 </figure>
 

@@ -72,7 +72,7 @@ hide:
 </div>
 
 <figure class="ra-shot">
-  <img src="assets/screenshots/docs-refresh/dashboard-overview.png" alt="RunAgents dashboard with summary cards, pending approvals, and pending consents">
+  <img src="https://runagents-releases.s3.amazonaws.com/docs/screenshots/docs-refresh/dashboard-overview.png" alt="RunAgents dashboard with summary cards, pending approvals, and pending consents">
   <figcaption>The updated operator view separates pending approvals from pending consents and makes current workspace state easier to scan.</figcaption>
 </figure>
 

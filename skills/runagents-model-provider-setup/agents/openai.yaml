@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Model Provider Setup"
+  short_description: "Wire model providers and roles safely"
+  default_prompt: "Use $runagents-model-provider-setup to configure or debug RunAgents model provider wiring for this agent."

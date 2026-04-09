@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents OAuth Debugging"
+  short_description: "Debug consent and delegated OAuth flows"
+  default_prompt: "Use $runagents-oauth-consent-debugging to trace this consent flow and tell me whether the scopes, callback, and stored token are sufficient."

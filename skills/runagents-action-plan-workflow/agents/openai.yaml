@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Action Plans"
+  short_description: "Drive safe validate-then-apply workflows"
+  default_prompt: "Use $runagents-action-plan-workflow to generate and validate a deterministic RunAgents action plan for this change."

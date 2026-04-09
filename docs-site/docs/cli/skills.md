@@ -26,13 +26,49 @@ That means:
 
 ## Available skills
 
+### Build
+
+| Skill | Use it for |
+|------|-------------|
+| `runagents-agent-authoring` | Write or refactor platform-native RunAgents agents |
+| `runagents-action-plan-workflow` | Drive validate-then-apply assistant workflows with deterministic plans |
+
+### Wire
+
 | Skill | Use it for |
 |------|-------------|
 | `runagents-catalog-deploy` | Deploy and adapt production-shaped catalog agents such as the Google Workspace assistant |
 | `runagents-tool-onboarding` | Register tools with the right auth model, capabilities, and scopes |
+| `runagents-model-provider-setup` | Configure model providers and role-based gateway wiring |
+| `runagents-identity-provider-setup` | Configure end-user identity propagation and delegated-user workflows |
+
+### Govern
+
+| Skill | Use it for |
+|------|-------------|
 | `runagents-approval-policy` | Design approval-required policy and choose the right scope |
+| `runagents-oauth-consent-debugging` | Debug delegated OAuth, scopes, callbacks, and consent loops |
+
+### Operate
+
+| Skill | Use it for |
+|------|-------------|
 | `runagents-run-debugging` | Trace paused, approval-blocked, consent-blocked, and failed runs |
+| `runagents-observability-triage` | Turn dashboard symptoms into operational root causes |
+
+### Interface
+
+| Skill | Use it for |
+|------|-------------|
 | `runagents-surface-integration` | Connect RunAgents to web apps, WhatsApp, Slack, internal portals, and other interfaces |
+
+### Connectors
+
+| Skill | Use it for |
+|------|-------------|
+| `runagents-policy-connector` | Expose policy state and approval-required posture to external systems |
+| `runagents-approval-connector` | Integrate approvals with custom inboxes, messaging apps, and internal workflows |
+| `runagents-observability-connector` | Export runs and event signals into external observability and analytics systems |
 
 ## Installing skills for Codex-style assistants
 
@@ -67,9 +103,11 @@ If you want the strongest first production path, use the skills in this order:
 
 1. `runagents-catalog-deploy`
 2. `runagents-tool-onboarding`
-3. `runagents-approval-policy`
-4. `runagents-surface-integration`
-5. `runagents-run-debugging`
+3. `runagents-identity-provider-setup`
+4. `runagents-model-provider-setup`
+5. `runagents-approval-policy`
+6. `runagents-surface-integration`
+7. `runagents-run-debugging`
 
 That mirrors a real rollout path:
 

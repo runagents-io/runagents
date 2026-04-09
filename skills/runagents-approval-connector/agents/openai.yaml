@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Approval Connector"
+  short_description: "Integrate approvals with other systems"
+  default_prompt: "Use $runagents-approval-connector to design or review this external RunAgents approval workflow."

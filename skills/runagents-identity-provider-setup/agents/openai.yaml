@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Identity Setup"
+  short_description: "Configure end-user identity propagation"
+  default_prompt: "Use $runagents-identity-provider-setup to configure this RunAgents identity provider and validate end-user identity flow."

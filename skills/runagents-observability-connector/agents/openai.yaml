@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Observability Connector"
+  short_description: "Export operational signals safely"
+  default_prompt: "Use $runagents-observability-connector to design or review this external RunAgents observability integration."

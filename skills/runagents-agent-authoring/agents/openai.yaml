@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Agent Authoring"
+  short_description: "Write platform-native RunAgents agents"
+  default_prompt: "Use $runagents-agent-authoring to write or refactor this RunAgents agent in a platform-native way."

@@ -6,11 +6,37 @@ These skills are designed for assistants that support structured skill folders s
 
 ## Included skills
 
+### Build
+
+- `runagents-agent-authoring` — write or refactor platform-native RunAgents agents
+- `runagents-action-plan-workflow` — drive validate-then-apply assistant workflows with deterministic plans
+
+### Wire
+
 - `runagents-catalog-deploy` — deploy and adapt production-shaped catalog agents such as the Google Workspace assistant
 - `runagents-tool-onboarding` — register tools with the right capabilities, auth model, and least-privilege scopes
+- `runagents-model-provider-setup` — configure model providers and role-based gateway wiring
+- `runagents-identity-provider-setup` — configure end-user identity propagation and delegated-user workflows
+
+### Govern
+
 - `runagents-approval-policy` — design approval-required policies and choose the right approval scope
+- `runagents-oauth-consent-debugging` — debug delegated OAuth and consent flows
+
+### Operate
+
 - `runagents-run-debugging` — debug paused, approval-blocked, consent-blocked, and failed runs
+- `runagents-observability-triage` — turn dashboard symptoms into operational root causes
+
+### Interface
+
 - `runagents-surface-integration` — connect RunAgents to web apps, WhatsApp, Slack, internal portals, and other interfaces
+
+### Connectors
+
+- `runagents-policy-connector` — expose policy state and approval-required posture to external systems
+- `runagents-approval-connector` — integrate approvals with custom inboxes, messaging apps, and internal workflows
+- `runagents-observability-connector` — export runs and event signals into external observability and analytics systems
 
 ## Using these skills with Codex-style assistants
 
@@ -40,9 +66,13 @@ If you are new to RunAgents, start with:
 1. `runagents-catalog-deploy`
 2. `runagents-tool-onboarding`
 3. `runagents-approval-policy`
+4. `runagents-surface-integration`
+5. `runagents-run-debugging`
 
 That sequence maps cleanly to the most common production path:
 
 - deploy a catalog agent
 - wire tools and identity
 - govern writes with approvals
+- connect the user-facing surface
+- debug live behavior with evidence

@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Observability Triage"
+  short_description: "Turn dashboard symptoms into root causes"
+  default_prompt: "Use $runagents-observability-triage to analyze this RunAgents workspace and identify the most likely operational root causes."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "RunAgents Policy Connector"
+  short_description: "Expose policy state to external systems"
+  default_prompt: "Use $runagents-policy-connector to design or review this external policy integration for RunAgents."

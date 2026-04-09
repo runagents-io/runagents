@@ -82,6 +82,11 @@ When you select a matching tool, the card shows a green checkmark. All detected 
 !!! tip "Register tools inline"
     Click **Register new** to open the tool registration page in a new tab. When you return to the deploy wizard, the tool list refreshes automatically -- no need to reload.
 
+<figure class="ra-shot">
+  <img src="../assets/screenshots/docs-refresh/deploy-wizard-wire.png" alt="RunAgents deploy wizard wire step">
+  <figcaption>The wire step is where deployment becomes production-ready: tools, models, and policies are mapped before the agent goes live.</figcaption>
+</figure>
+
 ### Models
 
 Each detected LLM usage is shown as a card with:

@@ -136,6 +136,11 @@ After approval, a background worker resumes the blocked work automatically:
 !!! tip "No manual retry required"
     Once a request is approved, RunAgents resumes the run automatically.
 
+<figure class="ra-shot">
+  <img src="../assets/screenshots/docs-refresh/run-detail-approval-timeline.png" alt="Run detail timeline showing approval-required and resumed execution">
+  <figcaption>The run detail timeline makes approval-required events, resume behavior, and final completion visible in one place.</figcaption>
+</figure>
+
 ---
 
 ## Consent workflow
@@ -201,6 +206,11 @@ This makes it possible to move from a run event to the approval decision and bac
 ## Audit export and forwarding
 
 Run events form a complete audit trail and can be exported or forwarded to external systems for compliance, monitoring, or alerting.
+
+<figure class="ra-shot">
+  <img src="../assets/screenshots/docs-refresh/observability.png" alt="RunAgents observability view">
+  <figcaption>Run-level observability turns execution history into an operational record that teams can use for debugging, compliance, and handoff across operators.</figcaption>
+</figure>
 
 ### Export
 

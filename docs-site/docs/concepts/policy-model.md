@@ -61,6 +61,11 @@ flowchart TD
 
 ## Policy Rules
 
+<figure class="ra-shot">
+  <img src="../assets/screenshots/docs-refresh/policies.png" alt="RunAgents policies view">
+  <figcaption>Policies are the baseline source of truth for outbound access, including allow, deny, and approval-required behavior.</figcaption>
+</figure>
+
 A policy defines access behavior through `spec.policies` rules.
 
 ```yaml

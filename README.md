@@ -2,10 +2,13 @@
 
 **Deploy AI agents that act securely.** RunAgents is a platform for deploying and orchestrating AI agents with secure, policy-driven access to external tools and services.
 
+Bring your own interface: a web app, WhatsApp, Slack, an internal portal, or a custom client. RunAgents owns execution, identity propagation, policy enforcement, approval workflows, and tool access behind the scenes.
+
 - **Identity Propagation** — user identity flows from client → agent → tool
 - **Policy-Driven Access** — fine-grained allow/deny rules, auto-binding, capability enforcement
 - **Just-In-Time Approvals** — high-risk tool access pauses for admin sign-off with TTL expiry
 - **LLM Gateway** — unified OpenAI-compatible endpoint for all model providers
+- **Interface-Agnostic Runtime** — use the same governed agent behind any user-facing surface
 
 ## What's New
 

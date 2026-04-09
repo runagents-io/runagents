@@ -73,6 +73,11 @@ Approval and consent solve different problems:
 
 In the console, these should be treated as distinct operational states even though both may pause a run.
 
+<figure class="ra-shot">
+  <img src="../assets/screenshots/docs-refresh/approvals-queue.png" alt="RunAgents approvals queue">
+  <figcaption>The approvals queue gives reviewers a focused view of governed actions waiting for a decision, including the requesting agent, tool, and subject.</figcaption>
+</figure>
+
 ---
 
 ## What you see on the Approvals page

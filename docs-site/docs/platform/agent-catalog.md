@@ -12,6 +12,11 @@ Catalog agents are maintained blueprints that package together:
 
 Use the catalog when you want to start from a known-good template instead of building every agent from scratch.
 
+<figure class="ra-shot">
+  <img src="../assets/screenshots/docs-refresh/agent-catalog.png" alt="RunAgents agent catalog view">
+  <figcaption>The agent catalog gives teams a production-shaped starting point instead of forcing every deployment to begin from a blank slate.</figcaption>
+</figure>
+
 ---
 
 ## Why the catalog matters
@@ -56,6 +61,11 @@ It brings together:
 
 That makes it a much more realistic first production-style workflow than a simple echo demo.
 
+<figure class="ra-shot">
+  <img src="../assets/screenshots/docs-refresh/google-workspace-assistant.png" alt="Google Workspace assistant in RunAgents">
+  <figcaption>The Google Workspace assistant is a strong flagship catalog example because it exercises OAuth, policy, approval, and resumed execution in one workflow.</figcaption>
+</figure>
+
 ---
 
 ## When to use Hello World vs. the catalog
@@ -80,6 +90,11 @@ The exact deploy command depends on the catalog agent, but the overall pattern i
 5. validate policy, approval, and consent behavior end to end
 
 For example, the Google Workspace assistant can be deployed from the catalog and used as the starting point for a governed Google workflow.
+
+<figure class="ra-shot">
+  <img src="../assets/screenshots/docs-refresh/agent-detail-runs.png" alt="Agent detail page showing runs">
+  <figcaption>After deployment, the agent detail view becomes the main operational surface for tracking runs, review states, and execution history for that agent.</figcaption>
+</figure>
 
 ---
 

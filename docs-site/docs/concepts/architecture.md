@@ -7,6 +7,16 @@ description: High-level overview of how RunAgents processes requests through thr
 
 RunAgents processes every agent interaction through three stages: **Ingress**, **Runtime**, and **Egress**. Together, they ensure that user identity, access policy, and credentials are handled transparently — so you can focus on writing agent logic, not security plumbing.
 
+The user-facing interface can live anywhere. The same governed agent runtime can sit behind:
+
+- a web application
+- WhatsApp or another messaging surface
+- Slack or an internal chat surface
+- an internal operations portal
+- a custom mobile or desktop client
+
+RunAgents handles execution, identity propagation, policy enforcement, approvals, and outbound tool security no matter which surface initiated the request.
+
 ```mermaid
 flowchart LR
     client["Client Application"]
@@ -31,7 +41,7 @@ flowchart LR
 
 ## Stage 1: Ingress (Client to Agent)
 
-Client applications authenticate users via JWT. When a request reaches RunAgents, the platform:
+Client applications authenticate users via JWT. The client surface can be anything from a traditional web app to WhatsApp, Slack, or a custom internal UI. When a request reaches RunAgents, the platform:
 
 1. **Validates the JWT** -- Signature is verified against the identity provider's JWKS endpoint. Audience and issuer claims are checked.
 2. **Extracts user identity** -- A configurable claim (e.g., `email`, `sub`) is pulled from the token payload.

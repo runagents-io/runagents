@@ -10,6 +10,7 @@ hide:
 <div class="ra-hero">
   <h1>Deploy AI Agents<br>That Act Securely</h1>
   <p>Upload your agent code. Wire it to tools and LLMs. RunAgents enforces identity, access policy, and approval workflows — transparently, with zero code changes.</p>
+  <p style="margin-top:-0.75rem;font-size:0.95rem;opacity:0.82">Use the same governed runtime behind a web app, WhatsApp, Slack, an internal portal, or a custom client.</p>
   <div class="ra-hero-buttons">
     <a href="https://try.runagents.io" class="ra-btn-primary">Start Free Trial</a>
     <a href="getting-started/quickstart/" class="ra-btn-secondary">5-Min Quickstart →</a>
@@ -70,6 +71,11 @@ hide:
   <a href="whats-new/releases/2026-04-09-scoped-approvals-console-messaging/" class="md-button md-button--primary">Read the latest release notes</a>
 </div>
 
+<figure class="ra-shot">
+  <img src="assets/screenshots/docs-refresh/dashboard-overview.png" alt="RunAgents dashboard with summary cards, pending approvals, and pending consents">
+  <figcaption>The updated operator view separates pending approvals from pending consents and makes current workspace state easier to scan.</figcaption>
+</figure>
+
 ---
 
 <!-- ── FEATURES GRID ──────────────────────────────────────────────────────── -->
@@ -102,6 +108,14 @@ hide:
     `runagents copilot` — deploy and manage agents by describing what you want. Works in any terminal.
 
     [:octicons-arrow-right-24: CLI & Copilot](getting-started/copilot.md)
+
+-   :material-message-outline:{ .lg .middle } **Any Interface**
+
+    ---
+
+    Put the same agent behind a web app, WhatsApp, Slack, or a custom internal UI. RunAgents handles execution, policy, identity, and approvals behind the surface.
+
+    [:octicons-arrow-right-24: Architecture](concepts/architecture.md)
 
 -   :material-robot-outline:{ .lg .middle } **Claude Code · Codex · Cursor**
 

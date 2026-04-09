@@ -136,6 +136,7 @@ nav:
     - Overview: api/overview.md
     - Catalog: api/catalog.md
     - Deploy: api/deploy.md
+    - Policies: api/policies.md
     - Agents: api/agents.md
     - Tools: api/tools.md
     - Model Providers & LLM Gateway: api/model-providers.md

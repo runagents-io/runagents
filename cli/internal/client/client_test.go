@@ -1,6 +1,7 @@
 package client
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -76,5 +77,26 @@ func TestClientDeleteUsesSharedRequestFlow(t *testing.T) {
 	c := NewClient(server.URL, "", "default")
 	if err := c.Delete("/api/agents/demo"); err != nil {
 		t.Fatalf("expected success, got error: %v", err)
+	}
+}
+
+func TestClientPutBuildsJSONRequest(t *testing.T) {
+	c := NewClient("https://api.runagents.io", "token", "default")
+	req, err := c.newRequest(http.MethodPut, "/api/policies/demo", nil, map[string]any{"name": "demo"})
+	if err != nil {
+		t.Fatalf("expected success, got error: %v", err)
+	}
+	if req.Method != http.MethodPut {
+		t.Fatalf("expected PUT method, got %s", req.Method)
+	}
+	if req.Header.Get("Content-Type") != "application/json" {
+		t.Fatalf("expected json content type, got %q", req.Header.Get("Content-Type"))
+	}
+	buf := new(bytes.Buffer)
+	if _, err := buf.ReadFrom(req.Body); err != nil {
+		t.Fatalf("read body: %v", err)
+	}
+	if got := buf.String(); got != `{"name":"demo"}` {
+		t.Fatalf("unexpected body: %s", got)
 	}
 }

@@ -601,6 +601,95 @@ runagents approvals reject <request-id>
 
 ---
 
+## `runagents approval-connectors`
+
+Manage approval delivery connectors, workspace defaults, and connector activity.
+
+### `approval-connectors list`
+
+```bash
+runagents approval-connectors list
+```
+
+Lists approval connectors configured in the current workspace.
+
+### `approval-connectors get`
+
+```bash
+runagents approval-connectors get <connector-id>
+```
+
+Shows the connector type, endpoint, timeout, security mode, and configured headers.
+
+### `approval-connectors apply`
+
+```bash
+runagents approval-connectors apply -f connector.yaml
+```
+
+Creates or updates a connector from YAML or JSON.
+
+Example `connector.yaml`:
+
+```yaml
+name: secops-slack
+type: slack
+endpoint: C0123456789
+headers:
+  X-Slack-Bot-Token: xoxb-...
+timeout_seconds: 15
+slack_security_mode: compat
+```
+
+If the file matches an existing connector by `id` or `name`, the CLI updates it. Otherwise it creates a new connector.
+
+### `approval-connectors delete`
+
+```bash
+runagents approval-connectors delete <connector-id>
+```
+
+Deletes the connector from the current workspace.
+
+### `approval-connectors test`
+
+```bash
+runagents approval-connectors test <connector-id>
+```
+
+Replays the connector's current configuration through the approval connector test API and prints configuration, credentials, and connectivity checks.
+
+### `approval-connectors defaults get`
+
+```bash
+runagents approval-connectors defaults get
+```
+
+Shows the workspace defaults used when approval policies do not explicitly set connector delivery behavior.
+
+### `approval-connectors defaults set`
+
+```bash
+runagents approval-connectors defaults set --delivery-mode first_success --fallback-to-ui=true --timeout-seconds 20
+```
+
+Supported flags:
+
+- `--delivery-mode`
+- `--fallback-to-ui`
+- `--timeout-seconds`
+
+### `approval-connectors activity`
+
+```bash
+runagents approval-connectors activity
+runagents approval-connectors activity --limit 100
+```
+
+Displays recent connector delivery events, including dispatch outcome, HTTP result, approval request correlation, and operator-facing messages.
+
+---
+
 ## `runagents analyze`
 
 Analyze source files to detect tools, models, secrets, and dependencies.

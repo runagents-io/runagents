@@ -4,6 +4,14 @@ Identity providers connect RunAgents to your authentication system. When configu
 
 Navigate to **Identity** in the sidebar, then click **+ New Identity Provider**.
 
+If you prefer to set this up from the terminal, you can manage the same resource with:
+
+```bash
+runagents identity-providers apply -f google-oidc.yaml
+runagents identity-providers list
+runagents identity-providers get google-oidc
+```
+
 ---
 
 ## Identity Provider Configuration
@@ -79,6 +87,22 @@ The **Allowed Domains** field lets you restrict which users can access your agen
 | Public Keys URL | `https://www.googleapis.com/oauth2/v3/certs` |
 | User ID Claim | `email` |
 | Allowed Domains | `yourcompany.com` |
+
+Example CLI file:
+
+```yaml
+name: google-oidc
+spec:
+  host: portal.yourcompany.com
+  identityProvider:
+    issuer: https://accounts.google.com
+    jwksUri: https://www.googleapis.com/oauth2/v3/certs
+    audiences:
+      - portal.yourcompany.com
+  userIDClaim: email
+  allowedDomains:
+    - yourcompany.com
+```
 
 ### Microsoft Entra ID (Azure AD)
 

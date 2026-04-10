@@ -4,6 +4,8 @@ Deploy or update agents programmatically.
 
 `POST /api/deploy` supports both image-based deploys and source-file deploys with optional server-side build.
 
+--8<-- "../../includes/api-links/deploy.md"
+
 ---
 
 ## Deploy An Agent

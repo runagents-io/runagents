@@ -2,6 +2,13 @@
 
 The RunAgents API lets you programmatically deploy agents, register tools, manage model providers, orchestrate runs, and handle approvals. Everything you can do in the console is available via the API.
 
+!!! info "Reference Views"
+    [:material-file-code-outline: OpenAPI Contract](openapi.md){ .md-button .md-button--primary }
+    [:material-book-open-variant: Redoc Reference](redoc.md){ .md-button }
+    [:material-api: Swagger UI](swagger.md){ .md-button }
+
+    Use the OpenAPI contract as the canonical REST definition, or jump into Redoc and Swagger UI for interactive reference views. Each API page in this section also includes generated links to filtered Redoc and Swagger views for that specific endpoint group.
+
 ## Base URL
 
 All API requests are made to:
@@ -95,10 +102,33 @@ The RunAgents API is currently in **v1alpha**. While we aim for backward compati
 
 Stable, versioned APIs (e.g., `/v1/...`) are planned for general availability. Subscribe for updates to be notified when versioned endpoints are available.
 
-## Interactive API Docs
+## OpenAPI Contract
 
-!!! info "Coming soon"
-    Interactive Swagger/OpenAPI documentation is coming soon.
+The public REST API contract now lives in-repo at `openapi/openapi.yaml`.
+
+Current machine-readable coverage includes:
+
+- approvals
+- runs
+- catalog
+- deploy
+- billing
+- ingestion
+- policies
+- approval connectors
+- identity providers
+- agents
+- tools
+- model providers
+- builds
+
+Additional public API groups will be added to the same contract incrementally so the spec can become the canonical source for generated API reference pages.
+
+The docs site now publishes generated views from the same contract:
+
+- [OpenAPI Contract](openapi.md)
+- [Redoc Reference](redoc.md)
+- [Swagger UI](swagger.md)
 
 ## API Endpoints at a Glance
 

@@ -72,11 +72,13 @@ extra:
 
 extra_css:
   - stylesheets/extra.css
+  - stylesheets/openapi-docs.css
 
 extra_javascript:
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js
   - javascripts/mermaid-init.js
   - javascripts/chat.js
+  - javascripts/openapi-docs.js
 
 plugins:
   - search
@@ -137,6 +139,9 @@ nav:
     - Overview: sdk/index.md
   - API Reference:
     - Overview: api/overview.md
+    - OpenAPI Contract: api/openapi.md
+    - Redoc Reference: api/redoc.md
+    - Swagger UI: api/swagger.md
     - Catalog: api/catalog.md
     - Deploy: api/deploy.md
     - Policies: api/policies.md

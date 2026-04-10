@@ -30,7 +30,7 @@ INSTALL_DIR=~/.local/bin curl -fsSL https://runagents-releases.s3.amazonaws.com/
 
 ## npm
 
-Current version: **1.0.6**
+Current version: **1.2.0**
 
 ```bash
 npm install -g @runagents/cli
@@ -102,7 +102,7 @@ runagents version
 ```
 
 ```
-runagents version 1.1.0
+runagents version 1.2.0
 ```
 
 ---

@@ -9,7 +9,17 @@ Use it to:
 - find upgrade notes before rolling changes into production
 - jump from release storytelling into the deeper reference docs
 
-## Latest release
+## Latest releases
+
+### April 9, 2026
+
+[CLI v1.2.0: Governance and Operations from the Terminal](releases/2026-04-09-cli-v1-2-0-governance-and-operations.md)
+
+Highlights:
+
+- catalog deployment, policy management, identity providers, and approval connectors from the CLI
+- richer run debugging and export workflows
+- stronger deploy ergonomics and better assistant context export
 
 ### April 9, 2026
 

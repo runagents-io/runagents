@@ -42,8 +42,8 @@ hide:
 
 <!-- ── WHAT'S NEW ────────────────────────────────────────────────────────── -->
 <p class="ra-flow-label">New in April 2026</p>
-<p class="ra-section-heading">Scoped approvals, clearer operations, and stronger messaging workflows</p>
-<p class="ra-section-sub">RunAgents now supports scoped approval choices, a cleaner approval-versus-consent operating model, and more reliable pause-and-resume behavior for governed workflows.</p>
+<p class="ra-section-heading">CLI v1.2.0, scoped approvals, and stronger operator workflows</p>
+<p class="ra-section-sub">RunAgents now ships a much deeper CLI surface for catalog deploys, governance resources, and run debugging, alongside scoped approvals and more reliable pause-and-resume behavior for governed workflows.</p>
 
 <div class="grid cards" markdown>
 
@@ -65,10 +65,16 @@ hide:
 
     Approval and consent workflows resume more cleanly across the console and messaging surfaces such as WhatsApp.
 
+-   :material-console-line:{ .lg .middle } **CLI v1.2.0**
+
+    ---
+
+    Manage catalog deploys, policies, approval connectors, identity providers, and richer run workflows directly from the terminal.
+
 </div>
 
 <div style="margin:1rem 0 2rem">
-  <a href="whats-new/releases/2026-04-09-scoped-approvals-console-messaging/" class="md-button md-button--primary">Read the latest release notes</a>
+  <a href="whats-new/releases/2026-04-09-cli-v1-2-0-governance-and-operations/" class="md-button md-button--primary">Read the latest CLI release notes</a>
 </div>
 
 <figure class="ra-shot">

@@ -78,10 +78,13 @@ jobs:
         run: gh release upload "${GITHUB_REF_NAME}" sdk/python/dist/* --clobber
 
       - name: Publish Python SDK to PyPI
-        if: ${{ secrets.PYPI_TOKEN != '' }}
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: |
+          if [ -z "${TWINE_PASSWORD}" ]; then
+            echo "PYPI_TOKEN not set; skipping PyPI publish"
+            exit 0
+          fi
           python3 -m pip install --upgrade twine
           python3 -m twine upload sdk/python/dist/*

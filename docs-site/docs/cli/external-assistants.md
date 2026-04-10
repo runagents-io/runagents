@@ -22,6 +22,8 @@ This snapshot includes:
 - tools
 - model providers
 - policies
+- identity providers
+- approval connectors
 - approvals
 - deploy drafts
 

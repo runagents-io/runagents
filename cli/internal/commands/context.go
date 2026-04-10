@@ -18,6 +18,22 @@ type contextExportResult struct {
 	Meta        map[string]interface{} `json:"meta,omitempty"`
 }
 
+type contextExportFetch struct {
+	key  string
+	path string
+}
+
+var contextExportFetches = []contextExportFetch{
+	{key: "agents", path: "/api/agents"},
+	{key: "tools", path: "/api/tools"},
+	{key: "model_providers", path: "/api/model-providers"},
+	{key: "policies", path: "/api/policies"},
+	{key: "identity_providers", path: "/api/identity-providers"},
+	{key: "approval_connectors", path: "/api/settings/approval-connectors"},
+	{key: "approvals", path: "/governance/requests"},
+	{key: "deploy_drafts", path: "/api/deploy-drafts"},
+}
+
 func newContextCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "context",
@@ -44,62 +60,117 @@ func newContextExportCmd() *cobra.Command {
 				return err
 			}
 
-			// Prefer server-side aggregate export when available.
 			serverPayload, serverErr := fetchJSONResource(c, "/api/context/export")
-			if serverErr == nil {
-				if payloadMap, ok := serverPayload.(map[string]interface{}); ok {
-					if _, exists := payloadMap["endpoint"]; !exists {
-						payloadMap["endpoint"] = endpoint
-					}
+			if payloadMap, ok := serverPayload.(map[string]interface{}); ok && serverErr == nil {
+				if err := enrichContextExportPayload(
+					func(path string) (any, error) { return fetchJSONResource(c, path) },
+					payloadMap,
+					strict,
+					endpoint,
+					namespace,
+				); err != nil {
+					return err
 				}
-				if strict && contextExportErrorCount(serverPayload) > 0 {
-					return fmt.Errorf("context export includes resource errors; rerun without --strict to inspect partial payload")
-				}
-				return printContextExport(serverPayload)
+				return printContextExport(payloadMap)
 			}
 
-			result := contextExportResult{
-				GeneratedAt: time.Now().UTC().Format(time.RFC3339),
-				Endpoint:    endpoint,
-				Namespace:   namespace,
-				Resources:   map[string]any{},
-				Errors:      map[string]string{},
-				Meta:        map[string]interface{}{},
+			payload := newContextExportPayload(endpoint, namespace)
+			if serverErr != nil {
+				errorsMap := ensureContextExportObject(payload, "errors")
+				errorsMap["context_export"] = serverErr.Error()
 			}
-			result.Errors["context_export"] = serverErr.Error()
-
-			fetches := []struct {
-				key  string
-				path string
-			}{
-				{key: "agents", path: "/api/agents"},
-				{key: "tools", path: "/api/tools"},
-				{key: "model_providers", path: "/api/model-providers"},
-				{key: "approvals", path: "/governance/requests"},
-				{key: "deploy_drafts", path: "/api/deploy-drafts"},
+			if err := enrichContextExportPayload(
+				func(path string) (any, error) { return fetchJSONResource(c, path) },
+				payload,
+				strict,
+				endpoint,
+				namespace,
+			); err != nil {
+				return err
 			}
-
-			for _, item := range fetches {
-				value, fetchErr := fetchJSONResource(c, item.path)
-				if fetchErr != nil {
-					result.Errors[item.key] = fetchErr.Error()
-					if strict {
-						return fmt.Errorf("failed to fetch %s from %s: %w", item.key, item.path, fetchErr)
-					}
-					continue
-				}
-				result.Resources[item.key] = value
-				result.Meta[item.key+"_count"] = estimateItemCount(value)
-			}
-
-			if len(result.Errors) == 0 {
-				result.Errors = nil
-			}
-			return printContextExport(result)
+			return printContextExport(payload)
 		},
 	}
 	cmd.Flags().BoolVar(&strict, "strict", false, "Fail when any resource cannot be fetched")
 	return cmd
+}
+
+func newContextExportPayload(endpoint, namespace string) map[string]any {
+	return map[string]any{
+		"generated_at": time.Now().UTC().Format(time.RFC3339),
+		"endpoint":     endpoint,
+		"namespace":    namespace,
+		"resources":    map[string]any{},
+		"errors":       map[string]any{},
+		"meta":         map[string]any{},
+	}
+}
+
+func enrichContextExportPayload(fetch func(string) (any, error), payload map[string]any, strict bool, endpoint, namespace string) error {
+	if payload == nil {
+		return fmt.Errorf("context export payload cannot be nil")
+	}
+	if _, exists := payload["generated_at"]; !exists {
+		payload["generated_at"] = time.Now().UTC().Format(time.RFC3339)
+	}
+	if _, exists := payload["endpoint"]; !exists || payload["endpoint"] == "" {
+		payload["endpoint"] = endpoint
+	}
+	if _, exists := payload["namespace"]; !exists || payload["namespace"] == "" {
+		payload["namespace"] = namespace
+	}
+
+	resources := ensureContextExportObject(payload, "resources")
+	errorsMap := ensureContextExportObject(payload, "errors")
+	meta := ensureContextExportObject(payload, "meta")
+
+	for _, item := range contextExportFetches {
+		if value, exists := resources[item.key]; exists && value != nil {
+			if _, counted := meta[item.key+"_count"]; !counted {
+				meta[item.key+"_count"] = estimateItemCount(value)
+			}
+			continue
+		}
+
+		value, err := fetch(item.path)
+		if err != nil {
+			errorsMap[item.key] = err.Error()
+			if strict {
+				return fmt.Errorf("failed to fetch %s from %s: %w", item.key, item.path, err)
+			}
+			continue
+		}
+		resources[item.key] = value
+		meta[item.key+"_count"] = estimateItemCount(value)
+	}
+
+	if len(errorsMap) == 0 {
+		delete(payload, "errors")
+	}
+	if len(meta) == 0 {
+		delete(payload, "meta")
+	}
+
+	return nil
+}
+
+func ensureContextExportObject(payload map[string]any, key string) map[string]any {
+	if existing, ok := payload[key]; ok {
+		switch typed := existing.(type) {
+		case map[string]any:
+			return typed
+		case map[string]string:
+			out := make(map[string]any, len(typed))
+			for nestedKey, value := range typed {
+				out[nestedKey] = value
+			}
+			payload[key] = out
+			return out
+		}
+	}
+	out := map[string]any{}
+	payload[key] = out
+	return out
 }
 
 func fetchJSONResource(c *client.Client, path string) (any, error) {

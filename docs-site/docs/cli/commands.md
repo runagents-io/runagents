@@ -52,6 +52,9 @@ Returns a single snapshot containing:
 - agents
 - tools
 - model providers
+- policies
+- identity providers
+- approval connectors
 - approvals
 - deploy drafts
 
@@ -173,7 +176,7 @@ Idempotent — safe to run multiple times.
 
 ## `runagents deploy`
 
-Deploy an agent from source files.
+Deploy an agent from source files, a deploy draft, or an existing artifact.
 
 ```bash
 runagents deploy \
@@ -182,22 +185,41 @@ runagents deploy \
   --file utils.py \
   --tool stripe-api \
   --tool echo-tool \
-  --model openai/gpt-4o-mini
+  --model openai/gpt-4o-mini \
+  --policy billing-write-approval \
+  --identity-provider google-oidc \
+  --requirements-file requirements.txt \
+  --entry-point agent.py \
+  --framework langgraph
+```
+
+Alternative source modes:
+
+```bash
+runagents deploy --name billing-agent --draft-id draft_billing_v2 --policy billing-write-approval
+runagents deploy --name support-agent --artifact-id art_support_v3 --identity-provider google-oidc
 ```
 
 | Flag | Description | Required |
 |------|-------------|----------|
 | `--name` | Agent name (unique identifier) | Yes |
-| `--file` | Source file path (repeatable) | Yes |
+| `--file` | Source file path (repeatable) | One of `--file`, `--draft-id`, or `--artifact-id` |
+| `--draft-id` | Existing deploy draft to hydrate from | One of `--file`, `--draft-id`, or `--artifact-id` |
+| `--artifact-id` | Existing workflow artifact to deploy | One of `--file`, `--draft-id`, or `--artifact-id` |
 | `--tool` | Required tool name (repeatable) | No |
 | `--model` | LLM config as `provider/model` | No |
+| `--policy` | Policy name to bind during deploy (repeatable) | No |
+| `--identity-provider` | Identity provider to bind during deploy | No |
+| `--requirements-file` | Requirements file to include with source deploys | No |
+| `--entry-point` | Entrypoint file or module for source deploys | No |
+| `--framework` | Framework hint for source deploys | No |
 
 The deploy command:
 
-1. Reads the specified source files
-2. Sends them to the platform for analysis
-3. Creates the agent with the specified tool and model bindings
-4. Reports deployment status
+1. Validates exactly one deploy source (`--file`, `--draft-id`, or `--artifact-id`)
+2. Uploads source files or references the existing draft or artifact
+3. Attaches tools, models, policies, and optional identity provider bindings
+4. Reports deployment status and build metadata when present
 
 **Example output:**
 

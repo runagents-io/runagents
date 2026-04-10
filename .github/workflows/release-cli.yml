@@ -9,6 +9,7 @@ on:
 permissions:
   contents: write   # create GitHub release + upload assets
   packages: write
+  id-token: write
 
 jobs:
   goreleaser:
@@ -78,13 +79,6 @@ jobs:
         run: gh release upload "${GITHUB_REF_NAME}" sdk/python/dist/* --clobber
 
       - name: Publish Python SDK to PyPI
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
-        run: |
-          if [ -z "${TWINE_PASSWORD}" ]; then
-            echo "PYPI_TOKEN not set; skipping PyPI publish"
-            exit 0
-          fi
-          python3 -m pip install --upgrade twine
-          python3 -m twine upload sdk/python/dist/*
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: sdk/python/dist

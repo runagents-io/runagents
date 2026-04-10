@@ -86,6 +86,10 @@ def _check_docs_and_distribution(errors: list[str]) -> None:
 def _check_contract_artifacts(errors: list[str]) -> None:
     openapi_file = REPO_ROOT / "openapi" / "openapi.yaml"
     docs_copy = REPO_ROOT / "docs-site" / "docs" / "api" / "openapi.yaml"
+    openapi_loader = REPO_ROOT / "docs-site" / "docs" / "javascripts" / "openapi-docs.js"
+    redoc_bundle = REPO_ROOT / "docs-site" / "docs" / "javascripts" / "vendor" / "redoc.standalone.js"
+    swagger_bundle = REPO_ROOT / "docs-site" / "docs" / "javascripts" / "vendor" / "swagger-ui-bundle.js"
+    swagger_styles = REPO_ROOT / "docs-site" / "docs" / "stylesheets" / "vendor" / "swagger-ui.css"
     if not openapi_file.exists():
         _fail(errors, "openapi/openapi.yaml: file does not exist")
     else:
@@ -114,6 +118,17 @@ def _check_contract_artifacts(errors: list[str]) -> None:
     _expect_contains(errors, api_overview, "openapi/openapi.yaml")
     _expect_contains(errors, REPO_ROOT / "docs-site" / "docs" / "api" / "redoc.md", 'data-spec-url="../openapi.yaml"')
     _expect_contains(errors, REPO_ROOT / "docs-site" / "docs" / "api" / "swagger.md", 'data-spec-url="../openapi.yaml"')
+    _expect_contains(errors, openapi_loader, 'const REDOC_BUNDLE = "vendor/redoc.standalone.js";')
+    _expect_contains(errors, openapi_loader, 'const SWAGGER_BUNDLE = "vendor/swagger-ui-bundle.js";')
+    _expect_contains(errors, openapi_loader, 'const SWAGGER_STYLESHEET = "../stylesheets/vendor/swagger-ui.css";')
+    if "cdn.jsdelivr.net" in openapi_loader.read_text():
+        _fail(errors, "docs-site/docs/javascripts/openapi-docs.js: external jsDelivr dependency should not be present")
+    if not redoc_bundle.exists():
+        _fail(errors, "docs-site/docs/javascripts/vendor/redoc.standalone.js: bundled Redoc asset is missing")
+    if not swagger_bundle.exists():
+        _fail(errors, "docs-site/docs/javascripts/vendor/swagger-ui-bundle.js: bundled Swagger UI asset is missing")
+    if not swagger_styles.exists():
+        _fail(errors, "docs-site/docs/stylesheets/vendor/swagger-ui.css: bundled Swagger UI stylesheet is missing")
     for slug in API_LINK_PAGES:
         page = REPO_ROOT / "docs-site" / "docs" / "api" / f"{slug}.md"
         include = f'--8<-- "api-links/{slug}.md"'

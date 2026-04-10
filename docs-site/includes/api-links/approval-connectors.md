@@ -1,0 +1,16 @@
+!!! info "Generated Reference Views"
+    - [Filtered OpenAPI YAML](../_generated/specs/approval-connectors.yaml)
+    - [Redoc for Approval Connectors API](../redoc/?spec=../_generated/specs/approval-connectors.yaml)
+    - [Swagger UI for Approval Connectors API](../swagger/?spec=../_generated/specs/approval-connectors.yaml)
+
+    | Operation | Redoc | Swagger |
+    | --- | --- | --- |
+    | `GET /api/settings/approval-connectors` | [Redoc](../redoc/?spec=../_generated/specs/approval-connectors.yaml#operation/getApiSettingsApprovalConnectors) | [Swagger](../swagger/?spec=../_generated/specs/approval-connectors.yaml#/Approval%20Connectors/getApiSettingsApprovalConnectors) |
+    | `POST /api/settings/approval-connectors` | [Redoc](../redoc/?spec=../_generated/specs/approval-connectors.yaml#operation/postApiSettingsApprovalConnectors) | [Swagger](../swagger/?spec=../_generated/specs/approval-connectors.yaml#/Approval%20Connectors/postApiSettingsApprovalConnectors) |
+    | `GET /api/settings/approval-connectors/{connectorId}` | [Redoc](../redoc/?spec=../_generated/specs/approval-connectors.yaml#operation/getApiSettingsApprovalConnectorsByConnectorId) | [Swagger](../swagger/?spec=../_generated/specs/approval-connectors.yaml#/Approval%20Connectors/getApiSettingsApprovalConnectorsByConnectorId) |
+    | `PATCH /api/settings/approval-connectors/{connectorId}` | [Redoc](../redoc/?spec=../_generated/specs/approval-connectors.yaml#operation/patchApiSettingsApprovalConnectorsByConnectorId) | [Swagger](../swagger/?spec=../_generated/specs/approval-connectors.yaml#/Approval%20Connectors/patchApiSettingsApprovalConnectorsByConnectorId) |
+    | `DELETE /api/settings/approval-connectors/{connectorId}` | [Redoc](../redoc/?spec=../_generated/specs/approval-connectors.yaml#operation/deleteApiSettingsApprovalConnectorsByConnectorId) | [Swagger](../swagger/?spec=../_generated/specs/approval-connectors.yaml#/Approval%20Connectors/deleteApiSettingsApprovalConnectorsByConnectorId) |
+    | `POST /api/settings/approval-connectors/test` | [Redoc](../redoc/?spec=../_generated/specs/approval-connectors.yaml#operation/postApiSettingsApprovalConnectorsTest) | [Swagger](../swagger/?spec=../_generated/specs/approval-connectors.yaml#/Approval%20Connectors/postApiSettingsApprovalConnectorsTest) |
+    | `GET /api/settings/approval-connectors/defaults` | [Redoc](../redoc/?spec=../_generated/specs/approval-connectors.yaml#operation/getApiSettingsApprovalConnectorsDefaults) | [Swagger](../swagger/?spec=../_generated/specs/approval-connectors.yaml#/Approval%20Connectors/getApiSettingsApprovalConnectorsDefaults) |
+    | `PUT /api/settings/approval-connectors/defaults` | [Redoc](../redoc/?spec=../_generated/specs/approval-connectors.yaml#operation/putApiSettingsApprovalConnectorsDefaults) | [Swagger](../swagger/?spec=../_generated/specs/approval-connectors.yaml#/Approval%20Connectors/putApiSettingsApprovalConnectorsDefaults) |
+    | `GET /api/settings/approval-connectors/activity` | [Redoc](../redoc/?spec=../_generated/specs/approval-connectors.yaml#operation/getApiSettingsApprovalConnectorsActivity) | [Swagger](../swagger/?spec=../_generated/specs/approval-connectors.yaml#/Approval%20Connectors/getApiSettingsApprovalConnectorsActivity) |

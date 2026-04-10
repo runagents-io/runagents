@@ -2,6 +2,8 @@
 
 Track agent execution with runs, events, and blocked actions. A run represents a single agent conversation or task execution. Events provide an ordered audit log. Blocked actions represent tool calls that require approval before the agent can proceed.
 
+--8<-- "../../includes/api-links/runs.md"
+
 ---
 
 ## Create a Run

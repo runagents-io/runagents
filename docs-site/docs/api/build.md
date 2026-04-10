@@ -2,6 +2,8 @@
 
 The Build API generates container images from agent source code. It automatically detects the language, generates a Dockerfile, installs dependencies, and builds the image. For most users, the [Deploy API](deploy.md) handles builds automatically -- use the Build API directly only for custom build workflows.
 
+--8<-- "../../includes/api-links/build.md"
+
 ---
 
 ## Start a Build

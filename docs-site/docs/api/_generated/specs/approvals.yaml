@@ -1,0 +1,1554 @@
+openapi: 3.1.0
+info:
+  title: RunAgents API
+  version: v1alpha
+  summary: Public REST API contract for RunAgents.
+  description: 'This OpenAPI document is the canonical machine-readable contract for
+    the public RunAgents REST API where coverage exists.
+
+    '
+servers:
+- url: https://api.runagents.io
+security:
+- bearerAuth: []
+tags:
+- name: Approvals
+  description: Policy-driven access request workflows.
+paths:
+  /governance/requests:
+    get:
+      tags:
+      - Approvals
+      summary: List approval requests
+      parameters:
+      - name: status
+        in: query
+        description: Filter requests by lifecycle status.
+        schema:
+          $ref: '#/components/schemas/ApprovalStatus'
+      responses:
+        '200':
+          description: Approval requests ordered by creation time.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AccessRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: getGovernanceRequests
+    post:
+      tags:
+      - Approvals
+      summary: Create an access request
+      description: 'Create a policy-driven access request. When the same blocked action
+        is retried within the same pending run context, the platform may return the
+        existing pending request instead of creating a new one.
+
+        '
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAccessRequest'
+      responses:
+        '201':
+          description: New approval request created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessRequest'
+        '200':
+          description: Existing pending request reused.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessRequest'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+      operationId: postGovernanceRequests
+  /governance/requests/{requestId}:
+    get:
+      tags:
+      - Approvals
+      summary: Get an approval request
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      responses:
+        '200':
+          description: Approval request record.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+      operationId: getGovernanceRequestsByRequestId
+  /governance/requests/{requestId}/approve:
+    post:
+      tags:
+      - Approvals
+      summary: Approve an approval request
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApprovalDecision'
+      responses:
+        '200':
+          description: Approval request approved.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessRequest'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      operationId: postGovernanceRequestsByRequestIdApprove
+  /governance/requests/{requestId}/reject:
+    post:
+      tags:
+      - Approvals
+      summary: Reject an approval request
+      parameters:
+      - $ref: '#/components/parameters/RequestId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RejectionDecision'
+      responses:
+        '200':
+          description: Approval request rejected.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AccessRequest'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+      operationId: postGovernanceRequestsByRequestIdReject
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key
+  parameters:
+    RequestId:
+      name: requestId
+      in: path
+      required: true
+      schema:
+        type: string
+    RunId:
+      name: runId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ActionId:
+      name: actionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CatalogId:
+      name: catalogId
+      in: path
+      required: true
+      schema:
+        type: string
+    PolicyName:
+      name: policyName
+      in: path
+      required: true
+      schema:
+        type: string
+    ConnectorId:
+      name: connectorId
+      in: path
+      required: true
+      schema:
+        type: string
+    ProviderName:
+      name: providerName
+      in: path
+      required: true
+      schema:
+        type: string
+    Namespace:
+      name: namespace
+      in: path
+      required: true
+      schema:
+        type: string
+    AgentName:
+      name: agentName
+      in: path
+      required: true
+      schema:
+        type: string
+    ToolName:
+      name: toolName
+      in: path
+      required: true
+      schema:
+        type: string
+    BuildId:
+      name: buildId
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    BadRequest:
+      description: Invalid request body or parameters.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Unauthorized:
+      description: Missing or invalid API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    NotFound:
+      description: Resource not found.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Conflict:
+      description: State transition conflict or payload mismatch.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    InternalError:
+      description: Internal server error.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    BadGateway:
+      description: Upstream provider or agent request failed.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+  schemas:
+    Error:
+      type: object
+      required:
+      - error
+      properties:
+        error:
+          type: string
+    DeleteStatus:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          enum:
+          - deleted
+    ApprovalStatus:
+      type: string
+      enum:
+      - PENDING
+      - APPROVED
+      - REJECTED
+      - EXPIRED
+    ApprovalScope:
+      type: string
+      enum:
+      - once
+      - run
+      - agent_user_ttl
+    AccessRequest:
+      type: object
+      required:
+      - id
+      - status
+      properties:
+        id:
+          type: string
+        subject:
+          type: string
+        agent_id:
+          type: string
+        tool_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/ApprovalStatus'
+        duration:
+          type: string
+        scope:
+          $ref: '#/components/schemas/ApprovalScope'
+        approver_id:
+          type: string
+        reason:
+          type: string
+        action_id:
+          type: string
+        run_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        expires_at:
+          type: string
+          format: date-time
+    CreateAccessRequest:
+      type: object
+      required:
+      - subject
+      - tool_id
+      properties:
+        subject:
+          type: string
+        tool_id:
+          type: string
+        agent_id:
+          type: string
+        duration:
+          type: string
+        run_id:
+          type: string
+          format: uuid
+        capability:
+          type: string
+        payload_hash:
+          type: string
+        tool_method:
+          type: string
+        tool_url:
+          type: string
+          format: uri
+    ApprovalDecision:
+      type: object
+      properties:
+        scope:
+          $ref: '#/components/schemas/ApprovalScope'
+        duration:
+          type: string
+        reason:
+          type: string
+    RejectionDecision:
+      type: object
+      properties:
+        reason:
+          type: string
+    RunStatus:
+      type: string
+      enum:
+      - RUNNING
+      - PAUSED
+      - PAUSED_APPROVAL
+      - PAUSED_CONSENT
+      - COMPLETED
+      - FAILED
+    Run:
+      type: object
+      required:
+      - id
+      - agent_id
+      - user_id
+      - status
+      - created_at
+      - updated_at
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversation_id:
+          type: string
+        agent_id:
+          type: string
+        namespace:
+          type: string
+        user_id:
+          type: string
+        invoke_url:
+          type: string
+          format: uri
+        status:
+          $ref: '#/components/schemas/RunStatus'
+        blocked_action_id:
+          type: string
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateRun:
+      type: object
+      required:
+      - agent_id
+      - user_id
+      properties:
+        agent_id:
+          type: string
+        user_id:
+          type: string
+        conversation_id:
+          type: string
+        namespace:
+          type: string
+        invoke_url:
+          type: string
+          format: uri
+    UpdateRunStatus:
+      type: object
+      required:
+      - status
+      properties:
+        status:
+          type: string
+          enum:
+          - COMPLETED
+          - FAILED
+          - PAUSED_APPROVAL
+          - RUNNING
+    RunEventType:
+      type: string
+      enum:
+      - USER_MESSAGE
+      - AGENT_MESSAGE
+      - TOOL_REQUEST
+      - TOOL_RESPONSE
+      - APPROVAL_REQUIRED
+      - CONSENT_REQUIRED
+      - APPROVED
+      - REJECTED
+      - RESUMED
+      - RUN_CREATED
+      - INVOKE_REQUESTED
+      - INVOKE_COMPLETED
+      - INVOKE_FAILED
+      - TOOL_CALLED
+      - COMPLETED
+      - FAILED
+    RunEvent:
+      type: object
+      required:
+      - event_id
+      - run_id
+      - seq
+      - type
+      - timestamp
+      properties:
+        event_id:
+          type: string
+        run_id:
+          type: string
+          format: uuid
+        seq:
+          type: integer
+        type:
+          $ref: '#/components/schemas/RunEventType'
+        actor:
+          type: string
+        payload_hash:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+    CreateRunEvent:
+      type: object
+      required:
+      - type
+      properties:
+        type:
+          $ref: '#/components/schemas/RunEventType'
+        payload_hash:
+          type: string
+        actor:
+          type: string
+    ActionStatus:
+      type: string
+      enum:
+      - BLOCKED
+      - APPROVED
+      - EXECUTED
+      - FAILED
+      - EXPIRED
+    BlockedAction:
+      type: object
+      required:
+      - action_id
+      - run_id
+      - tool_id
+      - status
+      - created_at
+      - updated_at
+      properties:
+        action_id:
+          type: string
+          format: uuid
+        run_id:
+          type: string
+          format: uuid
+        tool_id:
+          type: string
+        capability:
+          type: string
+        payload_hash:
+          type: string
+        status:
+          $ref: '#/components/schemas/ActionStatus'
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    CreateBlockedAction:
+      type: object
+      required:
+      - tool_id
+      properties:
+        tool_id:
+          type: string
+        capability:
+          type: string
+        payload_hash:
+          type: string
+    ApproveBlockedAction:
+      type: object
+      properties:
+        payload_hash:
+          type: string
+    CatalogEntry:
+      type: object
+      required:
+      - id
+      - name
+      - summary
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        summary:
+          type: string
+        category:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+        latest_version:
+          type: string
+        required_integrations:
+          type: array
+          items:
+            type: string
+        governance_traits:
+          type: array
+          items:
+            type: string
+        complexity:
+          type: string
+    CatalogListResponse:
+      type: object
+      required:
+      - generated_at
+      - items
+      - total
+      - page
+      - page_size
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogEntry'
+        total:
+          type: integer
+        page:
+          type: integer
+        page_size:
+          type: integer
+    CatalogDeploymentTemplate:
+      type: object
+      properties:
+        agentName:
+          type: string
+        systemPrompt:
+          type: string
+        requiredTools:
+          type: array
+          items:
+            type: string
+        policies:
+          type: array
+          items:
+            type: string
+        identityProvider:
+          type: string
+        sourceType:
+          type: string
+        sourceFiles:
+          type: object
+          additionalProperties:
+            type: string
+    CatalogManifest:
+      type: object
+      required:
+      - id
+      - version
+      - name
+      - summary
+      properties:
+        id:
+          type: string
+        version:
+          type: string
+        name:
+          type: string
+        summary:
+          type: string
+        defaultModel:
+          type: string
+        requiredIntegrations:
+          type: array
+          items:
+            type: string
+        governanceTraits:
+          type: array
+          items:
+            type: string
+        deploymentTemplate:
+          $ref: '#/components/schemas/CatalogDeploymentTemplate'
+    CatalogVersion:
+      type: object
+      required:
+      - version
+      - published_at
+      properties:
+        version:
+          type: string
+        published_at:
+          type: string
+          format: date-time
+        summary:
+          type: string
+        changelog:
+          type: string
+    CatalogVersionsResponse:
+      type: object
+      required:
+      - agent_id
+      - versions
+      properties:
+        agent_id:
+          type: string
+        versions:
+          type: array
+          items:
+            $ref: '#/components/schemas/CatalogVersion'
+    DeployToolCreate:
+      type: object
+      required:
+      - name
+      - base_url
+      properties:
+        name:
+          type: string
+        base_url:
+          type: string
+          format: uri
+        description:
+          type: string
+        auth_type:
+          type: string
+          enum:
+          - None
+          - APIKey
+          - OAuth2
+        port:
+          type: integer
+        scheme:
+          type: string
+          enum:
+          - HTTP
+          - HTTPS
+    LlmConfig:
+      type: object
+      additionalProperties: true
+    EnvVar:
+      type: object
+      additionalProperties: true
+    DeployRequest:
+      type: object
+      required:
+      - agent_name
+      properties:
+        agent_name:
+          type: string
+        namespace:
+          type: string
+        image:
+          type: string
+        source_files:
+          type: object
+          additionalProperties:
+            type: string
+        artifact_id:
+          type: string
+        draft_id:
+          type: string
+        system_prompt:
+          type: string
+        required_tools:
+          type: array
+          items:
+            type: string
+        tool_url_mappings:
+          type: object
+          additionalProperties:
+            type: string
+        tools_to_create:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeployToolCreate'
+        llm_configs:
+          type: array
+          items:
+            $ref: '#/components/schemas/LlmConfig'
+        env:
+          type: array
+          items:
+            $ref: '#/components/schemas/EnvVar'
+        requirements:
+          type: string
+        entry_point:
+          type: string
+        framework:
+          type: string
+        identity_provider:
+          type: string
+        policies:
+          type: array
+          items:
+            type: string
+    DeployResponse:
+      type: object
+      required:
+      - agent
+      - namespace
+      properties:
+        agent:
+          type: string
+        namespace:
+          type: string
+        tools_created:
+          type: array
+          items:
+            type: string
+        build_id:
+          type: string
+        image_uri:
+          type: string
+        execution_mode:
+          type: string
+        build_required:
+          type: boolean
+        build_profile:
+          type: string
+        decision_reason:
+          type: string
+    StarterKitResponse:
+      type: object
+      properties:
+        tool_created:
+          type: string
+        model_provider_created:
+          type: string
+    PolicyRule:
+      type: object
+      properties:
+        permission:
+          type: string
+        operations:
+          type: array
+          items:
+            type: string
+        resource:
+          type: string
+    PolicyApprovalDelivery:
+      type: object
+      properties:
+        connectors:
+          type: array
+          items:
+            type: string
+        mode:
+          type: string
+        fallbackToUI:
+          type: boolean
+    PolicyApprovalBinding:
+      type: object
+      properties:
+        name:
+          type: string
+        toolIds:
+          type: array
+          items:
+            type: string
+        approvers:
+          type: object
+          additionalProperties: true
+        defaultDuration:
+          type: string
+        delivery:
+          $ref: '#/components/schemas/PolicyApprovalDelivery'
+    PolicySpec:
+      type: object
+      properties:
+        policies:
+          type: array
+          items:
+            $ref: '#/components/schemas/PolicyRule'
+        approvals:
+          type: array
+          items:
+            $ref: '#/components/schemas/PolicyApprovalBinding'
+    PolicyStatus:
+      type: object
+      properties:
+        ready:
+          type: boolean
+        message:
+          type: string
+    PolicyUse:
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+    Policy:
+      type: object
+      required:
+      - name
+      - spec
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        spec:
+          $ref: '#/components/schemas/PolicySpec'
+        status:
+          $ref: '#/components/schemas/PolicyStatus'
+        used_by:
+          type: array
+          items:
+            $ref: '#/components/schemas/PolicyUse'
+    PolicyUpsertRequest:
+      type: object
+      required:
+      - name
+      - spec
+      properties:
+        name:
+          type: string
+        spec:
+          $ref: '#/components/schemas/PolicySpec'
+    TranslatePolicyRequest:
+      type: object
+      required:
+      - text
+      properties:
+        text:
+          type: string
+    TranslatePolicyResponse:
+      type: object
+      required:
+      - rules
+      properties:
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/PolicyRule'
+    ApprovalConnectorType:
+      type: string
+      enum:
+      - webhook
+      - slack
+      - teams
+      - jira
+      - pagerduty
+    ApprovalConnector:
+      type: object
+      required:
+      - id
+      - name
+      - endpoint
+      - enabled
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/ApprovalConnectorType'
+        endpoint:
+          type: string
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        enabled:
+          type: boolean
+        timeout_seconds:
+          type: integer
+        slack_security_mode:
+          type: string
+          enum:
+          - compat
+          - strict
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    ApprovalConnectorCreate:
+      type: object
+      required:
+      - name
+      - endpoint
+      properties:
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/ApprovalConnectorType'
+        endpoint:
+          type: string
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        enabled:
+          type: boolean
+        timeout_seconds:
+          type: integer
+          minimum: 1
+          maximum: 120
+        slack_security_mode:
+          type: string
+          enum:
+          - compat
+          - strict
+    ApprovalConnectorPatch:
+      type: object
+      properties:
+        name:
+          type: string
+        type:
+          $ref: '#/components/schemas/ApprovalConnectorType'
+        endpoint:
+          type: string
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        enabled:
+          type: boolean
+        timeout_seconds:
+          type: integer
+          minimum: 1
+          maximum: 120
+        slack_security_mode:
+          type: string
+          enum:
+          - compat
+          - strict
+    ApprovalConnectorCheck:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        status:
+          type: string
+        message:
+          type: string
+        duration_ms:
+          type: integer
+    ApprovalConnectorTestRequest:
+      type: object
+      required:
+      - endpoint
+      properties:
+        type:
+          $ref: '#/components/schemas/ApprovalConnectorType'
+        endpoint:
+          type: string
+        headers:
+          type: object
+          additionalProperties:
+            type: string
+        timeout_seconds:
+          type: integer
+          minimum: 1
+          maximum: 120
+        slack_security_mode:
+          type: string
+          enum:
+          - compat
+          - strict
+    ApprovalConnectorTestResult:
+      type: object
+      properties:
+        status:
+          type: string
+        connector_type:
+          type: string
+        endpoint:
+          type: string
+        checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApprovalConnectorCheck'
+    ApprovalConnectorDefaults:
+      type: object
+      properties:
+        default_delivery_mode:
+          type: string
+        default_fallback_to_ui:
+          type: boolean
+        default_timeout_seconds:
+          type: integer
+        min_timeout_seconds:
+          type: integer
+        max_timeout_seconds:
+          type: integer
+    ApprovalConnectorDefaultsUpdate:
+      type: object
+      properties:
+        default_delivery_mode:
+          type: string
+        default_fallback_to_ui:
+          type: boolean
+        default_timeout_seconds:
+          type: integer
+    ApprovalConnectorActivity:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        event:
+          type: string
+        connector_id:
+          type: string
+        connector_name:
+          type: string
+        request_id:
+          type: string
+        decision:
+          type: string
+        status_code:
+          type: integer
+        duration_ms:
+          type: integer
+        message:
+          type: string
+    IdentityProviderSettings:
+      type: object
+      required:
+      - issuer
+      - jwksUri
+      properties:
+        issuer:
+          type: string
+          format: uri
+        jwksUri:
+          type: string
+          format: uri
+        audiences:
+          type: array
+          items:
+            type: string
+    IdentityProviderSpec:
+      type: object
+      required:
+      - host
+      - identityProvider
+      - userIDClaim
+      properties:
+        host:
+          type: string
+        identityProvider:
+          $ref: '#/components/schemas/IdentityProviderSettings'
+        userIDClaim:
+          type: string
+        allowedDomains:
+          type: array
+          items:
+            type: string
+    IdentityProvider:
+      type: object
+      required:
+      - name
+      - spec
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        spec:
+          $ref: '#/components/schemas/IdentityProviderSpec'
+    IdentityProviderUpsertRequest:
+      type: object
+      required:
+      - name
+      - spec
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        spec:
+          $ref: '#/components/schemas/IdentityProviderSpec'
+    SecretRef:
+      type: object
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+    AgentToolRef:
+      type: object
+      properties:
+        name:
+          type: string
+    NameValuePair:
+      type: object
+      properties:
+        name:
+          type: string
+        value:
+          type: string
+    AgentStatus:
+      type: object
+      properties:
+        phase:
+          type: string
+        message:
+          type: string
+    AgentSpec:
+      type: object
+      properties:
+        image:
+          type: string
+        systemPrompt:
+          type: string
+        requiredTools:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentToolRef'
+        llmConfig:
+          type: object
+          additionalProperties: true
+        env:
+          type: array
+          items:
+            $ref: '#/components/schemas/NameValuePair'
+    Agent:
+      type: object
+      required:
+      - name
+      - namespace
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        labels:
+          type: object
+          additionalProperties:
+            type: string
+        spec:
+          $ref: '#/components/schemas/AgentSpec'
+        status:
+          $ref: '#/components/schemas/AgentStatus'
+    ToolApiKeyConfig:
+      type: object
+      properties:
+        in:
+          type: string
+        name:
+          type: string
+        valuePrefix:
+          type: string
+        secretRef:
+          $ref: '#/components/schemas/SecretRef'
+    ToolOAuth2Config:
+      type: object
+      properties:
+        authUrl:
+          type: string
+          format: uri
+        tokenUrl:
+          type: string
+          format: uri
+        scopes:
+          type: array
+          items:
+            type: string
+        authParams:
+          type: object
+          additionalProperties:
+            type: string
+        credentialsSecretRef:
+          $ref: '#/components/schemas/SecretRef'
+    ToolAuthentication:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+          - None
+          - APIKey
+          - OAuth2
+        apiKeyConfig:
+          $ref: '#/components/schemas/ToolApiKeyConfig'
+        oauth2Config:
+          $ref: '#/components/schemas/ToolOAuth2Config'
+    ToolConnection:
+      type: object
+      properties:
+        topology:
+          type: string
+        baseUrl:
+          type: string
+          format: uri
+        port:
+          type: integer
+        scheme:
+          type: string
+        authentication:
+          $ref: '#/components/schemas/ToolAuthentication'
+        tls:
+          type: object
+          additionalProperties: true
+    ToolCapability:
+      type: object
+      properties:
+        name:
+          type: string
+        method:
+          type: string
+        path:
+          type: string
+        description:
+          type: string
+        riskTags:
+          type: array
+          items:
+            type: string
+    ToolGovernance:
+      type: object
+      additionalProperties: true
+    ToolSpec:
+      type: object
+      properties:
+        description:
+          type: string
+        connection:
+          $ref: '#/components/schemas/ToolConnection'
+        governance:
+          $ref: '#/components/schemas/ToolGovernance'
+        capabilities:
+          type: array
+          items:
+            $ref: '#/components/schemas/ToolCapability'
+        riskTags:
+          type: array
+          items:
+            type: string
+    ToolStatus:
+      type: object
+      properties:
+        phase:
+          type: string
+        last_probe_time:
+          type: string
+          format: date-time
+        probe_latency_ms:
+          type: integer
+    Tool:
+      type: object
+      required:
+      - name
+      - spec
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        spec:
+          $ref: '#/components/schemas/ToolSpec'
+        status:
+          $ref: '#/components/schemas/ToolStatus'
+    ToolCredentials:
+      type: object
+      properties:
+        client_id:
+          type: string
+        client_secret:
+          type: string
+        api_key:
+          type: string
+    ToolCreateRequest:
+      type: object
+      required:
+      - name
+      - spec
+      properties:
+        name:
+          type: string
+        spec:
+          $ref: '#/components/schemas/ToolSpec'
+        credentials:
+          $ref: '#/components/schemas/ToolCredentials'
+    ProbeRequest:
+      type: object
+      required:
+      - url
+      properties:
+        url:
+          type: string
+          format: uri
+    ProbeResult:
+      type: object
+      properties:
+        reachable:
+          type: boolean
+        status_code:
+          type: integer
+        latency_ms:
+          type: integer
+    ModelProviderAuth:
+      type: object
+      additionalProperties: true
+    ModelProviderRateLimit:
+      type: object
+      properties:
+        requestsPerMinute:
+          type: integer
+    ModelProviderSpec:
+      type: object
+      properties:
+        provider:
+          type: string
+        endpoint:
+          type: string
+          format: uri
+        models:
+          type: array
+          items:
+            type: string
+        auth:
+          $ref: '#/components/schemas/ModelProviderAuth'
+        rateLimit:
+          $ref: '#/components/schemas/ModelProviderRateLimit'
+    ModelProviderStatus:
+      type: object
+      properties:
+        phase:
+          type: string
+        message:
+          type: string
+    ModelProvider:
+      type: object
+      required:
+      - name
+      - spec
+      properties:
+        name:
+          type: string
+        namespace:
+          type: string
+        spec:
+          $ref: '#/components/schemas/ModelProviderSpec'
+        status:
+          $ref: '#/components/schemas/ModelProviderStatus'
+    ModelProviderUpsertRequest:
+      type: object
+      required:
+      - name
+      - spec
+      properties:
+        name:
+          type: string
+        spec:
+          $ref: '#/components/schemas/ModelProviderSpec'
+    ChatMessage:
+      type: object
+      required:
+      - role
+      - content
+      properties:
+        role:
+          type: string
+        content:
+          oneOf:
+          - type: string
+          - type: array
+            items:
+              type: object
+              additionalProperties: true
+    ChatCompletionRequest:
+      type: object
+      required:
+      - model
+      - messages
+      properties:
+        model:
+          type: string
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatMessage'
+        temperature:
+          type: number
+        max_tokens:
+          type: integer
+        stream:
+          type: boolean
+        top_p:
+          type: number
+        frequency_penalty:
+          type: number
+        presence_penalty:
+          type: number
+        stop:
+          oneOf:
+          - type: string
+          - type: array
+            items:
+              type: string
+    ChatCompletionChoice:
+      type: object
+      properties:
+        index:
+          type: integer
+        message:
+          $ref: '#/components/schemas/ChatMessage'
+        finish_reason:
+          type: string
+    ChatCompletionUsage:
+      type: object
+      properties:
+        prompt_tokens:
+          type: integer
+        completion_tokens:
+          type: integer
+        total_tokens:
+          type: integer
+    ChatCompletionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        object:
+          type: string
+        created:
+          type: integer
+        model:
+          type: string
+        choices:
+          type: array
+          items:
+            $ref: '#/components/schemas/ChatCompletionChoice'
+        usage:
+          $ref: '#/components/schemas/ChatCompletionUsage'
+    BuildStatus:
+      type: string
+      enum:
+      - PENDING
+      - BUILDING
+      - SUCCEEDED
+      - FAILED
+    Build:
+      type: object
+      required:
+      - id
+      - status
+      - image
+      - created_at
+      properties:
+        id:
+          type: string
+        status:
+          $ref: '#/components/schemas/BuildStatus'
+        image:
+          type: string
+        error:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+    BuildRequest:
+      type: object
+      required:
+      - name
+      - files
+      properties:
+        name:
+          type: string
+        files:
+          type: object
+          additionalProperties:
+            type: string
+        entry_point:
+          type: string
+        requirements:
+          type: string
+        framework:
+          type: string

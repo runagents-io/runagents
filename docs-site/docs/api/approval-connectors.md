@@ -4,6 +4,8 @@ Manage approval delivery connectors, workspace defaults, and connector activity.
 
 Approval connectors let RunAgents route approval-required events into external systems such as Slack, Microsoft Teams, Jira, PagerDuty, or custom webhooks while still falling back to the console when needed.
 
+--8<-- "../../includes/api-links/approval-connectors.md"
+
 ---
 
 ## List Approval Connectors

@@ -1,0 +1,25 @@
+#redoc-container,
+#swagger-ui {
+  min-height: 70vh;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+#redoc-container .menu-content {
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.swagger-ui .topbar {
+  display: none;
+}
+
+.swagger-ui .scheme-container {
+  box-shadow: none;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.swagger-ui .info {
+  margin: 1.5rem 0;
+}

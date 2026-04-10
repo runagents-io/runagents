@@ -265,6 +265,27 @@ class TestRunResource(unittest.TestCase):
         self.assertEqual(len(timeline), 1)
         self.assertEqual(timeline[0].summary, "Approval required for calendar (create-event)")
 
+    def test_events_fetches_full_stream_when_filtering_by_type(self):
+        c = Client(endpoint="http://example.com")
+        payload = [
+            {
+                "event_id": "evt-2",
+                "seq": 2,
+                "type": "APPROVAL_REQUIRED",
+                "timestamp": "2026-04-09T10:01:00Z",
+            },
+            {
+                "event_id": "evt-3",
+                "seq": 3,
+                "type": "COMPLETED",
+                "timestamp": "2026-04-09T10:02:00Z",
+            },
+        ]
+        with mock.patch.object(c, "get_with_query", return_value=payload) as mocked:
+            events = c.runs.events("run-1", event_type="APPROVAL_REQUIRED", limit=1)
+        mocked.assert_called_once_with("/runs/run-1/events", None)
+        self.assertEqual([event.seq for event in events], [2])
+
     def test_export_includes_run_events_and_timeline(self):
         c = Client(endpoint="http://example.com")
         with mock.patch.object(

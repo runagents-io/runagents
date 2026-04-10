@@ -263,7 +263,7 @@ class _RunResource:
 
     def events(self, run_id: str, event_type: str = "", limit: int = 0) -> list[Event]:
         query: dict[str, Any] = {}
-        if limit > 0:
+        if limit > 0 and not event_type.strip():
             query["limit"] = str(limit)
         result = self._c.get_with_query(f"/runs/{urllib.parse.quote(run_id, safe='')}/events", query or None)
         events = [Event.from_dict(e) for e in result] if isinstance(result, list) else []

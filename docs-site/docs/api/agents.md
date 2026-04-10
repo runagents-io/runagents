@@ -2,7 +2,7 @@
 
 Manage deployed AI agents. Use the [Deploy API](deploy.md) to create new agents, and this API to list, inspect, and delete them.
 
---8<-- "../../includes/api-links/agents.md"
+--8<-- "api-links/agents.md"
 
 ---
 

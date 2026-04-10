@@ -2,7 +2,7 @@
 
 Configure identity providers to authenticate end users calling your agents. When a user makes a request to an agent, RunAgents validates their JWT token against the configured identity provider and propagates the user identity through to downstream tools via the `X-End-User-ID` header.
 
---8<-- "../../includes/api-links/identity-providers.md"
+--8<-- "api-links/identity-providers.md"
 
 ---
 

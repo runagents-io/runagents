@@ -100,7 +100,11 @@ markdown_extensions:
   - pymdownx.inlinehilite
   - pymdownx.tabbed:
       alternate_style: true
-  - pymdownx.snippets
+  - pymdownx.snippets:
+      base_path:
+        - docs-site/docs
+        - docs-site/includes
+      check_paths: true
   - attr_list
   - md_in_html
   - tables

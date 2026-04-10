@@ -116,7 +116,7 @@ def _check_contract_artifacts(errors: list[str]) -> None:
     _expect_contains(errors, REPO_ROOT / "docs-site" / "docs" / "api" / "swagger.md", 'data-spec-url="../openapi.yaml"')
     for slug in API_LINK_PAGES:
         page = REPO_ROOT / "docs-site" / "docs" / "api" / f"{slug}.md"
-        include = f'--8<-- "../../includes/api-links/{slug}.md"'
+        include = f'--8<-- "api-links/{slug}.md"'
         _expect_contains(errors, page, include)
 
 

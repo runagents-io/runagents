@@ -2,7 +2,7 @@
 
 The Ingestion API analyzes agent source code to automatically detect tools, model providers, secrets, outbound destinations, and dependencies. This powers the deploy wizard's auto-wiring feature and can be used standalone for code analysis.
 
---8<-- "../../includes/api-links/ingestion.md"
+--8<-- "api-links/ingestion.md"
 
 ---
 

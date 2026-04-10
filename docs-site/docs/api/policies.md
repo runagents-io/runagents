@@ -8,7 +8,7 @@ Policies are the core governance object in RunAgents. They determine whether too
 - denied
 - routed into approval
 
---8<-- "../../includes/api-links/policies.md"
+--8<-- "api-links/policies.md"
 
 ---
 

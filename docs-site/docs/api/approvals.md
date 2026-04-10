@@ -4,7 +4,7 @@ Manage policy-driven approval requests for governed tool calls.
 
 Requests are typically created by the platform when policy evaluation returns `approval_required` for a tool call.
 
---8<-- "../../includes/api-links/approvals.md"
+--8<-- "api-links/approvals.md"
 
 ---
 

@@ -1,25 +1,108 @@
 #redoc-container,
 #swagger-ui {
-  min-height: 70vh;
+  min-height: 75vh;
   background: #ffffff;
   border: 1px solid rgba(15, 23, 42, 0.08);
-  border-radius: 18px;
+  border-radius: 22px;
   overflow: hidden;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
+}
+
+.openapi-reference-shell {
+  width: 100%;
+  max-width: none;
+  margin: 1.75rem 0 0;
+}
+
+.openapi-reference-page .md-sidebar--secondary {
+  display: none;
+}
+
+.openapi-reference-page .md-main__inner.md-grid {
+  max-width: min(120rem, calc(100vw - 2rem));
+}
+
+.openapi-reference-page .md-content {
+  max-width: none;
+}
+
+.openapi-reference-article {
+  max-width: none;
+  margin-right: 0;
+}
+
+.openapi-reference-article > :not(.openapi-reference-shell) {
+  max-width: 72rem;
+}
+
+.openapi-reference-page .md-typeset .admonition,
+.openapi-reference-page .md-typeset details {
+  margin-right: auto;
+}
+
+#redoc-container,
+#swagger-ui {
+  width: 100%;
+}
+
+#redoc-container > div {
+  min-height: inherit;
 }
 
 #redoc-container .menu-content {
   border-right: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(180deg, #f8fbfb 0%, #f3f8f7 100%) !important;
+}
+
+#redoc-container .api-content {
+  background: #ffffff !important;
+}
+
+#redoc-container .menu-content,
+#redoc-container .api-content {
+  font-family: Inter, sans-serif !important;
+}
+
+#redoc-container code,
+#redoc-container pre {
+  font-family: "JetBrains Mono", monospace !important;
 }
 
 .swagger-ui .topbar {
   display: none;
 }
 
+.swagger-ui {
+  font-family: Inter, sans-serif;
+}
+
+.swagger-ui .wrapper {
+  max-width: none;
+}
+
+.swagger-ui .information-container.wrapper,
+.swagger-ui .opblock-tag-section,
+.swagger-ui .models {
+  padding-inline: 2rem;
+}
+
 .swagger-ui .scheme-container {
   box-shadow: none;
   border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  background: linear-gradient(180deg, #f8fbfb 0%, #f3f8f7 100%);
+  padding: 1rem 2rem;
+  margin: 0;
 }
 
 .swagger-ui .info {
   margin: 1.5rem 0;
+}
+
+.swagger-ui .opblock-tag {
+  border-bottom-color: rgba(15, 23, 42, 0.08);
+}
+
+.swagger-ui .opblock {
+  border-radius: 14px;
+  overflow: hidden;
 }

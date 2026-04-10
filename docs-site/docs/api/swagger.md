@@ -14,4 +14,6 @@ The UI loads the synchronized docs-site copy of the canonical spec:
 /api/openapi.yaml
 ```
 
-<div id="swagger-ui" data-spec-url="../openapi.yaml"></div>
+<div class="openapi-reference-shell openapi-reference-shell--swagger">
+  <div id="swagger-ui" data-spec-url="../openapi.yaml"></div>
+</div>

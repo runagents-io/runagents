@@ -45,11 +45,26 @@ function loadStylesheet(href) {
   document.head.appendChild(link);
 }
 
+function applyOpenApiPageLayout(container, pageClass) {
+  if (!container) {
+    return;
+  }
+
+  document.body.classList.add("openapi-reference-page", pageClass);
+
+  const article = container.closest(".md-content__inner");
+  if (article) {
+    article.classList.add("openapi-reference-article");
+  }
+}
+
 function initRedoc() {
   const container = document.getElementById("redoc-container");
   if (!container) {
     return;
   }
+
+  applyOpenApiPageLayout(container, "openapi-reference-page--redoc");
 
   const specUrl = new URLSearchParams(window.location.search).get("spec") || container.dataset.specUrl || "../openapi.yaml";
   loadScript(openApiDocsAssetUrl(REDOC_BUNDLE))
@@ -91,6 +106,8 @@ function initSwaggerUi() {
   if (!container) {
     return;
   }
+
+  applyOpenApiPageLayout(container, "openapi-reference-page--swagger");
 
   const specUrl = new URLSearchParams(window.location.search).get("spec") || container.dataset.specUrl || "../openapi.yaml";
   loadStylesheet(openApiDocsAssetUrl(SWAGGER_STYLESHEET));

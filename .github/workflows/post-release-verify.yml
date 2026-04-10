@@ -24,6 +24,7 @@ jobs:
     timeout-minutes: 10
     env:
       GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
       RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.workflow_run.head_branch }}
     steps:
       - name: Resolve release tag
@@ -59,7 +60,7 @@ jobs:
 
           tag="${{ steps.release.outputs.tag }}"
           version="${{ steps.release.outputs.version }}"
-          release_json="$(gh release view "${tag}" --json url,assets)"
+          release_json="$(gh release view "${tag}" --repo "${GH_REPO}" --json url,assets)"
           printf '%s' "${release_json}" > release.json
 
           required_assets=(

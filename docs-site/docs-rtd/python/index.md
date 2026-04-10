@@ -41,3 +41,13 @@ client.approvals.reject("req-def456")
 - [Approval workflows](approvals.md)
 - [Client API reference](api/client.md)
 - [Approval types](api/approvals.md)
+
+```{toctree}
+:maxdepth: 2
+
+approvals
+api/client
+api/agent
+api/runtime
+api/approvals
+```

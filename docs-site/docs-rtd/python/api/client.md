@@ -1,3 +1,6 @@
 # Client API Reference
 
-::: runagents.client.Client
+```{autoclass} runagents.client.Client
+:members:
+:show-inheritance:
+```

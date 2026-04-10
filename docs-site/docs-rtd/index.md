@@ -17,3 +17,14 @@ For the full product documentation, platform concepts, CLI reference, and HTTP A
 - [Python SDK overview](python/index.md)
 - [Approval workflows](python/approvals.md)
 - [MCP tools](mcp/tools.md)
+
+```{toctree}
+:maxdepth: 2
+:caption: Reference
+
+install
+python/index
+mcp/index
+platform-api/approvals
+releases/index
+```

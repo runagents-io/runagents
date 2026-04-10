@@ -1,3 +1,6 @@
 # Agent API Reference
 
-::: runagents.agent.Agent
+```{autoclass} runagents.agent.Agent
+:members:
+:show-inheritance:
+```

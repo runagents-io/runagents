@@ -10,9 +10,11 @@ build:
   tools:
     python: "3.13"
 
-mkdocs:
-  configuration: docs-site/mkdocs-rtd.yml
+sphinx:
+  configuration: docs-site/docs-rtd/conf.py
 
 python:
   install:
-    - requirements: docs-site/requirements.txt
+    - requirements: docs-site/requirements-rtd.txt
+    - method: pip
+      path: sdk/python

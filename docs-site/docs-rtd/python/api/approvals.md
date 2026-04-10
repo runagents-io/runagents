@@ -1,3 +1,6 @@
 # Approval Types
 
-::: runagents.types.ApprovalRequest
+```{autoclass} runagents.types.ApprovalRequest
+:members:
+:show-inheritance:
+```

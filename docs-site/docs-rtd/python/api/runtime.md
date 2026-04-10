@@ -1,3 +1,6 @@
 # Run Context API Reference
 
-::: runagents.runtime.RunContext
+```{autoclass} runagents.runtime.RunContext
+:members:
+:show-inheritance:
+```

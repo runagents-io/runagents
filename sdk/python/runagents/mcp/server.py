@@ -439,6 +439,13 @@ def approve_request(request_id: str, scope: str = "", duration: str = "") -> str
 
 
 @mcp.tool()
+def reject_request(request_id: str) -> str:
+    """Reject a pending access request."""
+
+    return _safe_call(lambda: _get_client().approvals.reject(request_id))
+
+
+@mcp.tool()
 def apply_policy(policy: dict, name: str = "") -> str:
     """Create or update a policy from a structured policy document."""
 

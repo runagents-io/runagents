@@ -168,6 +168,43 @@ class RunExport:
 
 
 @dataclass
+class ApprovalRequest:
+    id: str = ""
+    subject: str = ""
+    agent_id: str = ""
+    tool_id: str = ""
+    status: str = ""
+    duration: str = ""
+    scope: str = ""
+    approver_id: str = ""
+    reason: str = ""
+    action_id: str = ""
+    run_id: str = ""
+    created_at: str = ""
+    updated_at: str = ""
+    expires_at: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "ApprovalRequest":
+        return cls(
+            id=d.get("id", ""),
+            subject=d.get("subject", ""),
+            agent_id=d.get("agent_id", d.get("agent", "")),
+            tool_id=d.get("tool_id", d.get("tool", "")),
+            status=d.get("status", ""),
+            duration=d.get("duration", ""),
+            scope=d.get("scope", ""),
+            approver_id=d.get("approver_id", ""),
+            reason=d.get("reason", ""),
+            action_id=d.get("action_id", ""),
+            run_id=d.get("run_id", ""),
+            created_at=d.get("created_at", ""),
+            updated_at=d.get("updated_at", ""),
+            expires_at=d.get("expires_at", ""),
+        )
+
+
+@dataclass
 class IdentityProviderConfig:
     issuer: str = ""
     jwks_uri: str = ""

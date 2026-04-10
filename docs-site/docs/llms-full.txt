@@ -318,7 +318,7 @@ runs   = client.runs.list(agent="name") # → list[Run]
 events = client.runs.events(run_id)     # → list[Event]
 
 approvals = client.approvals.list()
-client.approvals.approve(request_id)
+client.approvals.approve(request_id, scope="run")
 client.approvals.reject(request_id)
 
 result = client.analyze({"agent.py": code})  # → AnalysisResult

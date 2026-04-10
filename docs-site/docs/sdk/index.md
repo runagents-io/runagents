@@ -150,11 +150,23 @@ for event in events:
 ```python
 # List pending access requests
 approvals = client.approvals.list()
+for request in approvals:
+    print(request.id, request.tool_id, request.status)
 
 # Approve / reject
 client.approvals.approve("req-abc123")
+client.approvals.approve("req-abc123", scope="run")
+client.approvals.approve("req-abc123", scope="window", duration="4h")
 client.approvals.reject("req-abc123")
 ```
+
+Approval scopes:
+
+- `once` for one blocked action
+- `run` for the current run
+- `window` for a short-lived approval window
+
+The SDK returns typed `ApprovalRequest` objects for `list`, `approve`, and `reject`.
 
 ### Other operations
 

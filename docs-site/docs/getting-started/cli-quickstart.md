@@ -58,13 +58,14 @@ runagents deploy \
   --name hello-world \
   --file agent.py \
   --tool echo-tool \
-  --model openai/gpt-4o-mini
+  --model openai/gpt-4o-mini \
+  --policy echo-read-policy
 ```
 
 Notes:
 
 - `runagents deploy` maps to `POST /api/deploy`.
-- For tool-call authorization, bind policies via console deploy flow, API (`policies` field), or action plans.
+- You can bind policies and identity providers directly in the CLI with `--policy` and `--identity-provider`.
 
 ---
 
@@ -142,6 +143,8 @@ runagents tools list
 runagents tools get echo-tool
 runagents models list
 runagents context export -o json
+runagents identity-providers list
+runagents policies list
 ```
 
 ---

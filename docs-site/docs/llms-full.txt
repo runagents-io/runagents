@@ -161,7 +161,7 @@ if __name__ == "__main__":
     answer = ask_llm("Summarize what RunAgents does in one sentence.")
 ```
 
-Deploy: `runagents deploy --files agent.py --name hello-world`
+Deploy: `runagents deploy --name hello-world --file agent.py --policy echo-read-policy`
 
 ### Tier 2: Custom Handler
 
@@ -374,7 +374,7 @@ Install: `pip install runagents` (recommended — includes CLI, SDK, and runtime
 
 | Command | Description |
 |---------|-------------|
-| runagents deploy | Deploy agent from source or image |
+| runagents deploy | Deploy agent from source files, drafts, or artifacts |
 | runagents agents list | List agents |
 | runagents agents get | Get agent details |
 | runagents tools list | List tools |

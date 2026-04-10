@@ -121,7 +121,7 @@ The most powerful path for teams. Your AI tool generates a structured deployment
 runagents context export -o json > runagents-context.json
 ```
 
-This snapshot includes all registered tools, model providers, agents, policies, and deploy drafts in your workspace.
+This snapshot includes all registered tools, model providers, agents, policies, identity providers, approval connectors, approvals, and deploy drafts in your workspace.
 
 ### Step 2: Ask your AI tool to write the plan
 

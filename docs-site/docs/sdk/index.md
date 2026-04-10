@@ -13,7 +13,7 @@ description: Install, configure, and use the RunAgents Python SDK — Client, Ag
 | **Agent** — write agent code with SDK helpers | `from runagents import Agent` |
 | **`@tool` decorator** — mark tool handler functions | `from runagents import tool` |
 | **CLI** — `init`, `dev`, `deploy` from the terminal | `runagents init my-agent` |
-| **MCP server** — assistant tools for catalog, governance, approvals, and operations | `pip install runagents[mcp]` |
+| **MCP server** — assistant tools for catalog, governance, identity, approvals, and run operations | `pip install runagents[mcp]` |
 | **Runtime** — HTTP server for deployed agents | auto-mounted by the platform |
 
 ---
@@ -27,7 +27,7 @@ RunAgents has four complementary developer surfaces:
 - **MCP server** — structured tools for Claude Code, Cursor, Codex, and similar assistants
 - **Skills** — reusable workflow guidance layered on top of CLI and MCP
 
-The Python SDK and MCP server source now live in the public repo under `sdk/python/`. The CLI currently exposes the broadest public management surface. The MCP server focuses on the highest-value assistant workflows first and is being brought into parity with newer CLI areas such as catalog deployment, policies, approval connectors, identity providers, and richer run operations.
+The Python SDK and MCP server source now live in the public repo under `sdk/python/`. The CLI currently exposes the broadest public management surface. The MCP server is being brought into parity in waves and now covers catalog deployment, policies, approval connectors, identity providers, richer run operations, and scoped approval decisions.
 
 ---
 

@@ -79,44 +79,138 @@ class ModelProvider:
 @dataclass
 class Run:
     id: str = ""
+    conversation_id: str = ""
+    agent_id: str = ""
     agent: str = ""
+    agent_uid: str = ""
     namespace: str = ""
+    user_id: str = ""
+    surface_turn_id: str = ""
     status: str = ""
+    blocked_action_id: str = ""
+    initial_message: str = ""
+    invoke_url: str = ""
     created_at: str = ""
     updated_at: str = ""
     message: str = ""
 
     @classmethod
     def from_dict(cls, d: dict) -> "Run":
+        agent_id = d.get("agent_id", d.get("agent", ""))
         return cls(
             id=d.get("id", ""),
-            agent=d.get("agent", ""),
+            conversation_id=d.get("conversation_id", ""),
+            agent_id=agent_id,
+            agent=agent_id,
+            agent_uid=d.get("agent_uid", ""),
             namespace=d.get("namespace", ""),
+            user_id=d.get("user_id", ""),
+            surface_turn_id=d.get("surface_turn_id", ""),
             status=d.get("status", ""),
+            blocked_action_id=d.get("blocked_action_id", ""),
+            initial_message=d.get("initial_message", ""),
+            invoke_url=d.get("invoke_url", ""),
             created_at=d.get("created_at", ""),
             updated_at=d.get("updated_at", ""),
-            message=d.get("message", ""),
+            message=d.get("message", d.get("initial_message", "")),
         )
 
 
 @dataclass
 class Event:
+    event_id: str = ""
     id: str = ""
     run_id: str = ""
+    seq: int = 0
     type: str = ""
+    payload_hash: str = ""
+    actor: str = ""
     data: dict = field(default_factory=dict)
     sequence: int = 0
+    timestamp: str = ""
     created_at: str = ""
 
     @classmethod
     def from_dict(cls, d: dict) -> "Event":
+        event_id = d.get("event_id", d.get("id", ""))
+        seq = d.get("seq", d.get("sequence", 0))
+        timestamp = d.get("timestamp", d.get("created_at", ""))
         return cls(
-            id=d.get("id", ""),
+            event_id=event_id,
+            id=event_id,
             run_id=d.get("run_id", ""),
+            seq=seq,
             type=d.get("type", ""),
+            payload_hash=d.get("payload_hash", ""),
+            actor=d.get("actor", ""),
             data=d.get("data", {}),
-            sequence=d.get("sequence", 0),
-            created_at=d.get("created_at", ""),
+            sequence=seq,
+            timestamp=timestamp,
+            created_at=timestamp,
+        )
+
+
+@dataclass
+class RunTimelineEntry:
+    seq: int = 0
+    type: str = ""
+    actor: str = ""
+    summary: str = ""
+    timestamp: str = ""
+    data: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class RunExport:
+    run: Run = field(default_factory=Run)
+    events: list[Event] = field(default_factory=list)
+    timeline: list[RunTimelineEntry] = field(default_factory=list)
+
+
+@dataclass
+class IdentityProviderConfig:
+    issuer: str = ""
+    jwks_uri: str = ""
+    audiences: list[str] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "IdentityProviderConfig":
+        return cls(
+            issuer=d.get("issuer", ""),
+            jwks_uri=d.get("jwksUri", d.get("jwks_uri", "")),
+            audiences=d.get("audiences", []),
+        )
+
+
+@dataclass
+class IdentityProviderSpec:
+    host: str = ""
+    identity_provider: IdentityProviderConfig = field(default_factory=IdentityProviderConfig)
+    user_id_claim: str = ""
+    allowed_domains: list[str] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "IdentityProviderSpec":
+        return cls(
+            host=d.get("host", ""),
+            identity_provider=IdentityProviderConfig.from_dict(d.get("identityProvider", d.get("identity_provider", {}))),
+            user_id_claim=d.get("userIDClaim", d.get("user_id_claim", "")),
+            allowed_domains=d.get("allowedDomains", d.get("allowed_domains", [])),
+        )
+
+
+@dataclass
+class IdentityProvider:
+    name: str = ""
+    namespace: str = ""
+    spec: IdentityProviderSpec = field(default_factory=IdentityProviderSpec)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> "IdentityProvider":
+        return cls(
+            name=d.get("name", ""),
+            namespace=d.get("namespace", ""),
+            spec=IdentityProviderSpec.from_dict(d.get("spec", {})),
         )
 
 

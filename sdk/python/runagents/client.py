@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -14,6 +15,8 @@ from runagents.types import (
     CatalogListResponse, CatalogManifest, CatalogVersionsResponse,
     Policy, PolicyRule, ApprovalConnector, ApprovalConnectorDefaults,
     ApprovalConnectorActivity, ApprovalConnectorTestResult,
+    IdentityProvider, IdentityProviderConfig, IdentityProviderSpec,
+    RunTimelineEntry, RunExport,
 )
 
 
@@ -45,6 +48,7 @@ class Client:
         self.catalog = _CatalogResource(self)
         self.policies = _PolicyResource(self)
         self.approval_connectors = _ApprovalConnectorResource(self)
+        self.identity_providers = _IdentityProviderResource(self)
 
     def __repr__(self) -> str:
         return f"Client(endpoint={self.endpoint!r}, namespace={self.namespace!r})"
@@ -161,24 +165,28 @@ class _AgentResource:
         llm_configs: list[dict] | None = None,
         requirements: str = "",
         entry_point: str = "",
+        framework: str = "",
+        policies: list[str] | None = None,
+        identity_provider: str = "",
+        draft_id: str = "",
+        artifact_id: str = "",
     ) -> DeployResult:
-        body: dict[str, Any] = {"agent_name": name}
-        if source_files:
-            body["source_files"] = source_files
-        if image:
-            body["image"] = image
-        if system_prompt:
-            body["system_prompt"] = system_prompt
-        if required_tools:
-            body["required_tools"] = required_tools
-        if tools_to_create:
-            body["tools_to_create"] = tools_to_create
-        if llm_configs:
-            body["llm_configs"] = llm_configs
-        if requirements:
-            body["requirements"] = requirements
-        if entry_point:
-            body["entry_point"] = entry_point
+        body = _build_agent_deploy_payload(
+            name=name,
+            source_files=source_files,
+            image=image,
+            system_prompt=system_prompt,
+            required_tools=required_tools,
+            tools_to_create=tools_to_create,
+            llm_configs=llm_configs,
+            requirements=requirements,
+            entry_point=entry_point,
+            framework=framework,
+            policies=policies,
+            identity_provider=identity_provider,
+            draft_id=draft_id,
+            artifact_id=artifact_id,
+        )
         result = self._c.post("/api/deploy", body)
         return DeployResult.from_dict(result)
 
@@ -232,25 +240,54 @@ class _RunResource:
     def __init__(self, client: Client):
         self._c = client
 
-    def list(self, agent: str = "", limit: int = 20) -> list[Run]:
-        path = "/runs"
-        params = []
-        if agent:
-            params.append(f"agent={agent}")
-        if limit != 20:
-            params.append(f"limit={limit}")
-        if params:
-            path += "?" + "&".join(params)
-        result = self._c.get(path)
-        if isinstance(result, list):
-            return [Run.from_dict(r) for r in result]
-        return []
+    def list(
+        self,
+        agent: str = "",
+        status: str = "",
+        user: str = "",
+        conversation: str = "",
+        limit: int = 20,
+    ) -> list[Run]:
+        query: dict[str, Any] = {}
+        if agent.strip():
+            query["agent_id"] = agent.strip()
+        if status.strip():
+            query["status"] = status.strip()
+        result = self._c.get_with_query("/runs", query or None)
+        runs = [Run.from_dict(r) for r in result] if isinstance(result, list) else []
+        return _filter_runs(runs, user=user, conversation=conversation, limit=limit)
 
-    def events(self, run_id: str) -> list[Event]:
-        result = self._c.get(f"/runs/{run_id}/events")
-        if isinstance(result, list):
-            return [Event.from_dict(e) for e in result]
-        return []
+    def get(self, run_id: str) -> Run:
+        result = self._c.get(f"/runs/{urllib.parse.quote(run_id, safe='')}")
+        return Run.from_dict(result if isinstance(result, dict) else {})
+
+    def events(self, run_id: str, event_type: str = "", limit: int = 0) -> list[Event]:
+        query: dict[str, Any] = {}
+        if limit > 0:
+            query["limit"] = str(limit)
+        result = self._c.get_with_query(f"/runs/{urllib.parse.quote(run_id, safe='')}/events", query or None)
+        events = [Event.from_dict(e) for e in result] if isinstance(result, list) else []
+        return _filter_run_events(events, event_type=event_type, limit=limit)
+
+    def timeline(self, run_id: str) -> list[RunTimelineEntry]:
+        run = self.get(run_id)
+        events = self.events(run_id)
+        return _build_run_timeline(run, events)
+
+    def wait(self, run_id: str, timeout_seconds: int = 300, interval_seconds: int = 2) -> Run:
+        deadline = time.monotonic() + max(timeout_seconds, 0)
+        while True:
+            run = self.get(run_id)
+            if _is_terminal_run_status(run.status):
+                return run
+            if time.monotonic() >= deadline:
+                raise TimeoutError(f"timed out waiting for run {run_id!r} to finish")
+            time.sleep(max(interval_seconds, 0))
+
+    def export(self, run_id: str) -> RunExport:
+        run = self.get(run_id)
+        events = self.events(run_id)
+        return RunExport(run=run, events=events, timeline=_build_run_timeline(run, events))
 
 
 class _ApprovalResource:
@@ -261,8 +298,9 @@ class _ApprovalResource:
         result = self._c.get("/governance/requests")
         return result if isinstance(result, list) else []
 
-    def approve(self, request_id: str) -> dict:
-        return self._c.post(f"/governance/requests/{request_id}/approve")
+    def approve(self, request_id: str, scope: str = "", duration: str = "") -> dict:
+        body = _build_approval_decision(scope=scope, duration=duration)
+        return self._c.post(f"/governance/requests/{request_id}/approve", body)
 
     def reject(self, request_id: str) -> dict:
         return self._c.post(f"/governance/requests/{request_id}/reject")
@@ -421,6 +459,30 @@ class _ApprovalConnectorResource:
         return []
 
 
+class _IdentityProviderResource:
+    def __init__(self, client: Client):
+        self._c = client
+
+    def list(self) -> list[IdentityProvider]:
+        result = self._c.get("/api/identity-providers")
+        if isinstance(result, list):
+            return [IdentityProvider.from_dict(item) for item in result]
+        return []
+
+    def get(self, name: str) -> IdentityProvider:
+        result = self._c.get(f"/api/identity-providers/{urllib.parse.quote(name, safe='')}")
+        return IdentityProvider.from_dict(result if isinstance(result, dict) else {})
+
+    def apply(self, document: dict[str, Any], name: str = "") -> IdentityProvider:
+        request = _normalize_identity_provider_apply_request(document, name)
+        result = self._c.post("/api/identity-providers", request)
+        return IdentityProvider.from_dict(result if isinstance(result, dict) else {})
+
+    def delete(self, name: str) -> dict[str, Any]:
+        result = self._c.delete(f"/api/identity-providers/{urllib.parse.quote(name, safe='')}")
+        return result if isinstance(result, dict) else {"status": result}
+
+
 def _catalog_list_query(
     search: str,
     categories: list[str] | None,
@@ -446,6 +508,125 @@ def _catalog_list_query(
     if page_size > 0:
         query["page_size"] = str(page_size)
     return query
+
+
+def _normalize_identity_provider_apply_request(document: dict[str, Any], override_name: str = "") -> dict[str, Any]:
+    if not isinstance(document, dict):
+        raise ValueError("identity provider document must be an object")
+    request = dict(document)
+    spec = request.get("spec")
+    if not isinstance(spec, dict):
+        spec = dict(document)
+        request = {}
+    name = override_name.strip() or str(document.get("name", "")).strip()
+    namespace = str(document.get("namespace", "")).strip()
+    host = str(spec.get("host", "")).strip()
+    identity_provider = spec.get("identityProvider", {})
+    user_id_claim = str(spec.get("userIDClaim", "")).strip()
+    issuer = str(identity_provider.get("issuer", "")).strip()
+    jwks_uri = str(identity_provider.get("jwksUri", "")).strip()
+    audiences = identity_provider.get("audiences", [])
+    allowed_domains = spec.get("allowedDomains", [])
+
+    if not name:
+        raise ValueError("identity provider name is required")
+    if not host:
+        raise ValueError("identity provider spec.host is required")
+    if not issuer:
+        raise ValueError("identity provider spec.identityProvider.issuer is required")
+    if not jwks_uri:
+        raise ValueError("identity provider spec.identityProvider.jwksUri is required")
+    if not user_id_claim:
+        raise ValueError("identity provider spec.userIDClaim is required")
+
+    normalized: dict[str, Any] = {
+        "name": name,
+        "spec": {
+            "host": host,
+            "identityProvider": {
+                "issuer": issuer,
+                "jwksUri": jwks_uri,
+            },
+            "userIDClaim": user_id_claim,
+        },
+    }
+    if namespace:
+        normalized["namespace"] = namespace
+    if isinstance(audiences, list) and audiences:
+        normalized["spec"]["identityProvider"]["audiences"] = audiences
+    if isinstance(allowed_domains, list) and allowed_domains:
+        normalized["spec"]["allowedDomains"] = allowed_domains
+    return normalized
+
+
+def _build_agent_deploy_payload(
+    name: str,
+    source_files: dict[str, str] | None = None,
+    image: str | None = None,
+    system_prompt: str = "",
+    required_tools: list[str] | None = None,
+    tools_to_create: list[dict] | None = None,
+    llm_configs: list[dict] | None = None,
+    requirements: str = "",
+    entry_point: str = "",
+    framework: str = "",
+    policies: list[str] | None = None,
+    identity_provider: str = "",
+    draft_id: str = "",
+    artifact_id: str = "",
+) -> dict[str, Any]:
+    agent_name = name.strip()
+    if not agent_name:
+        raise ValueError("agent name is required")
+
+    sources = 0
+    if source_files:
+        sources += 1
+    if image and image.strip():
+        sources += 1
+    if draft_id.strip():
+        sources += 1
+    if artifact_id.strip():
+        sources += 1
+    if sources != 1:
+        raise ValueError("provide exactly one deploy source: source_files, image, draft_id, or artifact_id")
+
+    payload: dict[str, Any] = {"agent_name": agent_name}
+    if source_files:
+        payload["source_files"] = source_files
+        if requirements:
+            payload["requirements"] = requirements
+        if entry_point.strip():
+            payload["entry_point"] = entry_point.strip()
+        if framework.strip():
+            payload["framework"] = framework.strip()
+    else:
+        if requirements:
+            raise ValueError("requirements can only be used with source_files")
+        if entry_point.strip():
+            raise ValueError("entry_point can only be used with source_files")
+        if framework.strip():
+            raise ValueError("framework can only be used with source_files")
+
+    if image and image.strip():
+        payload["image"] = image.strip()
+    if draft_id.strip():
+        payload["draft_id"] = draft_id.strip()
+    if artifact_id.strip():
+        payload["artifact_id"] = artifact_id.strip()
+    if system_prompt:
+        payload["system_prompt"] = system_prompt
+    if required_tools:
+        payload["required_tools"] = [item.strip() for item in required_tools if item.strip()]
+    if tools_to_create:
+        payload["tools_to_create"] = tools_to_create
+    if llm_configs:
+        payload["llm_configs"] = llm_configs
+    if policies:
+        payload["policies"] = [item.strip() for item in policies if item.strip()]
+    if identity_provider.strip():
+        payload["identity_provider"] = identity_provider.strip()
+    return payload
 
 
 def _resolve_catalog_llm_configs(default_model: str, override_model: str) -> list[dict[str, str]]:
@@ -501,6 +682,32 @@ def _build_catalog_deploy_payload(
     if llm_configs:
         payload["llm_configs"] = llm_configs
     return payload
+
+
+def _build_approval_decision(scope: str = "", duration: str = "") -> dict[str, Any] | None:
+    normalized_scope = _normalize_approval_scope(scope=scope, duration=duration)
+    duration = duration.strip()
+    if not normalized_scope and not duration:
+        return None
+    return {"scope": normalized_scope, "duration": duration}
+
+
+def _normalize_approval_scope(scope: str = "", duration: str = "") -> str:
+    scope = scope.strip().lower()
+    duration = duration.strip()
+    if not scope:
+        return "agent_user_ttl" if duration else ""
+    if scope == "once":
+        if duration:
+            raise ValueError("duration can only be used with scope window")
+        return "once"
+    if scope == "run":
+        if duration:
+            raise ValueError("duration can only be used with scope window")
+        return "run"
+    if scope in {"window", "ttl", "agent_user_ttl"}:
+        return "agent_user_ttl"
+    raise ValueError(f"invalid approval scope {scope!r} (expected once, run, or window)")
 
 
 def _normalize_policy_apply_request(document: dict[str, Any], override_name: str = "") -> dict[str, Any]:
@@ -590,3 +797,146 @@ def _build_approval_connector_test_request(connector: ApprovalConnector) -> dict
     if connector.slack_security_mode:
         body["slack_security_mode"] = connector.slack_security_mode
     return body
+
+
+def _filter_runs(runs: list[Run], user: str = "", conversation: str = "", limit: int = 20) -> list[Run]:
+    filtered: list[Run] = []
+    for run in runs:
+        if user.strip() and run.user_id != user.strip():
+            continue
+        if conversation.strip() and run.conversation_id != conversation.strip():
+            continue
+        filtered.append(run)
+    filtered.sort(key=lambda run: run.updated_at or run.created_at, reverse=True)
+    if limit > 0:
+        return filtered[:limit]
+    return filtered
+
+
+def _filter_run_events(events: list[Event], event_type: str = "", limit: int = 0) -> list[Event]:
+    filtered = [event for event in events if not event_type.strip() or event.type.lower() == event_type.strip().lower()]
+    filtered.sort(key=lambda event: event.seq)
+    if limit > 0 and len(filtered) > limit:
+        return filtered[-limit:]
+    return filtered
+
+
+def _build_run_timeline(run: Run, events: list[Event]) -> list[RunTimelineEntry]:
+    if not events:
+        timestamp = run.updated_at or run.created_at
+        return [RunTimelineEntry(type=run.status, summary=f"Run is currently {run.status}", timestamp=timestamp)]
+    return [
+        RunTimelineEntry(
+            seq=event.seq,
+            type=event.type,
+            actor=event.actor,
+            summary=_summarize_run_event(event),
+            timestamp=event.timestamp,
+            data=event.data,
+        )
+        for event in events
+    ]
+
+
+def _summarize_run_event(event: Event) -> str:
+    message = _first_non_empty(_data_string(event.data, "message"), _data_string(event.data, "detail"), _data_string(event.data, "summary"))
+    if message:
+        return _truncate(message, 120)
+
+    if event.type == "RUN_CREATED":
+        return "Run created"
+    if event.type == "USER_MESSAGE":
+        return _truncate(_first_non_empty(_data_string(event.data, "content"), _data_string(event.data, "message"), "User message received"), 120)
+    if event.type == "AGENT_MESSAGE":
+        return _truncate(_first_non_empty(_data_string(event.data, "content"), _data_string(event.data, "message"), "Agent response emitted"), 120)
+    if event.type in {"TOOL_REQUEST", "TOOL_CALLED"}:
+        return _summarize_tool_request_event(event)
+    if event.type == "TOOL_RESPONSE":
+        tool = _first_non_empty(_data_string(event.data, "tool_id"), _data_string(event.data, "tool"))
+        status_code = _data_string(event.data, "status_code")
+        if tool and status_code:
+            return f"{tool} returned HTTP {status_code}"
+        if tool:
+            return f"{tool} returned successfully"
+        return "Tool response recorded"
+    if event.type == "APPROVAL_REQUIRED":
+        tool = _first_non_empty(_data_string(event.data, "tool_id"), _data_string(event.data, "tool"), "governed tool call")
+        capability = _data_string(event.data, "capability")
+        return f"Approval required for {tool} ({capability})" if capability else f"Approval required for {tool}"
+    if event.type == "CONSENT_REQUIRED":
+        tool = _first_non_empty(_data_string(event.data, "tool_id"), _data_string(event.data, "tool"), "delegated tool call")
+        return f"Consent required for {tool}"
+    if event.type == "APPROVED":
+        approver = _first_non_empty(_data_string(event.data, "approver_id"), event.actor)
+        return f"Approved by {approver}" if approver else "Approval granted"
+    if event.type == "REJECTED":
+        approver = _first_non_empty(_data_string(event.data, "approver_id"), event.actor)
+        return f"Rejected by {approver}" if approver else "Approval rejected"
+    if event.type == "RESUMED":
+        return "Run resumed after external decision"
+    if event.type == "INVOKE_REQUESTED":
+        return "Agent invocation requested"
+    if event.type == "INVOKE_COMPLETED":
+        return "Agent invocation completed"
+    if event.type == "INVOKE_FAILED":
+        return _first_non_empty(_data_string(event.data, "error"), "Agent invocation failed")
+    if event.type == "COMPLETED":
+        return "Run completed successfully"
+    if event.type == "FAILED":
+        return _first_non_empty(_data_string(event.data, "error"), "Run failed")
+    if not event.data:
+        return _humanize_event_type(event.type)
+    return _truncate(_stringify_event_data(event.data), 120)
+
+
+def _summarize_tool_request_event(event: Event) -> str:
+    tool = _first_non_empty(_data_string(event.data, "tool_id"), _data_string(event.data, "tool")) or "tool"
+    method = _data_string(event.data, "tool_method")
+    url = _data_string(event.data, "tool_url")
+    capability = _data_string(event.data, "capability")
+    parts = [tool]
+    if capability:
+        parts.append(capability)
+    if method and url:
+        parts.append(f"{method} {url}")
+    elif method:
+        parts.append(method)
+    elif url:
+        parts.append(url)
+    return f"Called {' '.join(parts)}"
+
+
+def _is_terminal_run_status(status: str) -> bool:
+    return status.strip().upper() in {"COMPLETED", "FAILED"}
+
+
+def _data_string(data: dict[str, Any], key: str) -> str:
+    value = data.get(key) if isinstance(data, dict) else None
+    if value is None:
+        return ""
+    return value if isinstance(value, str) else str(value)
+
+
+def _stringify_event_data(data: dict[str, Any]) -> str:
+    return ", ".join(f"{key}={data[key]}" for key in sorted(data))
+
+
+def _humanize_event_type(value: str) -> str:
+    value = value.strip().lower().replace("_", " ")
+    return value[:1].upper() + value[1:] if value else "Event"
+
+
+def _truncate(value: str, max_len: int) -> str:
+    value = value.strip()
+    if max_len <= 0 or len(value) <= max_len:
+        return value
+    if max_len <= 3:
+        return value[:max_len]
+    return value[: max_len - 3] + "..."
+
+
+def _first_non_empty(*values: str) -> str:
+    for value in values:
+        if value and value.strip():
+            return value
+    return ""

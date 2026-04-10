@@ -90,6 +90,7 @@ func init() {
 	rootCmd.AddCommand(newCatalogCmd())
 	rootCmd.AddCommand(newPoliciesCmd())
 	rootCmd.AddCommand(newApprovalsCmd())
+	rootCmd.AddCommand(newApprovalConnectorsCmd())
 	rootCmd.AddCommand(newStarterKitCmd())
 	rootCmd.AddCommand(newAnalyzeCmd())
 	rootCmd.AddCommand(newCopilotCmd())

@@ -107,6 +107,7 @@ Stable, versioned APIs (e.g., `/v1/...`) are planned for general availability. S
 | `/api/catalog` | Discover catalog agents and versions | [Catalog API](catalog.md) |
 | `/api/deploy` | Deploy agents programmatically | [Deploy API](deploy.md) |
 | `/api/policies` | Manage policy rules and approval routing | [Policies API](policies.md) |
+| `/api/settings/approval-connectors` | Manage approval delivery connectors, defaults, and activity | [Approval Connectors API](approval-connectors.md) |
 | `/api/agents` | List, get, and delete agents | [Agents API](agents.md) |
 | `/api/tools` | Register and manage tools | [Tools API](tools.md) |
 | `/api/model-providers` | Configure LLM providers | [Model Providers API](model-providers.md) |

@@ -137,6 +137,7 @@ nav:
     - Catalog: api/catalog.md
     - Deploy: api/deploy.md
     - Policies: api/policies.md
+    - Approval Connectors: api/approval-connectors.md
     - Agents: api/agents.md
     - Tools: api/tools.md
     - Model Providers & LLM Gateway: api/model-providers.md

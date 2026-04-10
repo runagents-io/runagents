@@ -1,0 +1,176 @@
+name: Verify Released CLI
+
+on:
+  workflow_run:
+    workflows:
+      - Release CLI
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to verify (for example v1.2.0)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify public release surfaces
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.event.workflow_run.head_branch }}
+    steps:
+      - name: Resolve release tag
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="$(printf '%s' "${RELEASE_TAG}" | xargs)"
+          if [[ -z "${tag}" ]]; then
+            echo "Unable to determine release tag." >&2
+            exit 1
+          fi
+          if [[ ! "${tag}" =~ ^v[0-9]+(\.[0-9]+){1,2}$ ]]; then
+            echo "Expected a semantic version tag like v1.2.0, got: ${tag}" >&2
+            exit 1
+          fi
+
+          version="${tag#v}"
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          {
+            echo "## Release verification"
+            echo
+            echo "- tag: \`${tag}\`"
+            echo "- version: \`${version}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Verify GitHub Release and required assets
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${{ steps.release.outputs.tag }}"
+          version="${{ steps.release.outputs.version }}"
+          release_json="$(gh release view "${tag}" --json url,assets)"
+          printf '%s' "${release_json}" > release.json
+
+          required_assets=(
+            "checksums.txt"
+            "runagents_darwin_amd64.tar.gz"
+            "runagents_darwin_arm64.tar.gz"
+            "runagents_linux_amd64.tar.gz"
+            "runagents_linux_arm64.tar.gz"
+            "runagents_windows_amd64.zip"
+            "runagents_${version}_linux_amd64.deb"
+            "runagents_${version}_linux_amd64.rpm"
+            "runagents_${version}_linux_arm64.deb"
+            "runagents_${version}_linux_arm64.rpm"
+          )
+
+          asset_names="$(jq -r '.assets[].name' release.json)"
+          for asset in "${required_assets[@]}"; do
+            if ! grep -Fxq "${asset}" <<< "${asset_names}"; then
+              echo "Missing GitHub release asset: ${asset}" >&2
+              exit 1
+            fi
+          done
+
+          release_url="$(jq -r '.url' release.json)"
+          {
+            echo "- GitHub release: ${release_url}"
+            echo "- GitHub assets verified: ${#required_assets[@]}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Verify npm latest
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ steps.release.outputs.version }}"
+          for attempt in 1 2 3 4 5; do
+            curl -fsSL https://registry.npmjs.org/@runagents%2Fcli/latest > npm.json
+            latest_version="$(jq -r '.version' npm.json)"
+            binary_version="$(jq -r '.binaryVersion' npm.json)"
+            if [[ "${latest_version}" == "${version}" && "${binary_version}" == "${version}" ]]; then
+              break
+            fi
+            if [[ "${attempt}" -eq 5 ]]; then
+              echo "npm latest mismatch after retries: expected ${version}, got version=${latest_version}, binaryVersion=${binary_version}" >&2
+              exit 1
+            fi
+            sleep 15
+          done
+
+          {
+            echo "- npm latest version: ${latest_version}"
+            echo "- npm binaryVersion: ${binary_version}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Verify Homebrew formula
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${{ steps.release.outputs.tag }}"
+          version="${{ steps.release.outputs.version }}"
+          formula_url="https://raw.githubusercontent.com/runagents-io/homebrew-tap/main/runagents.rb"
+          for attempt in 1 2 3 4 5; do
+            curl -fsSL "${formula_url}" > runagents.rb
+            if grep -F "version \"${version}\"" runagents.rb >/dev/null &&
+              grep -F "/releases/download/${tag}/runagents_darwin_arm64.tar.gz" runagents.rb >/dev/null; then
+              break
+            fi
+            if [[ "${attempt}" -eq 5 ]]; then
+              echo "Homebrew formula did not update to ${version} / ${tag} after retries" >&2
+              exit 1
+            fi
+            sleep 15
+          done
+
+          {
+            echo "- Homebrew formula version: ${version}"
+            echo "- Homebrew formula source: ${formula_url}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Verify S3 install and latest artifact URLs
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          urls=(
+            "https://runagents-releases.s3.amazonaws.com/cli/install.sh"
+            "https://runagents-releases.s3.amazonaws.com/cli/latest/checksums.txt"
+            "https://runagents-releases.s3.amazonaws.com/cli/latest/runagents_darwin_amd64.tar.gz"
+            "https://runagents-releases.s3.amazonaws.com/cli/latest/runagents_darwin_arm64.tar.gz"
+            "https://runagents-releases.s3.amazonaws.com/cli/latest/runagents_linux_amd64.tar.gz"
+            "https://runagents-releases.s3.amazonaws.com/cli/latest/runagents_linux_arm64.tar.gz"
+            "https://runagents-releases.s3.amazonaws.com/cli/latest/runagents_windows_amd64.zip"
+          )
+
+          for url in "${urls[@]}"; do
+            success=0
+            for attempt in 1 2 3 4 5; do
+              if curl -fsSI "${url}" >/dev/null; then
+                success=1
+                break
+              fi
+              sleep 10
+            done
+            if [[ "${success}" -ne 1 ]]; then
+              echo "S3 URL did not resolve after retries: ${url}" >&2
+              exit 1
+            fi
+          done
+
+          {
+            echo "- S3 install script and latest artifacts resolved successfully"
+            echo "- Verified URLs: ${#urls[@]}"
+          } >> "${GITHUB_STEP_SUMMARY}"

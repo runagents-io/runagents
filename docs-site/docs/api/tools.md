@@ -2,7 +2,7 @@
 
 Register and manage external tools that your agents can access. Tools represent APIs and services that agents call during execution. RunAgents handles authentication, authorization, and traffic routing for each registered tool.
 
---8<-- "../../includes/api-links/tools.md"
+--8<-- "api-links/tools.md"
 
 ---
 

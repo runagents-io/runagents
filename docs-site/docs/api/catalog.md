@@ -9,7 +9,7 @@ The catalog powers workflows such as:
 - selecting a specific published version
 - deploying a blueprint such as the Google Workspace assistant through your own automation
 
---8<-- "../../includes/api-links/catalog.md"
+--8<-- "api-links/catalog.md"
 
 ---
 

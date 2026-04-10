@@ -2,7 +2,7 @@
 
 Configure LLM model providers that your agents use for inference. RunAgents acts as a unified gateway -- agents call a single endpoint and the platform handles credential injection, format translation, and provider routing.
 
---8<-- "../../includes/api-links/model-providers.md"
+--8<-- "api-links/model-providers.md"
 
 ---
 

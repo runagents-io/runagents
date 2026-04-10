@@ -2,7 +2,7 @@
 
 Manage workspace billing, metering, and payment methods. The billing API tracks action usage against plan limits, handles payment method collection via Stripe, and manages plan lifecycle transitions from trial through active subscription.
 
---8<-- "../../includes/api-links/billing.md"
+--8<-- "api-links/billing.md"
 
 ---
 

@@ -1,11 +1,12 @@
-"""RunAgents MCP Server — 14 tools for the RunAgents platform API.
+"""RunAgents MCP Server for the RunAgents platform API.
 
-Refactored to use ``runagents.client.Client`` instead of duplicated HTTP code.
-All 14 tools are preserved with identical signatures and behavior.
+Uses ``runagents.client.Client`` rather than duplicating HTTP logic so the
+assistant-facing MCP surface can grow with the public SDK and CLI.
 """
 
 from __future__ import annotations
 
+from dataclasses import asdict, is_dataclass
 import json
 
 from mcp.server.fastmcp import FastMCP
@@ -30,11 +31,23 @@ def _safe_call(fn) -> str:
     """Call fn, return JSON on success or error dict on failure."""
     try:
         result = fn()
-        return json.dumps(result, indent=2, default=str)
+        return json.dumps(_jsonable(result), indent=2, default=str)
     except APIError as e:
         return json.dumps({"error": f"HTTP {e.status}", "detail": e.detail}, indent=2)
     except ConnectionError as e:
         return json.dumps({"error": str(e)}, indent=2)
+
+
+def _jsonable(value):
+    if is_dataclass(value):
+        return asdict(value)
+    if isinstance(value, list):
+        return [_jsonable(item) for item in value]
+    if isinstance(value, tuple):
+        return [_jsonable(item) for item in value]
+    if isinstance(value, dict):
+        return {key: _jsonable(item) for key, item in value.items()}
+    return value
 
 
 # ---------------------------------------------------------------------------
@@ -57,9 +70,7 @@ mcp = FastMCP(
 @mcp.tool()
 def list_agents() -> str:
     """List all deployed agents with their status, namespace, and required tools."""
-    def _call():
-        return [a.__dict__ for a in _get_client().agents.list()]
-    return _safe_call(_call)
+    return _safe_call(lambda: _get_client().agents.list())
 
 
 @mcp.tool()
@@ -71,24 +82,20 @@ def get_agent(namespace: str, name: str) -> str:
         name: Agent name
     """
     def _call():
-        return _get_client().agents.get(namespace, name).__dict__
+        return _get_client().agents.get(namespace, name)
     return _safe_call(_call)
 
 
 @mcp.tool()
 def list_tools() -> str:
     """List all registered tools with their base URLs, auth types, and access control settings."""
-    def _call():
-        return [t.__dict__ for t in _get_client().tools.list()]
-    return _safe_call(_call)
+    return _safe_call(lambda: _get_client().tools.list())
 
 
 @mcp.tool()
 def list_models() -> str:
     """List all model providers with their supported models and status."""
-    def _call():
-        return [m.__dict__ for m in _get_client().models.list()]
-    return _safe_call(_call)
+    return _safe_call(lambda: _get_client().models.list())
 
 
 @mcp.tool()
@@ -100,7 +107,7 @@ def list_runs(agent: str = "", limit: int = 20) -> str:
         limit: Maximum number of runs to return (default 20)
     """
     def _call():
-        return [r.__dict__ for r in _get_client().runs.list(agent=agent, limit=limit)]
+        return _get_client().runs.list(agent=agent, limit=limit)
     return _safe_call(_call)
 
 
@@ -112,8 +119,97 @@ def get_run_events(run_id: str) -> str:
         run_id: The run ID
     """
     def _call():
-        return [e.__dict__ for e in _get_client().runs.events(run_id)]
+        return _get_client().runs.events(run_id)
     return _safe_call(_call)
+
+
+@mcp.tool()
+def list_catalog_agents(
+    search: str = "",
+    categories: list[str] | None = None,
+    tags: list[str] | None = None,
+    integrations: list[str] | None = None,
+    governance: list[str] | None = None,
+    page: int = 1,
+    page_size: int = 24,
+) -> str:
+    """List catalog agents, with optional search and governance/integration filters."""
+
+    def _call():
+        return _get_client().catalog.list(
+            search=search,
+            categories=categories,
+            tags=tags,
+            integrations=integrations,
+            governance=governance,
+            page=page,
+            page_size=page_size,
+        )
+
+    return _safe_call(_call)
+
+
+@mcp.tool()
+def get_catalog_agent(agent_id: str, version: str = "") -> str:
+    """Get a catalog manifest by id, optionally for a specific published version."""
+
+    return _safe_call(lambda: _get_client().catalog.get(agent_id, version=version))
+
+
+@mcp.tool()
+def list_catalog_versions(agent_id: str) -> str:
+    """List published versions for a catalog agent."""
+
+    return _safe_call(lambda: _get_client().catalog.versions(agent_id))
+
+
+@mcp.tool()
+def list_policies() -> str:
+    """List governance policies in the current workspace."""
+
+    return _safe_call(lambda: _get_client().policies.list())
+
+
+@mcp.tool()
+def get_policy(name: str) -> str:
+    """Get a single policy including readiness and bound-agent usage."""
+
+    return _safe_call(lambda: _get_client().policies.get(name))
+
+
+@mcp.tool()
+def translate_policy(text: str) -> str:
+    """Translate natural-language policy intent into structured policy rules."""
+
+    return _safe_call(lambda: {"rules": _get_client().policies.translate(text)})
+
+
+@mcp.tool()
+def list_approval_connectors() -> str:
+    """List approval delivery connectors configured in the current workspace."""
+
+    return _safe_call(lambda: _get_client().approval_connectors.list())
+
+
+@mcp.tool()
+def get_approval_connector(connector_id: str) -> str:
+    """Get a single approval connector by id."""
+
+    return _safe_call(lambda: _get_client().approval_connectors.get(connector_id))
+
+
+@mcp.tool()
+def get_approval_connector_defaults() -> str:
+    """Get workspace defaults for approval connector delivery behavior."""
+
+    return _safe_call(lambda: _get_client().approval_connectors.defaults_get())
+
+
+@mcp.tool()
+def list_approval_connector_activity(limit: int = 50) -> str:
+    """List recent approval connector activity events for the current workspace."""
+
+    return _safe_call(lambda: _get_client().approval_connectors.activity(limit=limit))
 
 
 @mcp.tool()
@@ -178,6 +274,32 @@ def deploy_agent(
 
 
 @mcp.tool()
+def deploy_catalog_agent(
+    agent_id: str,
+    version: str = "",
+    name: str = "",
+    tools: list[str] | None = None,
+    model: str = "",
+    policies: list[str] | None = None,
+    identity_provider: str = "",
+) -> str:
+    """Deploy an agent directly from a published catalog manifest."""
+
+    def _call():
+        return _get_client().catalog.deploy(
+            agent_id,
+            version=version,
+            name=name,
+            tools=tools,
+            model=model,
+            policies=policies,
+            identity_provider=identity_provider,
+        )
+
+    return _safe_call(_call)
+
+
+@mcp.tool()
 def create_tool(
     name: str,
     base_url: str,
@@ -232,6 +354,58 @@ def approve_request(request_id: str) -> str:
         request_id: The access request ID
     """
     return _safe_call(lambda: _get_client().approvals.approve(request_id))
+
+
+@mcp.tool()
+def apply_policy(policy: dict, name: str = "") -> str:
+    """Create or update a policy from a structured policy document."""
+
+    return _safe_call(lambda: _get_client().policies.apply(policy, name=name))
+
+
+@mcp.tool()
+def delete_policy(name: str) -> str:
+    """Delete a policy by name."""
+
+    return _safe_call(lambda: _get_client().policies.delete(name))
+
+
+@mcp.tool()
+def apply_approval_connector(connector: dict) -> str:
+    """Create or update an approval connector from a structured connector document."""
+
+    return _safe_call(lambda: _get_client().approval_connectors.apply(connector))
+
+
+@mcp.tool()
+def delete_approval_connector(connector_id: str) -> str:
+    """Delete an approval connector by id."""
+
+    return _safe_call(lambda: _get_client().approval_connectors.delete(connector_id))
+
+
+@mcp.tool()
+def test_approval_connector(connector_id: str) -> str:
+    """Replay a connector's current configuration through the approval connector test API."""
+
+    return _safe_call(lambda: _get_client().approval_connectors.test(connector_id))
+
+
+@mcp.tool()
+def set_approval_connector_defaults(
+    delivery_mode: str | None = None,
+    fallback_to_ui: bool | None = None,
+    timeout_seconds: int | None = None,
+) -> str:
+    """Update workspace defaults used when approval policies omit connector delivery behavior."""
+
+    return _safe_call(
+        lambda: _get_client().approval_connectors.defaults_set(
+            delivery_mode=delivery_mode,
+            fallback_to_ui=fallback_to_ui,
+            timeout_seconds=timeout_seconds,
+        )
+    )
 
 
 @mcp.tool()

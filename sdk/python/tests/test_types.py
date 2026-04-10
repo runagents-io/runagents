@@ -2,7 +2,18 @@
 
 import unittest
 
-from runagents.types import Agent, Tool, ModelProvider, Run, Event, DeployResult, AnalysisResult
+from runagents.types import (
+    Agent,
+    Tool,
+    ModelProvider,
+    Run,
+    Event,
+    DeployResult,
+    AnalysisResult,
+    CatalogManifest,
+    Policy,
+    ApprovalConnectorTestResult,
+)
 
 
 class TestAgentFromDict(unittest.TestCase):
@@ -77,6 +88,66 @@ class TestAnalysisResultFromDict(unittest.TestCase):
         self.assertEqual(a.adapter, "langchain")
         self.assertEqual(len(a.tools), 1)
         self.assertEqual(a.entry_point, "agent.py")
+
+
+class TestCatalogManifestFromDict(unittest.TestCase):
+    def test_manifest(self):
+        manifest = CatalogManifest.from_dict(
+            {
+                "id": "google-workspace-assistant-agent",
+                "version": "1.2.0",
+                "name": "Google Workspace Assistant",
+                "deploymentTemplate": {
+                    "agentName": "google-workspace-assistant-agent",
+                    "requiredTools": ["email", "calendar"],
+                },
+            }
+        )
+        self.assertEqual(manifest.id, "google-workspace-assistant-agent")
+        self.assertEqual(manifest.version, "1.2.0")
+        self.assertEqual(manifest.deployment_template.agent_name, "google-workspace-assistant-agent")
+        self.assertEqual(manifest.deployment_template.required_tools, ["email", "calendar"])
+
+
+class TestPolicyFromDict(unittest.TestCase):
+    def test_policy(self):
+        policy = Policy.from_dict(
+            {
+                "name": "workspace-write-approval",
+                "namespace": "default",
+                "spec": {
+                    "policies": [{"permission": "allow", "operations": ["GET"]}],
+                    "approvals": [
+                        {
+                            "name": "workspace-writes",
+                            "approvers": {"groups": ["self-approvers"]},
+                            "defaultDuration": "4h",
+                        }
+                    ],
+                },
+                "status": {"ready": True},
+            }
+        )
+        self.assertEqual(policy.name, "workspace-write-approval")
+        self.assertEqual(len(policy.spec.policies), 1)
+        self.assertEqual(len(policy.spec.approvals), 1)
+        self.assertTrue(policy.status.ready)
+
+
+class TestApprovalConnectorTestResultFromDict(unittest.TestCase):
+    def test_result(self):
+        result = ApprovalConnectorTestResult.from_dict(
+            {
+                "status": "healthy",
+                "connector_type": "webhook",
+                "endpoint": "https://approvals.example.com/hook",
+                "checks": [{"id": "config", "label": "Configuration", "status": "passed"}],
+            }
+        )
+        self.assertEqual(result.status, "healthy")
+        self.assertEqual(result.connector_type, "webhook")
+        self.assertEqual(len(result.checks), 1)
+        self.assertEqual(result.checks[0].label, "Configuration")
 
 
 if __name__ == "__main__":

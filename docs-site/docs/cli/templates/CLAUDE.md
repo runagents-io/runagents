@@ -8,11 +8,14 @@ This project deploys to **RunAgents** — a platform for orchestrating AI agents
 
 - **Docs**: https://docs.runagents.io
 - **CLI**: `runagents` (install: `npm install -g @runagents/cli` or `brew install runagents-io/tap/runagents`)
-- **MCP Server**: `pip install runagents-mcp` (enables direct platform access from Claude Code)
+- **MCP Server**: `pip install runagents[mcp]` (installs the `runagents-mcp` command for direct platform access from Claude Code)
 
 ## Setup
 
 ```bash
+# Install the MCP-enabled SDK if you want direct assistant access to RunAgents
+pip install runagents[mcp]
+
 # Configure CLI with your workspace
 runagents config set endpoint https://YOUR_WORKSPACE.try.runagents.io
 runagents config set api-key YOUR_API_KEY

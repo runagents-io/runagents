@@ -109,7 +109,7 @@ pip install runagents[mcp]
 runagents-mcp  # starts on stdio
 ```
 
-14 tools for AI coding assistants (Claude Code, Cursor, Codex). See [AI Assistant Setup](https://docs.runagents.io/cli/ai-assistant-setup/).
+Assistant tools for deployment, catalog inspection, policies, approval connectors, runs, and approvals. See [AI Assistant Setup](https://docs.runagents.io/cli/ai-assistant-setup/).
 
 ## Configuration
 

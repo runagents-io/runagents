@@ -13,7 +13,7 @@ description: Install, configure, and use the RunAgents Python SDK — Client, Ag
 | **Agent** — write agent code with SDK helpers | `from runagents import Agent` |
 | **`@tool` decorator** — mark tool handler functions | `from runagents import tool` |
 | **CLI** — `init`, `dev`, `deploy` from the terminal | `runagents init my-agent` |
-| **MCP server** — 14 tools for AI coding assistants | `pip install runagents[mcp]` |
+| **MCP server** — assistant tools for catalog, governance, approvals, and operations | `pip install runagents[mcp]` |
 | **Runtime** — HTTP server for deployed agents | auto-mounted by the platform |
 
 ---
@@ -393,7 +393,7 @@ Add to your project's `.mcp.json`:
 }
 ```
 
-This gives AI coding assistants (Claude Code, Cursor, Codex) 14 tools to deploy agents, manage tools, monitor runs, and handle approvals — without leaving the editor. See [AI Assistant Setup](../cli/ai-assistant-setup.md) for the full tool list and configuration guide.
+This gives AI coding assistants (Claude Code, Cursor, Codex) a growing structured toolset to deploy agents, inspect catalog manifests, manage policies and approval connectors, monitor runs, and handle approvals — without leaving the editor. See [AI Assistant Setup](../cli/ai-assistant-setup.md) for the full tool list and configuration guide.
 
 ---
 

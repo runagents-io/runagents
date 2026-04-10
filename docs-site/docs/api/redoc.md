@@ -20,4 +20,6 @@ The docs site serves a synchronized copy at:
 /api/openapi.yaml
 ```
 
-<div id="redoc-container" data-spec-url="../openapi.yaml"></div>
+<div class="openapi-reference-shell openapi-reference-shell--redoc">
+  <div id="redoc-container" data-spec-url="../openapi.yaml"></div>
+</div>

@@ -86,7 +86,7 @@ curl -X POST https://api.runagents.io/api/deploy \
     "llm_configs": [{"provider": "openai", "model": "gpt-4o-mini", "role": "chat"}],
     "policies": ["billing-stripe-policy"],
     "entry_point": "agent.py",
-    "requirements": "runagents>=0.2.0\n"
+    "requirements": "runagents>=1.2.1\n"
   }'
 ```
 

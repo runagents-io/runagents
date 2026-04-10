@@ -1,0 +1,21 @@
+"""{{name}} — RunAgents agent."""
+
+from runagents import Agent
+
+
+agent = Agent()
+
+
+def handler(request, ctx):
+    """Handle an incoming request.
+
+    Args:
+        request: Dict with "message" (str) and "history" (list).
+        ctx: RunContext with agent metadata and tool helpers.
+
+    Returns:
+        Response string or dict with "response" key.
+    """
+    message = request["message"]
+    result = agent.chat(message)
+    return result["choices"][0]["message"]["content"]

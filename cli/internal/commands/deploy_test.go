@@ -13,7 +13,7 @@ func TestBuildDeployPayloadFromSourceFilesIncludesGovernanceFields(t *testing.T)
 	if err := os.WriteFile(sourcePath, []byte("print('hello')"), 0o600); err != nil {
 		t.Fatalf("write source file: %v", err)
 	}
-	if err := os.WriteFile(requirementsPath, []byte("runagents>=0.2.0\n"), 0o600); err != nil {
+	if err := os.WriteFile(requirementsPath, []byte("runagents>=1.2.1\n"), 0o600); err != nil {
 		t.Fatalf("write requirements file: %v", err)
 	}
 
@@ -45,7 +45,7 @@ func TestBuildDeployPayloadFromSourceFilesIncludesGovernanceFields(t *testing.T)
 	if payload["entry_point"] != "agent.py" || payload["framework"] != "langgraph" {
 		t.Fatalf("unexpected source deploy settings: %#v", payload)
 	}
-	if payload["requirements"] != "runagents>=0.2.0\n" {
+	if payload["requirements"] != "runagents>=1.2.1\n" {
 		t.Fatalf("unexpected requirements payload: %#v", payload["requirements"])
 	}
 }

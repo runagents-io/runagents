@@ -18,6 +18,19 @@ description: Install, configure, and use the RunAgents Python SDK — Client, Ag
 
 ---
 
+## SDK, CLI, MCP, and Skills
+
+RunAgents has four complementary developer surfaces:
+
+- **CLI** — explicit operator commands from the terminal
+- **Python SDK** — programmatic resource and runtime access from Python
+- **MCP server** — structured tools for Claude Code, Cursor, Codex, and similar assistants
+- **Skills** — reusable workflow guidance layered on top of CLI and MCP
+
+The Python SDK and MCP server source now live in the public repo under `sdk/python/`. The CLI currently exposes the broadest public management surface. The MCP server focuses on the highest-value assistant workflows first and is being brought into parity with newer CLI areas such as catalog deployment, policies, approval connectors, identity providers, and richer run operations.
+
+---
+
 ## Install
 
 ```bash
@@ -92,7 +105,7 @@ result = client.agents.deploy(
     system_prompt="You are a payment assistant.",
     required_tools=["stripe-api"],
     llm_configs=[{"provider": "openai", "model": "gpt-4o-mini", "role": "default"}],
-    requirements="runagents>=0.2.0\n",
+    requirements="runagents>=1.2.1\n",
     entry_point="agent.py",
 )
 print(result.status)  # "created" | "updated"
@@ -405,6 +418,6 @@ See [Agent Runtime](../platform/agent-runtime.md) for full documentation.
 ## PyPI
 
 - Package: [`runagents`](https://pypi.org/project/runagents/)
-- Current version: `0.2.0`
+- Current repo version: `1.2.1`
 - Source: [github.com/runagents-io/runagents](https://github.com/runagents-io/runagents)
 - License: Apache 2.0

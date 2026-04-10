@@ -1,0 +1,37 @@
+# CLAUDE.md — {{name}}
+
+This is a RunAgents agent project.
+
+## Quick Start
+
+```bash
+pip install runagents
+runagents dev          # Start local dev server on :8080
+runagents deploy       # Deploy to the platform
+```
+
+## Project Structure
+
+- `agent.py` — Agent handler function
+- `runagents.yaml` — Agent configuration (tools, model, system prompt)
+- `requirements.txt` — Python dependencies
+
+## Agent Handler
+
+The `handler(request, ctx)` function in `agent.py` receives:
+- `request["message"]` — the user message
+- `request["history"]` — conversation history
+- `ctx` — RunContext with `ctx.call_tool(name, path, payload)` and `ctx.chat(message)`
+
+Return a string or `{"response": "..."}`.
+
+## Tools
+
+Add tools to `runagents.yaml` then use `agent.call_tool("tool-name", "/path", payload)`.
+The platform mesh handles authentication and authorization automatically.
+
+## Deployment
+
+```bash
+runagents deploy       # Deploys from runagents.yaml
+```

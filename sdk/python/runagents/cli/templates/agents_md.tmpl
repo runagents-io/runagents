@@ -1,0 +1,22 @@
+# AGENTS.md — {{name}}
+
+## Overview
+
+This is a RunAgents agent that handles user requests using the platform's tool mesh and LLM gateway.
+
+## Tools
+
+Configured in `runagents.yaml`. Each tool is an external API registered on the platform.
+The agent calls tools via `agent.call_tool(name, path, payload)` — the mesh handles auth tokens.
+
+## Development
+
+```bash
+runagents dev    # Local dev server with mock tools
+```
+
+## Deployment
+
+```bash
+runagents deploy # Ship to the platform
+```

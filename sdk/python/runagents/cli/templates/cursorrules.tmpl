@@ -1,0 +1,14 @@
+# RunAgents Agent — {{name}}
+
+This project is a RunAgents AI agent. Key patterns:
+
+- Agent code lives in `agent.py` with a `handler(request, ctx)` function
+- Configuration in `runagents.yaml` (tools, model, system prompt)
+- Use `from runagents import Agent` for the SDK
+- `agent.call_tool(name, path, payload)` to call platform tools
+- `agent.chat(message, tools=...)` for LLM completions
+- Local dev: `runagents dev` (starts on :8080)
+- Deploy: `runagents deploy`
+
+Tools are external APIs registered on the platform. The mesh handles auth.
+Do not hardcode API keys or manage OAuth tokens in agent code.

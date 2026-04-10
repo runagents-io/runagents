@@ -328,6 +328,37 @@ For the full list including multi-model variables, see the [Agent Runtime](agent
 
 ---
 
+## Authenticated Deployments
+
+If your agent should only accept requests from authenticated users, register an identity provider before you deploy or before you switch the deployment to authenticated access.
+
+Example:
+
+```bash
+runagents identity-providers apply -f google-oidc.yaml
+runagents identity-providers list
+```
+
+Example `google-oidc.yaml`:
+
+```yaml
+name: google-oidc
+spec:
+  host: portal.example.com
+  identityProvider:
+    issuer: https://accounts.google.com
+    jwksUri: https://www.googleapis.com/oauth2/v3/certs
+    audiences:
+      - portal.example.com
+  userIDClaim: email
+  allowedDomains:
+    - example.com
+```
+
+Once the identity provider exists, you can safely select **Authenticated** access in the deploy workflow and bind that provider to the agent.
+
+---
+
 ## What's Next
 
 | Goal | Where to go |

@@ -511,6 +511,66 @@ runagents models delete <name>
 
 ---
 
+## `runagents identity-providers`
+
+Manage end-user identity providers for authenticated agent access.
+
+### `identity-providers list`
+
+```bash
+runagents identity-providers list
+```
+
+Lists identity providers configured in the current workspace.
+
+### `identity-providers get`
+
+```bash
+runagents identity-providers get google-oidc
+```
+
+Shows the configured host, issuer, JWKS URI, user claim, audiences, and allowed domains.
+
+### `identity-providers apply`
+
+```bash
+runagents identity-providers apply -f google-oidc.yaml
+runagents identity-providers apply -f raw-spec.yaml --name google-oidc
+```
+
+Creates or updates an identity provider from YAML or JSON.
+
+Example `google-oidc.yaml`:
+
+```yaml
+name: google-oidc
+spec:
+  host: portal.example.com
+  identityProvider:
+    issuer: https://accounts.google.com
+    jwksUri: https://www.googleapis.com/oauth2/v3/certs
+    audiences:
+      - portal.example.com
+  userIDClaim: email
+  allowedDomains:
+    - example.com
+```
+
+`apply` accepts:
+
+- a full identity provider document with `name` and `spec`
+- or a raw `spec` document when you also pass `--name`
+
+### `identity-providers delete`
+
+```bash
+runagents identity-providers delete google-oidc
+```
+
+Deletes the identity provider from the current workspace.
+
+---
+
 ## `runagents runs`
 
 View and manage agent runs.

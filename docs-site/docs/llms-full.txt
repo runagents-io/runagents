@@ -18,6 +18,7 @@ Recent updates are published in the public `What's New` section:
 See:
 
 - https://docs.runagents.io/whats-new/
+- https://docs.runagents.io/whats-new/releases/2026-04-09-cli-v1-2-0-governance-and-operations/
 - https://docs.runagents.io/whats-new/releases/2026-04-09-scoped-approvals-console-messaging/
 
 ---
@@ -375,6 +376,11 @@ Install: `pip install runagents` (recommended — includes CLI, SDK, and runtime
 | Command | Description |
 |---------|-------------|
 | runagents deploy | Deploy agent from source files, drafts, or artifacts |
+| runagents catalog | Discover and deploy maintained catalog agents |
+| runagents policies | Manage policy rules and approval routing |
+| runagents identity-providers | Manage end-user identity providers |
+| runagents approval-connectors | Manage approval delivery integrations |
+| runagents context export | Export workspace state for external assistants |
 | runagents agents list | List agents |
 | runagents agents get | Get agent details |
 | runagents tools list | List tools |
@@ -382,6 +388,9 @@ Install: `pip install runagents` (recommended — includes CLI, SDK, and runtime
 | runagents models list | List model providers |
 | runagents runs list | List runs |
 | runagents runs get | Get run details |
+| runagents runs timeline | Show a readable per-run timeline |
+| runagents runs wait | Block until a run reaches a terminal state |
+| runagents runs export | Export a run with events for debugging |
 | runagents approvals list | List access requests |
 | runagents approvals approve | Approve access request |
 | runagents analyze | Analyze source code |

@@ -7,6 +7,7 @@ The same governed runtime can sit behind a web app, WhatsApp, Slack, an internal
 ## What's New
 
 - [What's New](https://docs.runagents.io/whats-new/): Release-oriented overview of recent platform updates
+- [CLI v1.2.0 release notes](https://docs.runagents.io/whats-new/releases/2026-04-09-cli-v1-2-0-governance-and-operations/): Catalog deploys, policies, approval connectors, identity providers, richer runs, and better external-assistant context export
 - [April 9, 2026 release notes](https://docs.runagents.io/whats-new/releases/2026-04-09-scoped-approvals-console-messaging/): Scoped approvals, clearer operations, Google Workspace calendar writes, and stronger messaging-surface workflows
 
 ## Getting Started
@@ -33,6 +34,8 @@ The same governed runtime can sit behind a web app, WhatsApp, Slack, an internal
 
 - [Overview](https://docs.runagents.io/api/overview/): API authentication, base URLs, common patterns
 - [Deploy](https://docs.runagents.io/api/deploy/): POST /api/deploy — deploy agents programmatically
+- [Policies](https://docs.runagents.io/api/policies/): Policy management and translation
+- [Approval Connectors](https://docs.runagents.io/api/approval-connectors/): Approval delivery integrations, defaults, and activity
 - [Agents](https://docs.runagents.io/api/agents/): CRUD operations on agents
 - [Tools](https://docs.runagents.io/api/tools/): CRUD operations on tools
 - [Model Providers & LLM Gateway](https://docs.runagents.io/api/model-providers/): Model provider management and OpenAI-compatible gateway
@@ -58,7 +61,7 @@ The same governed runtime can sit behind a web app, WhatsApp, Slack, an internal
 ## CLI Reference
 
 - [Installation](https://docs.runagents.io/cli/installation/): Install via pip (recommended), curl, npm, or Homebrew
-- [Commands](https://docs.runagents.io/cli/commands/): All 13 CLI commands
+- [Commands](https://docs.runagents.io/cli/commands/): Full command reference including catalog, policies, approval connectors, identity providers, and richer run workflows
 - [Action Plans](https://docs.runagents.io/cli/action-plans/): Validate-then-apply deployment workflow
 - [Action Plan Examples](https://docs.runagents.io/cli/plan-examples/): Real-world action plan walkthroughs
 - [External Assistants](https://docs.runagents.io/cli/external-assistants/): Use RunAgents with Claude Code, Cursor, Codex

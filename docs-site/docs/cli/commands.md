@@ -224,13 +224,10 @@ The deploy command:
 **Example output:**
 
 ```
-Deploying agent "my-agent"...
-✓ Agent deployed successfully
-
-Name:    my-agent
-Status:  Pending
-Tools:   stripe-api, echo-tool
-Model:   openai/gpt-4o-mini
+Agent "my-agent" deployed successfully.
+Agent: my-agent
+Build ID: build-a1b2c3
+Tools created: [stripe-api]
 ```
 
 ---

@@ -109,9 +109,9 @@ def _snippet_for_page(slug: str, spec: dict, tag: str | None, title: str) -> str
             f"    Expected operations for the `{tag}` tag were not found in the canonical OpenAPI contract.\n"
         )
 
-    spec_href = f"../_generated/specs/{slug}.yaml"
-    redoc_href = f"../redoc/?spec=../_generated/specs/{slug}.yaml"
-    swagger_href = f"../swagger/?spec=../_generated/specs/{slug}.yaml"
+    spec_href = f"_generated/specs/{slug}.yaml"
+    redoc_href = f"redoc/?spec=_generated/specs/{slug}.yaml"
+    swagger_href = f"swagger/?spec=_generated/specs/{slug}.yaml"
     rows = []
     for method, path, operation in operations:
         operation_id = operation["operationId"]

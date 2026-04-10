@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "runagents"
+version = "1.2.1"
+description = "RunAgents Python SDK — deploy, manage, and build AI agents"
+readme = "README.md"
+license = {text = "Apache-2.0"}
+requires-python = ">=3.10"
+authors = [
+    {name = "RunAgents", email = "try@runagents.io"},
+]
+keywords = ["ai", "agents", "runagents", "llm", "tool-calling"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = []
+
+[project.optional-dependencies]
+mcp = ["mcp>=1.0"]
+dev = ["watchdog>=3.0"]
+
+[project.scripts]
+runagents = "runagents.cli.main:main"
+runagents-mcp = "runagents.mcp:main"
+
+[project.urls]
+Homepage = "https://runagents.io"
+Documentation = "https://docs.runagents.io"
+Repository = "https://github.com/runagents-io/runagents"
+Issues = "https://github.com/runagents-io/runagents/issues"
+
+[tool.setuptools.packages.find]
+include = ["runagents*"]
+
+[tool.setuptools]
+py-modules = ["runagents_runtime"]
+
+[tool.setuptools.package-data]
+"runagents.cli" = ["templates/*"]

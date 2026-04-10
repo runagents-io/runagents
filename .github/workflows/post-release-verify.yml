@@ -1,9 +1,9 @@
-name: Verify Released CLI
+name: Verify Released RunAgents
 
 on:
   workflow_run:
     workflows:
-      - Release CLI
+      - Release RunAgents
     types:
       - completed
   workflow_dispatch:
@@ -73,6 +73,8 @@ jobs:
             "runagents_${version}_linux_amd64.rpm"
             "runagents_${version}_linux_arm64.deb"
             "runagents_${version}_linux_arm64.rpm"
+            "runagents-${version}.tar.gz"
+            "runagents-${version}-py3-none-any.whl"
           )
 
           asset_names="$(jq -r '.assets[].name' release.json)"
@@ -112,6 +114,29 @@ jobs:
           {
             echo "- npm latest version: ${latest_version}"
             echo "- npm binaryVersion: ${binary_version}"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Verify PyPI latest
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ steps.release.outputs.version }}"
+          for attempt in 1 2 3 4 5; do
+            curl -fsSL https://pypi.org/pypi/runagents/json > pypi.json
+            latest_version="$(jq -r '.info.version' pypi.json)"
+            if [[ "${latest_version}" == "${version}" ]]; then
+              break
+            fi
+            if [[ "${attempt}" -eq 5 ]]; then
+              echo "PyPI latest mismatch after retries: expected ${version}, got ${latest_version}" >&2
+              exit 1
+            fi
+            sleep 15
+          done
+
+          {
+            echo "- PyPI latest version: ${latest_version}"
           } >> "${GITHUB_STEP_SUMMARY}"
 
       - name: Verify Homebrew formula

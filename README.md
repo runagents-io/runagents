@@ -27,6 +27,19 @@ Read the latest release notes:
 
 **[docs.runagents.io](https://docs.runagents.io)**
 
+## Repository Surfaces
+
+This public repository is currently the home for:
+
+- `cli/` — the released Go CLI and install artifacts
+- `sdk/python/` — the Python SDK and MCP server source
+- `docs-site/` — the published documentation site
+- `catalog/` — deployable catalog agents and manifests
+- `skills/` — reusable assistant workflow packs
+- `examples/` — sample agents and integration patterns
+
+The goal is one coherent public source tree so the CLI, SDK, MCP, docs, catalog, and skills evolve together and ship on the same release line.
+
 ## Install
 
 ### Python SDK (recommended)

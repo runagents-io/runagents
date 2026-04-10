@@ -1,4 +1,4 @@
-runagents>=0.2.0
+runagents>=1.2.1
 langchain>=1.0.0
 langchain-openai>=0.3.0
 langchain-core>=0.3.0

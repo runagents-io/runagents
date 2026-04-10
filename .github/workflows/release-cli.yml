@@ -1,4 +1,4 @@
-name: Release CLI
+name: Release RunAgents
 
 # Triggered by pushing a tag: git tag v1.0.0 && git push origin v1.0.0
 on:
@@ -27,11 +27,21 @@ jobs:
       - name: Verify CLI source exists
         run: ls cli/cmd/runagents/main.go
 
+      - name: Verify Python SDK source exists
+        run: ls sdk/python/pyproject.toml sdk/python/runagents/mcp/server.py
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
       - uses: actions/setup-node@v6
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
           package-manager-cache: false
+
+      - name: Sync release versions
+        run: python3 scripts/sync_release_versions.py "${GITHUB_REF_NAME#v}"
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v7
@@ -56,3 +66,22 @@ jobs:
           npm version $VERSION --no-git-tag-version --allow-same-version
           npm pkg set binaryVersion="$VERSION"
           npm publish --access public
+
+      - name: Build Python SDK artifacts
+        run: |
+          python3 -m pip install --upgrade build
+          python3 -m build sdk/python
+
+      - name: Upload Python SDK artifacts to GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release upload "${GITHUB_REF_NAME}" sdk/python/dist/* --clobber
+
+      - name: Publish Python SDK to PyPI
+        if: ${{ secrets.PYPI_TOKEN != '' }}
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: |
+          python3 -m pip install --upgrade twine
+          python3 -m twine upload sdk/python/dist/*

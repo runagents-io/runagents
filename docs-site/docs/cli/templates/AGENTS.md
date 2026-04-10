@@ -35,9 +35,9 @@ Install: `npm install -g @runagents/cli` or `brew install runagents-io/tap/runag
 
 ### RunAgents MCP Server (`runagents-mcp`)
 
-Install: `pip install runagents-mcp`
+Install: `pip install runagents[mcp]`
 
-Provides 14 tools for direct platform access: `list_agents`, `get_agent`, `list_tools`, `list_models`, `list_runs`, `get_run_events`, `export_context`, `analyze_code`, `deploy_agent`, `create_tool`, `validate_plan`, `apply_plan`, `approve_request`, `seed_starter_kit`.
+Provides direct platform tools for workspace inspection, deployment, catalog access, policies, approval connectors, and approvals via `runagents-mcp`.
 
 ## Workflows
 

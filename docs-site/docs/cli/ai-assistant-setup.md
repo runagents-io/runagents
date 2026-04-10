@@ -41,14 +41,12 @@ curl -o AGENTS.md https://docs.runagents.io/cli/templates/AGENTS.md
 
 ## MCP Server
 
-The RunAgents MCP server gives your AI assistant direct access to the platform API — listing agents, deploying code, managing tools, and handling approvals — all without leaving your editor.
+The RunAgents MCP server gives your AI assistant direct access to the platform API — listing agents, deploying code, managing tools, inspecting the catalog, managing policies, configuring approval connectors, and handling approvals — all without leaving your editor.
 
 ### Install
 
 ```bash
-pip install runagents[mcp]   # recommended — includes full SDK + CLI
-# or
-pip install runagents-mcp    # standalone MCP server only
+pip install runagents[mcp]   # includes the SDK plus the runagents-mcp command
 ```
 
 ### Configure for Claude Code
@@ -91,24 +89,16 @@ Add to your Cursor MCP settings (`.cursor/mcp.json`):
 
 ### Available Tools
 
-The MCP server exposes 14 tools:
+The MCP server now exposes a broader assistant toolset that covers:
 
-| Tool | Description | Type |
-|------|-------------|------|
-| `list_agents` | List all deployed agents | Read |
-| `get_agent` | Get agent details | Read |
-| `list_tools` | List registered tools | Read |
-| `list_models` | List model providers | Read |
-| `list_runs` | List agent runs | Read |
-| `get_run_events` | Get events for a run | Read |
-| `export_context` | Export full workspace context | Read |
-| `analyze_code` | Analyze source code for tools and LLM usage | Read |
-| `deploy_agent` | Deploy an agent from source or image | Mutate |
-| `create_tool` | Register a new tool | Mutate |
-| `validate_plan` | Validate an action plan | Read |
-| `apply_plan` | Apply an action plan | Mutate |
-| `approve_request` | Approve a pending access request | Mutate |
-| `seed_starter_kit` | Create demo tools and model provider | Mutate |
+| Family | Tools |
+|--------|-------|
+| Workspace | `list_agents`, `get_agent`, `list_tools`, `list_models`, `list_runs`, `get_run_events`, `export_context`, `analyze_code` |
+| Deploy | `deploy_agent`, `create_tool`, `validate_plan`, `apply_plan`, `seed_starter_kit` |
+| Catalog | `list_catalog_agents`, `get_catalog_agent`, `list_catalog_versions`, `deploy_catalog_agent` |
+| Policies | `list_policies`, `get_policy`, `apply_policy`, `delete_policy`, `translate_policy` |
+| Approval connectors | `list_approval_connectors`, `get_approval_connector`, `apply_approval_connector`, `delete_approval_connector`, `test_approval_connector`, `get_approval_connector_defaults`, `set_approval_connector_defaults`, `list_approval_connector_activity` |
+| Approvals | `approve_request` |
 
 ### Configuration
 
@@ -138,7 +128,10 @@ For Claude Code specifically, the skills can be imported through `CLAUDE.md` or 
 With the template file and MCP server configured, your AI assistant can:
 
 - **Deploy agents**: "Deploy agent.py as payment-agent with the stripe-api tool"
+- **Deploy from catalog**: "Show me the Google Workspace assistant manifest and deploy it with my workspace policies"
 - **Register tools**: "Register the Stripe API as a tool with API key auth"
+- **Design governance**: "Translate this approval policy into structured rules and apply it"
+- **Route approvals**: "Show approval connectors and test the Slack connector"
 - **Monitor runs**: "Show me the latest runs for payment-agent"
 - **Handle approvals**: "List pending approvals and approve the one for stripe-api"
 - **Analyze code**: "Analyze agent.py and tell me what tools it calls"

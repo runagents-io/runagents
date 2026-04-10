@@ -36,7 +36,7 @@ curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh
 ```bash
 # Verify
 runagents version
-# runagents 1.2.0
+# runagents 1.3.0
 ```
 
 **3. Configure**

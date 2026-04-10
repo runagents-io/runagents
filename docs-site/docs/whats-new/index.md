@@ -11,6 +11,16 @@ Use it to:
 
 ## Latest releases
 
+### April 10, 2026
+
+[SDK & MCP v1.3.0: Catalog, Governance, Identity, and Run Operations](releases/2026-04-10-sdk-mcp-v1-3-0-parity.md)
+
+Highlights:
+
+- catalog, policies, approval connectors, identity providers, and richer runs now land on the public SDK and MCP surface
+- deploy and approval flows now expose more of the production governance model from Python and assistant tools
+- the unified release line now feels much more consistent across CLI, SDK, MCP, docs, and PyPI
+
 ### April 9, 2026
 
 [CLI v1.2.0: Governance and Operations from the Terminal](releases/2026-04-09-cli-v1-2-0-governance-and-operations.md)

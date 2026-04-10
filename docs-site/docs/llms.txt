@@ -7,7 +7,7 @@ The same governed runtime can sit behind a web app, WhatsApp, Slack, an internal
 ## What's New
 
 - [What's New](https://docs.runagents.io/whats-new/): Release-oriented overview of recent platform updates
-- [CLI v1.2.0 release notes](https://docs.runagents.io/whats-new/releases/2026-04-09-cli-v1-2-0-governance-and-operations/): Catalog deploys, policies, approval connectors, identity providers, richer runs, and better external-assistant context export
+- [SDK & MCP v1.3.0 release notes](https://docs.runagents.io/whats-new/releases/2026-04-10-sdk-mcp-v1-3-0-parity/): Catalog, governance, identity, and richer run operations now land on the public SDK and assistant tool surface
 - [April 9, 2026 release notes](https://docs.runagents.io/whats-new/releases/2026-04-09-scoped-approvals-console-messaging/): Scoped approvals, clearer operations, Google Workspace calendar writes, and stronger messaging-surface workflows
 
 ## Getting Started
@@ -56,7 +56,7 @@ The same governed runtime can sit behind a web app, WhatsApp, Slack, an internal
 - `@tool` — decorator for tool handler functions
 - `runagents init [name]` — scaffold a project with agent.py, runagents.yaml, CLAUDE.md, .mcp.json
 - `runagents dev` — local dev server with mock tools, optional hot-reload
-- [PyPI](https://pypi.org/project/runagents/): v1.2.1
+- [PyPI](https://pypi.org/project/runagents/): v1.3.0
 
 ## CLI Reference
 

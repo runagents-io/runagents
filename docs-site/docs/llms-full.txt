@@ -297,7 +297,7 @@ POST /api/starter-kit — create demo echo-tool and playground-llm (idempotent).
 Install: `pip install runagents` (zero dependencies, Python 3.10+)
 MCP server: `pip install runagents[mcp]`
 Local dev hot-reload: `pip install runagents[dev]`
-PyPI: https://pypi.org/project/runagents/ (v1.2.1)
+PyPI: https://pypi.org/project/runagents/ (v1.3.0)
 
 ### Client — manage platform resources
 

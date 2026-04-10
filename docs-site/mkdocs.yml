@@ -120,6 +120,7 @@ nav:
   - What's New:
     - Overview: whats-new/index.md
     - Release Notes:
+      - SDK & MCP v1.3.0: whats-new/releases/2026-04-10-sdk-mcp-v1-3-0-parity.md
       - CLI v1.2.0: whats-new/releases/2026-04-09-cli-v1-2-0-governance-and-operations.md
       - April 2026: whats-new/releases/2026-04-09-scoped-approvals-console-messaging.md
   - Platform Guide:

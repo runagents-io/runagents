@@ -81,7 +81,7 @@ List runs with optional filters. Without filters, returns all runs in `RUNNING` 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `agent_id` | string | Filter by agent name |
-| `status` | string | Filter by status: `RUNNING`, `PAUSED_APPROVAL`, `COMPLETED`, `FAILED` |
+| `status` | string | Filter by status: `RUNNING`, `PAUSED_APPROVAL`, `PAUSED_CONSENT`, `COMPLETED`, `FAILED`, or `PAUSED` |
 
 === "curl"
 
@@ -274,9 +274,15 @@ Append an event to a run's audit log. Sequence numbers are assigned automaticall
 | `TOOL_REQUEST` | Agent initiated a tool call |
 | `TOOL_RESPONSE` | Tool returned a response |
 | `APPROVAL_REQUIRED` | Tool call blocked pending approval |
+| `CONSENT_REQUIRED` | Delegated-user consent is required before the tool call can continue |
 | `APPROVED` | Blocked action was approved |
 | `REJECTED` | Blocked action was rejected |
 | `RESUMED` | Agent resumed after approval |
+| `RUN_CREATED` | Run record created before execution begins |
+| `INVOKE_REQUESTED` | The platform dispatched execution to the agent |
+| `INVOKE_COMPLETED` | The agent invocation returned successfully |
+| `INVOKE_FAILED` | The agent invocation failed |
+| `TOOL_CALLED` | A tool was called during resumed execution |
 | `COMPLETED` | Run completed successfully |
 | `FAILED` | Run failed |
 
@@ -286,7 +292,14 @@ Append an event to a run's audit log. Sequence numbers are assigned automaticall
 
 <span class="method-get">GET</span> <span class="endpoint">/runs/:id/events</span>
 
-List all events for a run, ordered by sequence number.
+List events for a run, ordered by sequence number.
+
+### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `after_seq` | integer | Return only events after this sequence number |
+| `limit` | integer | Maximum number of events to return |
 
 ### Path Parameters
 
@@ -298,6 +311,10 @@ List all events for a run, ordered by sequence number.
 
     ```bash
     curl https://api.runagents.io/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/events \
+      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+
+    # Fetch the next 25 events after sequence 10
+    curl "https://api.runagents.io/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/events?after_seq=10&limit=25" \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 

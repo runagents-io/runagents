@@ -520,18 +520,23 @@ View and manage agent runs.
 ```bash
 runagents runs list
 runagents runs list --agent hello-world
+runagents runs list --status PAUSED_APPROVAL --user alice@example.com --limit 25
 ```
 
 ```
-ID                       AGENT         STATUS            CREATED
-01HQXYZ1234567890ABCDEF  hello-world   COMPLETED         2026-02-23 10:15:00
-01HQXYZ1234567890ABCDEG  my-agent      RUNNING           2026-02-23 10:20:00
-01HQXYZ1234567890ABCDEH  my-agent      PAUSED_APPROVAL   2026-02-23 10:22:00
+ID                       AGENT         USER               STATUS            UPDATED
+01HQXYZ1234567890ABCDEF  hello-world   alice@example.com COMPLETED         2026-02-23T10:15:00Z
+01HQXYZ1234567890ABCDEG  my-agent      alice@example.com RUNNING           2026-02-23T10:20:00Z
+01HQXYZ1234567890ABCDEH  my-agent      bob@example.com   PAUSED_APPROVAL   2026-02-23T10:22:00Z
 ```
 
 | Flag | Description |
 |------|-------------|
 | `--agent` | Filter by agent name |
+| `--status` | Filter by status |
+| `--user` | Filter by user ID |
+| `--conversation` | Filter by conversation ID |
+| `--limit` | Maximum number of runs to show (`0` for all) |
 
 ### `runs get`
 
@@ -539,24 +544,58 @@ ID                       AGENT         STATUS            CREATED
 runagents runs get <run-id>
 ```
 
-Displays run details including status, agent, timestamps, and error information.
+Displays run details including namespace, user, blocked action, timestamps, and the initial message when present.
 
 ### `runs events`
 
 ```bash
 runagents runs events <run-id>
+runagents runs events <run-id> --type APPROVAL_REQUIRED --limit 20
 ```
 
 ```
-SEQ  TYPE               DETAIL                              TIME
-1    TOOL_CALL          Called echo-tool                     10:15:01
-2    LLM_CALL           gpt-4o-mini                         10:15:02
-3    TOOL_CALL          Called stripe-api (POST /v1/charges) 10:15:03
-4    APPROVAL_REQUIRED  stripe-api: charges.create           10:15:03
-5    APPROVAL_GRANTED   Approved by admin@company.com        10:18:30
-6    TOOL_CALL          Retried stripe-api                   10:18:31
-7    COMPLETED          Run finished successfully            10:18:35
+SEQ  TYPE               ACTOR               DETAIL                                                   TIMESTAMP
+12   TOOL_REQUEST       workspace-agent     Called calendar POST https://www.googleapis.com/...      2026-04-09T15:10:03Z
+13   APPROVAL_REQUIRED  governance          Approval required for calendar (create-event)            2026-04-09T15:10:03Z
+14   APPROVED           admin@company.com   Approved by admin@company.com                            2026-04-09T15:12:40Z
+15   RESUMED            governance          Run resumed after external decision                      2026-04-09T15:12:41Z
+16   COMPLETED          workspace-agent     Run completed successfully                               2026-04-09T15:12:43Z
 ```
+
+Useful flags:
+
+- `--type`
+- `--limit`
+
+### `runs timeline`
+
+```bash
+runagents runs timeline <run-id>
+```
+
+Builds an operator timeline from the run plus its ordered events. This is the quickest way to understand whether a run is blocked on approval, blocked on consent, resumed, or failed.
+
+### `runs wait`
+
+```bash
+runagents runs wait <run-id>
+runagents runs wait <run-id> --timeout 10m --interval 5s
+```
+
+Polls the run until it reaches a terminal state (`COMPLETED` or `FAILED`) and then prints the final run record.
+
+### `runs export`
+
+```bash
+runagents runs export <run-id>
+runagents runs export <run-id> -o json
+```
+
+Exports one JSON payload containing:
+
+- the run
+- the ordered event list
+- the derived operator timeline
 
 ---
 

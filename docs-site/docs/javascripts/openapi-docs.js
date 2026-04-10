@@ -1,3 +1,15 @@
+const REDOC_BUNDLE = "vendor/redoc.standalone.js";
+const SWAGGER_BUNDLE = "vendor/swagger-ui-bundle.js";
+const SWAGGER_STYLESHEET = "../stylesheets/vendor/swagger-ui.css";
+
+function openApiDocsAssetUrl(relativePath) {
+  const currentScript = document.querySelector('script[src$="javascripts/openapi-docs.js"]');
+  if (currentScript && currentScript.src) {
+    return new URL(relativePath, currentScript.src).toString();
+  }
+  return relativePath;
+}
+
 function loadScript(src) {
   return new Promise((resolve, reject) => {
     const existing = document.querySelector(`script[src="${src}"]`);
@@ -40,7 +52,7 @@ function initRedoc() {
   }
 
   const specUrl = new URLSearchParams(window.location.search).get("spec") || container.dataset.specUrl || "../openapi.yaml";
-  loadScript("https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js")
+  loadScript(openApiDocsAssetUrl(REDOC_BUNDLE))
     .then(() => {
       if (!window.Redoc) {
         throw new Error("Redoc failed to initialize");
@@ -81,8 +93,8 @@ function initSwaggerUi() {
   }
 
   const specUrl = new URLSearchParams(window.location.search).get("spec") || container.dataset.specUrl || "../openapi.yaml";
-  loadStylesheet("https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css");
-  loadScript("https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js")
+  loadStylesheet(openApiDocsAssetUrl(SWAGGER_STYLESHEET));
+  loadScript(openApiDocsAssetUrl(SWAGGER_BUNDLE))
     .then(() => {
       if (!window.SwaggerUIBundle) {
         throw new Error("Swagger UI failed to initialize");

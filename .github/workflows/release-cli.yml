@@ -15,6 +15,7 @@ jobs:
   goreleaser:
     name: Release
     runs-on: ubuntu-latest
+    environment: pypi
     steps:
       - uses: actions/checkout@v5
         with:

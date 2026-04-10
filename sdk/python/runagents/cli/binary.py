@@ -16,7 +16,7 @@ import urllib.error
 import urllib.request
 from pathlib import Path
 
-CLI_VERSION = "1.3.0"
+CLI_VERSION = "1.3.1"
 S3_BASE = "https://runagents-releases.s3.amazonaws.com/cli"
 
 PLATFORM_MAP = {"Darwin": "darwin", "Linux": "linux", "Windows": "windows"}

@@ -42,7 +42,7 @@ hide:
 
 <!-- ── WHAT'S NEW ────────────────────────────────────────────────────────── -->
 <p class="ra-flow-label">New in April 2026</p>
-<p class="ra-section-heading">SDK & MCP v1.3.0, scoped approvals, and stronger operator workflows</p>
+<p class="ra-section-heading">RunAgents v1.3.1, SDK & MCP parity, and stronger operator workflows</p>
 <p class="ra-section-sub">RunAgents now ships a broader public SDK and assistant tool surface for catalog deploys, governance resources, identity providers, and run debugging, alongside scoped approvals and more reliable pause-and-resume behavior for governed workflows.</p>
 
 <div class="grid cards" markdown>
@@ -65,7 +65,7 @@ hide:
 
     Approval and consent workflows resume more cleanly across the console and messaging surfaces such as WhatsApp.
 
--   :material-console-line:{ .lg .middle } **SDK & MCP v1.3.0**
+-   :material-console-line:{ .lg .middle } **RunAgents v1.3.1**
 
     ---
 

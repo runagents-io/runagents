@@ -1,2 +1,2 @@
 # Runtime dependency — installs Client, Agent SDK, CLI, and runtime
-runagents>=1.3.0
+runagents>=1.3.1

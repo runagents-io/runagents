@@ -56,7 +56,7 @@ The same governed runtime can sit behind a web app, WhatsApp, Slack, an internal
 - `@tool` — decorator for tool handler functions
 - `runagents init [name]` — scaffold a project with agent.py, runagents.yaml, CLAUDE.md, .mcp.json
 - `runagents dev` — local dev server with mock tools, optional hot-reload
-- [PyPI](https://pypi.org/project/runagents/): v1.3.0
+- [PyPI](https://pypi.org/project/runagents/): v1.3.1
 
 ## CLI Reference
 

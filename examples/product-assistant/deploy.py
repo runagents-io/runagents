@@ -155,7 +155,7 @@ def main():
             required_tools=[t["name"] for t in TOOLS_TO_REGISTER],
             llm_configs=LLM_CONFIGS,
             entry_point=AGENT_FILE,
-            requirements="runagents>=1.3.0\n",
+            requirements="runagents>=1.3.1\n",
         )
         print(f"  Deploy request accepted ✓")
         if hasattr(result, "tools_created") and result.tools_created:

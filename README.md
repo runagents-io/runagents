@@ -12,7 +12,7 @@ Bring your own interface: a web app, WhatsApp, Slack, an internal portal, or a c
 
 ## What's New
 
-- **SDK & MCP v1.3.0** — catalog, governance, identity, and richer run operations now land on the public Python SDK and assistant tool surface
+- **RunAgents v1.3.1** — release pipeline hardening for the public SDK and MCP line, with Trusted Publishing wired for PyPI
 - **Scoped approvals** — approve one action, one run, or a short-lived user/agent/tool work window for governed writes
 - **Agent catalog workflows** — start from richer blueprints such as the Google Workspace assistant for real policy, approval, and OAuth flows
 - **Improved pause and resume behavior** — stronger operator and messaging-surface handling for approvals and consent
@@ -20,7 +20,7 @@ Bring your own interface: a web app, WhatsApp, Slack, an internal portal, or a c
 Read the latest release notes:
 
 - [What's New](https://docs.runagents.io/whats-new/)
-- [SDK & MCP v1.3.0 release notes](https://docs.runagents.io/whats-new/releases/2026-04-10-sdk-mcp-v1-3-0-parity/)
+- [RunAgents v1.3.1 release notes](https://docs.runagents.io/whats-new/releases/2026-04-10-v1-3-1-release-pipeline-hardening/)
 - [April 9, 2026 release notes](https://docs.runagents.io/whats-new/releases/2026-04-09-scoped-approvals-console-messaging/)
 
 ## Documentation

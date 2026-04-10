@@ -335,7 +335,7 @@ result = client.agents.deploy(
     system_prompt="You are a payment assistant.",
     required_tools=["stripe-api"],
     llm_configs=[{"provider": "openai", "model": "gpt-4o-mini", "role": "default"}],
-    requirements="runagents>=1.3.0\n",
+    requirements="runagents>=1.3.1\n",
     entry_point="agent.py",
 )
 print(result.status)

@@ -13,6 +13,16 @@ Use it to:
 
 ### April 10, 2026
 
+[RunAgents v1.3.1: Release Pipeline Hardening](releases/2026-04-10-v1-3-1-release-pipeline-hardening.md)
+
+Highlights:
+
+- PyPI Trusted Publishing is now wired into the GitHub release workflow
+- the public release pipeline is aligned across CLI, SDK, MCP, docs, npm, Homebrew, and S3
+- this patch release hardens the delivery path for the SDK/MCP work introduced in `v1.3.0`
+
+### April 10, 2026
+
 [SDK & MCP v1.3.0: Catalog, Governance, Identity, and Run Operations](releases/2026-04-10-sdk-mcp-v1-3-0-parity.md)
 
 Highlights:

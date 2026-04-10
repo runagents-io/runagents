@@ -99,7 +99,7 @@ The MCP server now exposes a broader assistant toolset that covers:
 | Policies | `list_policies`, `get_policy`, `apply_policy`, `delete_policy`, `translate_policy` |
 | Identity providers | `list_identity_providers`, `get_identity_provider`, `apply_identity_provider`, `delete_identity_provider` |
 | Approval connectors | `list_approval_connectors`, `get_approval_connector`, `apply_approval_connector`, `delete_approval_connector`, `test_approval_connector`, `get_approval_connector_defaults`, `set_approval_connector_defaults`, `list_approval_connector_activity` |
-| Approvals | `approve_request` with optional `scope` and `duration` |
+| Approvals | `approve_request` with optional `scope` and `duration`, plus `reject_request` |
 
 ### Configuration
 

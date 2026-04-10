@@ -8,6 +8,7 @@ from runagents.types import (
     ModelProvider,
     Run,
     Event,
+    ApprovalRequest,
     DeployResult,
     AnalysisResult,
     CatalogManifest,
@@ -101,6 +102,36 @@ class TestDeployResultFromDict(unittest.TestCase):
         d = DeployResult.from_dict({"agent_name": "test", "status": "created", "tools_created": ["echo"]})
         self.assertEqual(d.agent_name, "test")
         self.assertEqual(d.tools_created, ["echo"])
+
+
+class TestApprovalRequestFromDict(unittest.TestCase):
+    def test_basic(self):
+        request = ApprovalRequest.from_dict(
+            {
+                "id": "req-123",
+                "subject": "alice@example.com",
+                "agent_id": "billing-agent",
+                "tool_id": "stripe-api",
+                "status": "APPROVED",
+                "scope": "run",
+                "duration": "4h",
+                "approver_id": "ops@example.com",
+                "action_id": "act-123",
+                "run_id": "run-123",
+                "expires_at": "2026-04-10T18:00:00Z",
+            }
+        )
+        self.assertEqual(request.id, "req-123")
+        self.assertEqual(request.agent_id, "billing-agent")
+        self.assertEqual(request.tool_id, "stripe-api")
+        self.assertEqual(request.scope, "run")
+        self.assertEqual(request.approver_id, "ops@example.com")
+
+    def test_fallbacks(self):
+        request = ApprovalRequest.from_dict({"agent": "catalog-agent", "tool": "gmail", "status": "PENDING"})
+        self.assertEqual(request.agent_id, "catalog-agent")
+        self.assertEqual(request.tool_id, "gmail")
+        self.assertEqual(request.status, "PENDING")
 
 
 class TestAnalysisResultFromDict(unittest.TestCase):

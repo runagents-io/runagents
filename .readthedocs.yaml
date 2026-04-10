@@ -11,7 +11,7 @@ build:
     python: "3.13"
 
 mkdocs:
-  configuration: docs-site/mkdocs.yml
+  configuration: docs-site/mkdocs-rtd.yml
 
 python:
   install:

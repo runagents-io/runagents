@@ -6,6 +6,7 @@ from unittest import mock
 from runagents.client import (
     APIError,
     ApprovalConnector,
+    ApprovalRequest,
     CatalogManifest,
     Client,
     Event,
@@ -212,6 +213,61 @@ class TestIdentityProviderResource(unittest.TestCase):
         self.assertEqual(provider.name, "google-oidc")
 
 
+class TestApprovalResource(unittest.TestCase):
+    def test_build_approval_decision_omits_empty_duration(self):
+        self.assertEqual(_build_approval_decision(scope="run"), {"scope": "run"})
+        self.assertEqual(
+            _build_approval_decision(scope="window", duration="4h"),
+            {"scope": "agent_user_ttl", "duration": "4h"},
+        )
+
+    def test_list_returns_typed_requests(self):
+        c = Client(endpoint="http://example.com")
+        with mock.patch.object(
+            c,
+            "get",
+            return_value=[
+                {
+                    "id": "req-1",
+                    "subject": "alice@example.com",
+                    "agent_id": "billing-agent",
+                    "tool_id": "stripe-api",
+                    "status": "PENDING",
+                }
+            ],
+        ):
+            approvals = c.approvals.list()
+        self.assertEqual(len(approvals), 1)
+        self.assertIsInstance(approvals[0], ApprovalRequest)
+        self.assertEqual(approvals[0].id, "req-1")
+
+    def test_approve_returns_typed_request(self):
+        c = Client(endpoint="http://example.com")
+        with mock.patch.object(
+            c,
+            "post",
+            return_value={"id": "req-1", "status": "APPROVED", "scope": "run", "tool_id": "stripe-api"},
+        ) as mocked_post:
+            approval = c.approvals.approve("req-1", scope="run")
+        mocked_post.assert_called_once_with("/governance/requests/req-1/approve", {"scope": "run"})
+        self.assertIsInstance(approval, ApprovalRequest)
+        self.assertEqual(approval.status, "APPROVED")
+        self.assertEqual(approval.scope, "run")
+
+    def test_reject_returns_typed_request(self):
+        c = Client(endpoint="http://example.com")
+        with mock.patch.object(
+            c,
+            "post",
+            return_value={"id": "req-1", "status": "REJECTED", "reason": "Denied"},
+        ) as mocked_post:
+            approval = c.approvals.reject("req-1")
+        mocked_post.assert_called_once_with("/governance/requests/req-1/reject")
+        self.assertIsInstance(approval, ApprovalRequest)
+        self.assertEqual(approval.status, "REJECTED")
+        self.assertEqual(approval.reason, "Denied")
+
+
 class TestRunResource(unittest.TestCase):
     def test_list_applies_client_side_user_and_conversation_filters(self):
         c = Client(endpoint="http://example.com")
@@ -342,7 +398,7 @@ class TestDeployAndApprovalParity(unittest.TestCase):
             c.approvals.approve("req_123", scope="run", duration="")
         mocked_post.assert_called_once_with(
             "/governance/requests/req_123/approve",
-            {"scope": "run", "duration": ""},
+            {"scope": "run"},
         )
 
 

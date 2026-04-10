@@ -15,7 +15,7 @@ from runagents.types import (
     CatalogListResponse, CatalogManifest, CatalogVersionsResponse,
     Policy, PolicyRule, ApprovalConnector, ApprovalConnectorDefaults,
     ApprovalConnectorActivity, ApprovalConnectorTestResult,
-    IdentityProvider, IdentityProviderConfig, IdentityProviderSpec,
+    ApprovalRequest, IdentityProvider, IdentityProviderConfig, IdentityProviderSpec,
     RunTimelineEntry, RunExport,
 )
 
@@ -294,16 +294,20 @@ class _ApprovalResource:
     def __init__(self, client: Client):
         self._c = client
 
-    def list(self) -> list[dict]:
+    def list(self) -> list[ApprovalRequest]:
         result = self._c.get("/governance/requests")
-        return result if isinstance(result, list) else []
+        if isinstance(result, list):
+            return [ApprovalRequest.from_dict(item) for item in result]
+        return []
 
-    def approve(self, request_id: str, scope: str = "", duration: str = "") -> dict:
+    def approve(self, request_id: str, scope: str = "", duration: str = "") -> ApprovalRequest:
         body = _build_approval_decision(scope=scope, duration=duration)
-        return self._c.post(f"/governance/requests/{request_id}/approve", body)
+        result = self._c.post(f"/governance/requests/{urllib.parse.quote(request_id, safe='')}/approve", body)
+        return ApprovalRequest.from_dict(result if isinstance(result, dict) else {})
 
-    def reject(self, request_id: str) -> dict:
-        return self._c.post(f"/governance/requests/{request_id}/reject")
+    def reject(self, request_id: str) -> ApprovalRequest:
+        result = self._c.post(f"/governance/requests/{urllib.parse.quote(request_id, safe='')}/reject")
+        return ApprovalRequest.from_dict(result if isinstance(result, dict) else {})
 
 
 class _CatalogResource:
@@ -689,7 +693,12 @@ def _build_approval_decision(scope: str = "", duration: str = "") -> dict[str, A
     duration = duration.strip()
     if not normalized_scope and not duration:
         return None
-    return {"scope": normalized_scope, "duration": duration}
+    body: dict[str, Any] = {}
+    if normalized_scope:
+        body["scope"] = normalized_scope
+    if duration:
+        body["duration"] = duration
+    return body or None
 
 
 def _normalize_approval_scope(scope: str = "", duration: str = "") -> str:

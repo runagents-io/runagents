@@ -93,12 +93,13 @@ The MCP server now exposes a broader assistant toolset that covers:
 
 | Family | Tools |
 |--------|-------|
-| Workspace | `list_agents`, `get_agent`, `list_tools`, `list_models`, `list_runs`, `get_run_events`, `export_context`, `analyze_code` |
+| Workspace | `list_agents`, `get_agent`, `list_tools`, `list_models`, `list_runs`, `get_run`, `get_run_events`, `get_run_timeline`, `wait_for_run`, `export_run`, `export_context`, `analyze_code` |
 | Deploy | `deploy_agent`, `create_tool`, `validate_plan`, `apply_plan`, `seed_starter_kit` |
 | Catalog | `list_catalog_agents`, `get_catalog_agent`, `list_catalog_versions`, `deploy_catalog_agent` |
 | Policies | `list_policies`, `get_policy`, `apply_policy`, `delete_policy`, `translate_policy` |
+| Identity providers | `list_identity_providers`, `get_identity_provider`, `apply_identity_provider`, `delete_identity_provider` |
 | Approval connectors | `list_approval_connectors`, `get_approval_connector`, `apply_approval_connector`, `delete_approval_connector`, `test_approval_connector`, `get_approval_connector_defaults`, `set_approval_connector_defaults`, `list_approval_connector_activity` |
-| Approvals | `approve_request` |
+| Approvals | `approve_request` with optional `scope` and `duration` |
 
 ### Configuration
 
@@ -131,9 +132,10 @@ With the template file and MCP server configured, your AI assistant can:
 - **Deploy from catalog**: "Show me the Google Workspace assistant manifest and deploy it with my workspace policies"
 - **Register tools**: "Register the Stripe API as a tool with API key auth"
 - **Design governance**: "Translate this approval policy into structured rules and apply it"
+- **Configure identity**: "Create the Google OIDC identity provider for my workspace host"
 - **Route approvals**: "Show approval connectors and test the Slack connector"
-- **Monitor runs**: "Show me the latest runs for payment-agent"
-- **Handle approvals**: "List pending approvals and approve the one for stripe-api"
+- **Monitor runs**: "Show me the latest runs for payment-agent and wait for the newest one to finish"
+- **Handle approvals**: "List pending approvals and approve the one for stripe-api for this run only"
 - **Analyze code**: "Analyze agent.py and tell me what tools it calls"
 - **Export context**: "Show me all agents, tools, and model providers in my workspace"
 

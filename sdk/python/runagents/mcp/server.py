@@ -58,7 +58,7 @@ mcp = FastMCP(
     "RunAgents",
     instructions=(
         "RunAgents platform server. Use these tools to deploy AI agents, "
-        "manage tools, monitor runs, and handle approvals. "
+        "manage tools, monitor runs, configure governance resources, and handle approvals. "
         "Read tools are safe to call anytime. Mutate tools change platform state."
     ),
 )
@@ -99,28 +99,79 @@ def list_models() -> str:
 
 
 @mcp.tool()
-def list_runs(agent: str = "", limit: int = 20) -> str:
-    """List agent runs, optionally filtered by agent name.
+def list_runs(
+    agent: str = "",
+    status: str = "",
+    user: str = "",
+    conversation: str = "",
+    limit: int = 20,
+) -> str:
+    """List agent runs with the same filter surface exposed by the CLI.
 
     Args:
         agent: Filter by agent name (optional)
+        status: Filter by run status (optional)
+        user: Filter by user id (optional)
+        conversation: Filter by conversation id (optional)
         limit: Maximum number of runs to return (default 20)
     """
     def _call():
-        return _get_client().runs.list(agent=agent, limit=limit)
+        return _get_client().runs.list(
+            agent=agent,
+            status=status,
+            user=user,
+            conversation=conversation,
+            limit=limit,
+        )
     return _safe_call(_call)
 
 
 @mcp.tool()
-def get_run_events(run_id: str) -> str:
-    """Get the event timeline for a specific run, including tool calls and approvals.
+def get_run(run_id: str) -> str:
+    """Get details for a specific run."""
+
+    return _safe_call(lambda: _get_client().runs.get(run_id))
+
+
+@mcp.tool()
+def get_run_events(run_id: str, event_type: str = "", limit: int = 0) -> str:
+    """Get run events, optionally narrowed by event type or tail limit.
 
     Args:
         run_id: The run ID
+        event_type: Optional event type filter
+        limit: Optional max number of events to return
     """
     def _call():
-        return _get_client().runs.events(run_id)
+        return _get_client().runs.events(run_id, event_type=event_type, limit=limit)
     return _safe_call(_call)
+
+
+@mcp.tool()
+def get_run_timeline(run_id: str) -> str:
+    """Build an operator-friendly timeline for a run from its event stream."""
+
+    return _safe_call(lambda: _get_client().runs.timeline(run_id))
+
+
+@mcp.tool()
+def wait_for_run(run_id: str, timeout_seconds: int = 300, interval_seconds: int = 2) -> str:
+    """Wait until a run reaches a terminal status."""
+
+    return _safe_call(
+        lambda: _get_client().runs.wait(
+            run_id,
+            timeout_seconds=timeout_seconds,
+            interval_seconds=interval_seconds,
+        )
+    )
+
+
+@mcp.tool()
+def export_run(run_id: str) -> str:
+    """Export a run together with its events and synthesized timeline."""
+
+    return _safe_call(lambda: _get_client().runs.export(run_id))
 
 
 @mcp.tool()
@@ -213,6 +264,20 @@ def list_approval_connector_activity(limit: int = 50) -> str:
 
 
 @mcp.tool()
+def list_identity_providers() -> str:
+    """List end-user identity providers configured in the workspace."""
+
+    return _safe_call(lambda: _get_client().identity_providers.list())
+
+
+@mcp.tool()
+def get_identity_provider(name: str) -> str:
+    """Get a single identity provider by name."""
+
+    return _safe_call(lambda: _get_client().identity_providers.get(name))
+
+
+@mcp.tool()
 def export_context() -> str:
     """Export the full workspace context — agents, tools, models, policies, approvals, and drafts."""
     return _safe_call(lambda: _get_client().export_context())
@@ -244,8 +309,13 @@ def deploy_agent(
     llm_configs: list[dict] | None = None,
     requirements: str = "",
     entry_point: str = "",
+    framework: str = "",
+    policies: list[str] | None = None,
+    identity_provider: str = "",
+    draft_id: str = "",
+    artifact_id: str = "",
 ) -> str:
-    """Deploy an agent from source code or a pre-built image.
+    """Deploy an agent from source code, a pre-built image, a draft, or an artifact.
 
     Args:
         agent_name: Unique name for the agent
@@ -257,6 +327,11 @@ def deploy_agent(
         llm_configs: LLM configurations (list of {provider, model, role})
         requirements: Python pip requirements (newline-separated)
         entry_point: Entry point filename
+        framework: Framework hint for source deploys
+        policies: Policies to bind at deploy time
+        identity_provider: Identity provider to bind at deploy time
+        draft_id: Deploy from an existing draft
+        artifact_id: Deploy from an existing artifact
     """
     def _call():
         return _get_client().agents.deploy(
@@ -269,7 +344,12 @@ def deploy_agent(
             llm_configs=llm_configs,
             requirements=requirements,
             entry_point=entry_point,
-        ).__dict__
+            framework=framework,
+            policies=policies,
+            identity_provider=identity_provider,
+            draft_id=draft_id,
+            artifact_id=artifact_id,
+        )
     return _safe_call(_call)
 
 
@@ -347,13 +427,15 @@ def apply_plan(plan: dict) -> str:
 
 
 @mcp.tool()
-def approve_request(request_id: str) -> str:
-    """Approve a pending access request, granting the agent time-limited access to the tool.
+def approve_request(request_id: str, scope: str = "", duration: str = "") -> str:
+    """Approve a pending access request with optional scope and duration.
 
     Args:
         request_id: The access request ID
+        scope: Approval scope (`once`, `run`, or `window`)
+        duration: Optional duration for `window` scope (for example `1h` or `4h`)
     """
-    return _safe_call(lambda: _get_client().approvals.approve(request_id))
+    return _safe_call(lambda: _get_client().approvals.approve(request_id, scope=scope, duration=duration))
 
 
 @mcp.tool()
@@ -375,6 +457,20 @@ def apply_approval_connector(connector: dict) -> str:
     """Create or update an approval connector from a structured connector document."""
 
     return _safe_call(lambda: _get_client().approval_connectors.apply(connector))
+
+
+@mcp.tool()
+def apply_identity_provider(identity_provider: dict, name: str = "") -> str:
+    """Create or update an identity provider from a structured document."""
+
+    return _safe_call(lambda: _get_client().identity_providers.apply(identity_provider, name=name))
+
+
+@mcp.tool()
+def delete_identity_provider(name: str) -> str:
+    """Delete an identity provider by name."""
+
+    return _safe_call(lambda: _get_client().identity_providers.delete(name))
 
 
 @mcp.tool()

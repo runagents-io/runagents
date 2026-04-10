@@ -413,7 +413,7 @@ Config stored at ~/.runagents/config.json. Environment variables override: RUNAG
 
 Install: `pip install runagents[mcp]`
 
-Expanded toolset covering workspace inspection, deploy flows, catalog manifests, policies, approval connectors, runs, and approvals.
+Expanded toolset covering workspace inspection, deploy flows, catalog manifests, policies, identity providers, approval connectors, richer runs, and scoped approvals.
 
 Claude Code config:
 ```json

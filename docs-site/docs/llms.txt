@@ -50,7 +50,7 @@ The same governed runtime can sit behind a web app, WhatsApp, Slack, an internal
 
 - [Python SDK](https://docs.runagents.io/sdk/): Full reference — Client, Agent, @tool, CLI, MCP, runtime
 - `pip install runagents` — zero dependencies, Python 3.10+
-- `pip install runagents[mcp]` — includes the MCP server for AI coding assistants, with tools for deploy, catalog, policies, approval connectors, runs, and approvals
+- `pip install runagents[mcp]` — includes the MCP server for AI coding assistants, with tools for deploy, catalog, policies, identity providers, approval connectors, runs, and scoped approvals
 - `Client` — manage agents, tools, runs, approvals, deploy, analyze from Python
 - `Agent` — write agent code: call_tool(), chat(), reads operator env vars
 - `@tool` — decorator for tool handler functions

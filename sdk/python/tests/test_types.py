@@ -13,6 +13,7 @@ from runagents.types import (
     CatalogManifest,
     Policy,
     ApprovalConnectorTestResult,
+    IdentityProvider,
 )
 
 
@@ -60,9 +61,39 @@ class TestToolFromDict(unittest.TestCase):
 
 class TestRunFromDict(unittest.TestCase):
     def test_basic(self):
-        r = Run.from_dict({"id": "run-1", "agent": "agent1", "status": "COMPLETED"})
+        r = Run.from_dict(
+            {
+                "id": "run-1",
+                "agent_id": "agent1",
+                "conversation_id": "conv-1",
+                "user_id": "alice@example.com",
+                "status": "COMPLETED",
+            }
+        )
         self.assertEqual(r.id, "run-1")
+        self.assertEqual(r.agent_id, "agent1")
+        self.assertEqual(r.agent, "agent1")
+        self.assertEqual(r.user_id, "alice@example.com")
         self.assertEqual(r.status, "COMPLETED")
+
+
+class TestEventFromDict(unittest.TestCase):
+    def test_modern_shape(self):
+        e = Event.from_dict(
+            {
+                "event_id": "evt-1",
+                "run_id": "run-1",
+                "seq": 3,
+                "type": "APPROVAL_REQUIRED",
+                "actor": "alice@example.com",
+                "timestamp": "2026-04-09T10:01:00Z",
+            }
+        )
+        self.assertEqual(e.event_id, "evt-1")
+        self.assertEqual(e.id, "evt-1")
+        self.assertEqual(e.seq, 3)
+        self.assertEqual(e.sequence, 3)
+        self.assertEqual(e.created_at, "2026-04-09T10:01:00Z")
 
 
 class TestDeployResultFromDict(unittest.TestCase):
@@ -148,6 +179,30 @@ class TestApprovalConnectorTestResultFromDict(unittest.TestCase):
         self.assertEqual(result.connector_type, "webhook")
         self.assertEqual(len(result.checks), 1)
         self.assertEqual(result.checks[0].label, "Configuration")
+
+
+class TestIdentityProviderFromDict(unittest.TestCase):
+    def test_provider(self):
+        provider = IdentityProvider.from_dict(
+            {
+                "name": "google-oidc",
+                "namespace": "default",
+                "spec": {
+                    "host": "portal.example.com",
+                    "identityProvider": {
+                        "issuer": "https://accounts.google.com",
+                        "jwksUri": "https://www.googleapis.com/oauth2/v3/certs",
+                        "audiences": ["portal.example.com"],
+                    },
+                    "userIDClaim": "email",
+                    "allowedDomains": ["example.com"],
+                },
+            }
+        )
+        self.assertEqual(provider.name, "google-oidc")
+        self.assertEqual(provider.spec.host, "portal.example.com")
+        self.assertEqual(provider.spec.identity_provider.issuer, "https://accounts.google.com")
+        self.assertEqual(provider.spec.user_id_claim, "email")
 
 
 if __name__ == "__main__":

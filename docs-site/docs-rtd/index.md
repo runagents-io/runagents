@@ -8,6 +8,7 @@ Use it for:
 - MCP setup and tool reference
 - generated Python API reference pages
 - approval, deploy, and run-debugging workflows from code and assistants
+- quick links into the canonical platform API reference
 
 For the full product documentation, platform concepts, CLI reference, and HTTP API guides, use [docs.runagents.io](https://docs.runagents.io).
 
@@ -17,6 +18,7 @@ For the full product documentation, platform concepts, CLI reference, and HTTP A
 - [Python SDK overview](python/index.md)
 - [Approval workflows](python/approvals.md)
 - [MCP tools](mcp/tools.md)
+- [Platform API reference](platform-api/index.md)
 
 ```{toctree}
 :maxdepth: 2
@@ -25,6 +27,7 @@ For the full product documentation, platform concepts, CLI reference, and HTTP A
 install
 python/index
 mcp/index
+platform-api/index
 platform-api/approvals
 releases/index
 ```

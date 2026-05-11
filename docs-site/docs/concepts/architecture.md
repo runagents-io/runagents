@@ -17,25 +17,7 @@ The user-facing interface can live anywhere. The same governed agent runtime can
 
 RunAgents handles execution, identity propagation, policy enforcement, approvals, and outbound tool security no matter which surface initiated the request.
 
-```mermaid
-flowchart LR
-    client["Client Application"]
-    idp["Identity Provider<br/>(OIDC/JWKS)"]
-    ingress["RunAgents Ingress"]
-    runtime["Agent Runtime"]
-    llm["LLM Gateway"]
-    egress["Policy & Egress Layer"]
-    model["Model Provider APIs<br/>(OpenAI, Anthropic, Bedrock, ...)"]
-    tools["External Tool APIs<br/>(Stripe, Slack, GitHub, ...)"]
-
-    client -->|"JWT"| ingress
-    ingress -.->|"Validate signature & claims"| idp
-    ingress -->|"X-End-User-ID"| runtime
-    runtime -->|"Model requests"| llm
-    runtime -->|"Tool requests"| egress
-    llm --> model
-    egress --> tools
-```
+![RunAgents detailed architecture — governed action path](../assets/det_architecture-v2.png)
 
 ---
 

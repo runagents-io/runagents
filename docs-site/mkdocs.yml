@@ -77,7 +77,6 @@ extra_css:
 extra_javascript:
   - https://unpkg.com/mermaid@10/dist/mermaid.min.js
   - javascripts/mermaid-init.js
-  - javascripts/chat.js
   - javascripts/openapi-docs.js
 
 plugins:

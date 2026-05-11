@@ -1,3 +1,4 @@
+---
 title: RunAgents — Govern AI Agent Actions in Production
 description: RunAgents lets teams deploy agents built with any framework and govern every tool call with identity, policy, approvals, credential control, and run-level observability.
 hide:
@@ -30,10 +31,6 @@ hide:
   <div class="ra-stat">
     <span class="ra-stat-num">100%</span>
     <span class="ra-stat-label">Tool calls<br>policy-checked</span>
-  </div>
-  <div class="ra-stat">
-    <span class="ra-stat-num">4</span>
-    <span class="ra-stat-label">LLM providers<br>supported</span>
   </div>
 </div>
 
@@ -117,7 +114,7 @@ hide:
 <p class="ra-section-heading">How governed actions move through RunAgents</p>
 <p class="ra-section-sub">Every tool call moves through ingress, runtime, and egress before it reaches a production system.</p>
 
-![RunAgents architecture — three-stage request flow](assets/architecture.svg)
+![RunAgents architecture — three-stage request flow](assets/architecture-v2.png)
 
 <div class="grid cards" markdown style="margin-top:1.5rem">
 

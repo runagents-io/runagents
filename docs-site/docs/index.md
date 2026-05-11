@@ -38,9 +38,9 @@ hide:
 </div>
 
 <!-- ── FEATURES GRID ──────────────────────────────────────────────────────── -->
-<p class="ra-flow-label">Platform capabilities</p>
-<p class="ra-section-heading">Everything your agent needs to act safely in production</p>
-<p class="ra-section-sub">From deploy to approval workflows — the full stack for production-grade AI agents.</p>
+<p class="ra-flow-label">Governed control layer</p>
+<p class="ra-section-heading">What RunAgents enforces before actions land</p>
+<p class="ra-section-sub">Deploy agents with any framework, then add identity, policy, approvals, credentials, and run visibility in one governed layer.</p>
 
 <div class="grid cards" markdown>
 
@@ -113,9 +113,9 @@ hide:
 ---
 
 <!-- ── ARCHITECTURE ──────────────────────────────────────────────────────── -->
-<p class="ra-flow-label">Architecture</p>
-<p class="ra-section-heading">Three-stage secure request flow</p>
-<p class="ra-section-sub">Every agent invocation moves through ingress → runtime → egress, with identity and policy enforced at each stage.</p>
+<p class="ra-flow-label">Action path</p>
+<p class="ra-section-heading">How governed actions move through RunAgents</p>
+<p class="ra-section-sub">Every tool call moves through ingress, runtime, and egress before it reaches a production system.</p>
 
 ![RunAgents architecture — three-stage request flow](assets/architecture.svg)
 
@@ -141,7 +141,7 @@ hide:
 
 <!-- ── THREE PILLARS ─────────────────────────────────────────────────────── -->
 <p class="ra-flow-label">Core concepts</p>
-<p class="ra-section-heading">Security is the default, not an add-on</p>
+<p class="ra-section-heading">Identity, policy, approvals, and credentials stay on the same path</p>
 
 === ":material-account-arrow-right: Identity Propagation"
 
@@ -179,8 +179,9 @@ hide:
 ---
 
 <!-- ── TERMINAL QUICKSTART ───────────────────────────────────────────────── -->
-<p class="ra-flow-label">Get started in seconds</p>
-<p class="ra-section-heading">One command to deploy from the terminal</p>
+<p class="ra-flow-label">Build agents</p>
+<p class="ra-section-heading">Start from the CLI or bring your existing code</p>
+<p class="ra-section-sub">Use the terminal when you want the fastest path to a governed deployment, or bring existing agents in through the builder workflows.</p>
 
 <div class="ra-terminal">
   <div class="ra-terminal-bar">

@@ -118,7 +118,7 @@ hide:
 <p class="ra-section-heading">How governed actions move through RunAgents</p>
 <p class="ra-section-sub">Every tool call moves through ingress, runtime, and egress before it reaches a production system.</p>
 
-![RunAgents architecture — three-stage request flow](assets/architecture.svg)
+![RunAgents architecture — three-stage request flow](assets/architecture-v2.png)
 
 <div class="grid cards" markdown style="margin-top:1.5rem">
 

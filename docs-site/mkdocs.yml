@@ -117,67 +117,70 @@ markdown_extensions:
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
 
 nav:
-  - Home: index.md
-  - Getting Started:
+  - Start here:
+    - Overview: index.md
     - Quickstart: getting-started/quickstart.md
-    - API Quickstart: getting-started/api-quickstart.md
     - CLI Quickstart: getting-started/cli-quickstart.md
+    - API Quickstart: getting-started/api-quickstart.md
+    - Core concepts: getting-started/core-concepts.md
+    - What's new:
+      - Overview: whats-new/index.md
+      - Release notes:
+        - RunAgents v1.3.1: whats-new/releases/2026-04-10-v1-3-1-release-pipeline-hardening.md
+        - SDK & MCP v1.3.0: whats-new/releases/2026-04-10-sdk-mcp-v1-3-0-parity.md
+        - CLI v1.2.0: whats-new/releases/2026-04-09-cli-v1-2-0-governance-and-operations.md
+        - April 2026: whats-new/releases/2026-04-09-scoped-approvals-console-messaging.md
+  - Build agents:
+    - Writing agents: getting-started/writing-agents.md
+    - Deploying agents: platform/deploying-agents.md
+    - Deploy from AI tools: getting-started/deploy-from-ai-tools.md
     - Copilot: getting-started/copilot.md
-    - Writing Agents: getting-started/writing-agents.md
-    - Deploy from AI Tools: getting-started/deploy-from-ai-tools.md
-  - What's New:
-    - Overview: whats-new/index.md
-    - Release Notes:
-      - RunAgents v1.3.1: whats-new/releases/2026-04-10-v1-3-1-release-pipeline-hardening.md
-      - SDK & MCP v1.3.0: whats-new/releases/2026-04-10-sdk-mcp-v1-3-0-parity.md
-      - CLI v1.2.0: whats-new/releases/2026-04-09-cli-v1-2-0-governance-and-operations.md
-      - April 2026: whats-new/releases/2026-04-09-scoped-approvals-console-messaging.md
-  - Platform Guide:
-    - Dashboard: platform/dashboard.md
-    - Agent Runtime: platform/agent-runtime.md
-    - Agent Catalog: platform/agent-catalog.md
-    - Deploying Agents: platform/deploying-agents.md
-    - Registering Tools: platform/registering-tools.md
-    - Model Providers: platform/model-providers.md
-    - Identity Providers: platform/identity-providers.md
+    - Agent catalog: platform/agent-catalog.md
+    - Python SDK: sdk/index.md
+    - CLI: build-agents/cli.md
+  - Govern actions:
+    - Identity propagation: concepts/identity-propagation.md
+    - Policy model: concepts/policy-model.md
     - Approvals: platform/approvals.md
-  - Python SDK:
-    - Overview: sdk/index.md
-  - API Reference:
-    - Overview: api/overview.md
-    - OpenAPI Contract: api/openapi.md
-    - Redoc Reference: api/redoc.md
-    - Swagger UI: api/swagger.md
-    - Catalog: api/catalog.md
-    - Deploy: api/deploy.md
-    - Policies: api/policies.md
-    - Approval Connectors: api/approval-connectors.md
-    - Agents: api/agents.md
-    - Tools: api/tools.md
-    - Model Providers & LLM Gateway: api/model-providers.md
-    - Identity Providers: api/identity-providers.md
-    - Runs: api/runs.md
-    - Approvals: api/approvals.md
-    - Ingestion: api/ingestion.md
-    - Build: api/build.md
-    - Billing: api/billing.md
-  - CLI Reference:
-    - Installation: cli/installation.md
-    - Commands: cli/commands.md
-    - Action Plans: cli/action-plans.md
-    - Action Plan Examples: cli/plan-examples.md
-    - External Assistants: cli/external-assistants.md
-    - AI Assistant Setup: cli/ai-assistant-setup.md
-    - RunAgents Skills: cli/skills.md
-  - Concepts:
-    - Architecture: concepts/architecture.md
-    - Identity Propagation: concepts/identity-propagation.md
-    - Policy Model: concepts/policy-model.md
-    - OAuth & Consent: concepts/oauth-consent.md
-  - Operations:
-    - Run Lifecycle: operations/runs.md
+    - OAuth & consent: concepts/oauth-consent.md
+    - Credential control: govern-actions/credential-control.md
+    - Approval connectors: govern-actions/approval-connectors.md
+    - Registering tools: platform/registering-tools.md
+  - Operate in production:
+    - Dashboard: platform/dashboard.md
+    - Agent runtime: platform/agent-runtime.md
+    - Run lifecycle: operations/runs.md
+    - Run observability: operate-in-production/run-observability.md
+    - Model providers: platform/model-providers.md
+    - Identity providers: platform/identity-providers.md
     - Troubleshooting: operations/troubleshooting.md
-  - Self-Hosted:
-    - Deployment Guide: self-hosted/deployment.md
-  - Pricing: pricing.md
-  - Contact & Trial: contact.md
+  - Security & deployment:
+    - Security overview: security/security-overview.md
+    - Architecture: concepts/architecture.md
+    - Self-hosted deployment: self-hosted/deployment.md
+    - Data handling: security/data-handling.md
+    - Audit logs: security/audit-logs.md
+    - Workspace controls: security/workspace-controls.md
+    - Pricing: pricing.md
+    - Contact & trial: contact.md
+  - Reference:
+    - API overview: api/overview.md
+    - OpenAPI contract: api/openapi.md
+    - Redoc reference: api/redoc.md
+    - Swagger UI: api/swagger.md
+    - API endpoints:
+      - Catalog: api/catalog.md
+      - Deploy: api/deploy.md
+      - Policies: api/policies.md
+      - Approval Connectors: api/approval-connectors.md
+      - Agents: api/agents.md
+      - Tools: api/tools.md
+      - Model Providers & LLM Gateway: api/model-providers.md
+      - Identity Providers: api/identity-providers.md
+      - Runs: api/runs.md
+      - Approvals: api/approvals.md
+      - Ingestion: api/ingestion.md
+      - Build: api/build.md
+      - Billing: api/billing.md
+    - CLI reference: reference/cli-reference.md
+    - SDK reference: reference/sdk-reference.md

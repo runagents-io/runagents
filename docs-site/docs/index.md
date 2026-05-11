@@ -32,10 +32,6 @@ hide:
     <span class="ra-stat-num">100%</span>
     <span class="ra-stat-label">Tool calls<br>policy-checked</span>
   </div>
-  <div class="ra-stat">
-    <span class="ra-stat-num">4</span>
-    <span class="ra-stat-label">LLM providers<br>supported</span>
-  </div>
 </div>
 
 <!-- ── FEATURES GRID ──────────────────────────────────────────────────────── -->

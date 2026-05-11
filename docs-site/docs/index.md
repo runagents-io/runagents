@@ -1,6 +1,5 @@
----
-title: RunAgents — Deploy AI Agents That Act Securely
-description: Deploy AI agents that call external tools and APIs with enterprise-grade identity, policy, and approval workflows. No infrastructure to manage.
+title: RunAgents — Govern AI Agent Actions in Production
+description: RunAgents lets teams deploy agents built with any framework and govern every tool call with identity, policy, approvals, credential control, and run-level observability.
 hide:
   - navigation
   - toc
@@ -8,13 +7,13 @@ hide:
 
 <!-- ── HERO ─────────────────────────────────────────────────────────────── -->
 <div class="ra-hero">
-  <h1>Deploy AI Agents<br>That Act Securely</h1>
-  <p>Upload your agent code. Wire it to tools and LLMs. RunAgents enforces identity, access policy, and approval workflows — transparently, with zero code changes.</p>
-  <p style="margin-top:-0.75rem;font-size:0.95rem;opacity:0.82">Use the same governed runtime behind a web app, WhatsApp, Slack, an internal portal, or a custom client.</p>
+  <h1>Govern Every Action<br>Your Agents Take</h1>
+  <p>RunAgents lets teams deploy agents built with any framework and govern every tool call with identity, policy, approvals, credential control, and audit-ready observability.</p>
+  <p style="margin-top:-0.75rem;font-size:0.95rem;opacity:0.82">Start with the quickstart, then use these docs to understand how governed actions move from ingress to approval to production execution.</p>
   <div class="ra-hero-buttons">
     <a href="https://try.runagents.io" class="ra-btn-primary">Start Free Trial</a>
     <a href="getting-started/quickstart/" class="ra-btn-secondary">5-Min Quickstart →</a>
-    <a href="getting-started/cli-quickstart/" class="ra-btn-secondary">CLI Docs →</a>
+    <a href="getting-started/core-concepts/" class="ra-btn-secondary">Core Concepts →</a>
   </div>
 </div>
 
@@ -38,56 +37,10 @@ hide:
   </div>
 </div>
 
----
-
-<!-- ── WHAT'S NEW ────────────────────────────────────────────────────────── -->
-<p class="ra-flow-label">New in April 2026</p>
-<p class="ra-section-heading">RunAgents v1.3.1, SDK & MCP parity, and stronger operator workflows</p>
-<p class="ra-section-sub">RunAgents now ships a broader public SDK and assistant tool surface for catalog deploys, governance resources, identity providers, and run debugging, alongside scoped approvals and more reliable pause-and-resume behavior for governed workflows.</p>
-
-<div class="grid cards" markdown>
-
--   :material-clipboard-check-outline:{ .lg .middle } **Scoped approvals**
-
-    ---
-
-    Approve one action, one run, or a short-lived user/agent/tool work window for governed writes.
-
--   :material-google:{ .lg .middle } **Google Workspace writes**
-
-    ---
-
-    Use policy-controlled Google Calendar event creation alongside delegated-user OAuth and approval workflows.
-
--   :material-message-text-fast:{ .lg .middle } **Better pause and resume**
-
-    ---
-
-    Approval and consent workflows resume more cleanly across the console and messaging surfaces such as WhatsApp.
-
--   :material-console-line:{ .lg .middle } **RunAgents v1.3.1**
-
-    ---
-
-    Manage catalog deploys, policies, approval connectors, identity providers, and richer run workflows from Python or directly through your AI assistant.
-
-</div>
-
-<div style="margin:1rem 0 2rem">
-  <a href="whats-new/releases/2026-04-10-sdk-mcp-v1-3-0-parity/" class="md-button md-button--primary">Read the latest SDK & MCP release notes</a>
-</div>
-
-<figure class="ra-shot">
-  <img src="https://runagents-releases.s3.amazonaws.com/docs/screenshots/docs-refresh/dashboard-overview.png" alt="RunAgents dashboard with summary cards, pending approvals, and pending consents">
-  <figcaption>The updated operator view separates pending approvals from pending consents and makes current workspace state easier to scan.</figcaption>
-</figure>
-
----
-
 <!-- ── FEATURES GRID ──────────────────────────────────────────────────────── -->
-<p class="ra-flow-label">Platform capabilities</p>
-<p class="ra-section-heading">Everything your agent needs to act safely in production</p>
-<p class="ra-section-sub">From deploy to approval workflows — the full stack for production-grade AI agents.</p>
+<p class="ra-flow-label">Governed control layer</p>
+<p class="ra-section-heading">What RunAgents enforces before actions land</p>
+<p class="ra-section-sub">Deploy agents with any framework, then add identity, policy, approvals, credentials, and run visibility in one governed layer.</p>
 
 <div class="grid cards" markdown>
 
@@ -160,9 +113,9 @@ hide:
 ---
 
 <!-- ── ARCHITECTURE ──────────────────────────────────────────────────────── -->
-<p class="ra-flow-label">Architecture</p>
-<p class="ra-section-heading">Three-stage secure request flow</p>
-<p class="ra-section-sub">Every agent invocation moves through ingress → runtime → egress, with identity and policy enforced at each stage.</p>
+<p class="ra-flow-label">Action path</p>
+<p class="ra-section-heading">How governed actions move through RunAgents</p>
+<p class="ra-section-sub">Every tool call moves through ingress, runtime, and egress before it reaches a production system.</p>
 
 ![RunAgents architecture — three-stage request flow](assets/architecture.svg)
 
@@ -188,7 +141,7 @@ hide:
 
 <!-- ── THREE PILLARS ─────────────────────────────────────────────────────── -->
 <p class="ra-flow-label">Core concepts</p>
-<p class="ra-section-heading">Security is the default, not an add-on</p>
+<p class="ra-section-heading">Identity, policy, approvals, and credentials stay on the same path</p>
 
 === ":material-account-arrow-right: Identity Propagation"
 
@@ -226,8 +179,9 @@ hide:
 ---
 
 <!-- ── TERMINAL QUICKSTART ───────────────────────────────────────────────── -->
-<p class="ra-flow-label">Get started in seconds</p>
-<p class="ra-section-heading">One command to deploy from the terminal</p>
+<p class="ra-flow-label">Build agents</p>
+<p class="ra-section-heading">Start from the CLI or bring your existing code</p>
+<p class="ra-section-sub">Use the terminal when you want the fastest path to a governed deployment, or bring existing agents in through the builder workflows.</p>
 
 <div class="ra-terminal">
   <div class="ra-terminal-bar">
@@ -261,6 +215,23 @@ runagents copilot
 <a href="getting-started/cli-quickstart/" class="md-button">Full CLI guide</a>&nbsp;&nbsp;
 <a href="getting-started/quickstart/" class="md-button">Console quickstart</a>&nbsp;&nbsp;
 <a href="getting-started/deploy-from-ai-tools/" class="md-button">Deploy from Claude Code</a>
+</div>
+
+---
+
+<!-- ── WHAT'S NEW STRIP ─────────────────────────────────────────────────── -->
+<p class="ra-flow-label">What’s new</p>
+<div style="border:1px solid rgba(46,91,255,0.12);background:rgba(46,91,255,0.04);border-radius:18px;padding:1rem 1.25rem;margin:0.75rem 0 2rem">
+  <p style="margin:0 0 0.45rem;font-weight:600;color:var(--ra-ink)">Recent releases across the platform, CLI, SDK, and MCP surface.</p>
+  <p style="margin:0;color:var(--ra-ink-muted);line-height:1.65">
+    <a href="whats-new/releases/2026-04-10-v1-3-1-release-pipeline-hardening/">RunAgents v1.3.1</a>
+    &nbsp;·&nbsp;
+    <a href="whats-new/releases/2026-04-10-sdk-mcp-v1-3-0-parity/">SDK &amp; MCP v1.3.0</a>
+    &nbsp;·&nbsp;
+    <a href="whats-new/releases/2026-04-09-cli-v1-2-0-governance-and-operations/">CLI v1.2.0</a>
+    &nbsp;·&nbsp;
+    <a href="whats-new/">All release notes</a>
+  </p>
 </div>
 
 ---

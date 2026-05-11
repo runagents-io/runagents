@@ -1,15 +1,15 @@
 ---
 title: Get Started
-description: Start your free RunAgents trial, explore self-hosted options, and find support resources.
+description: Start with a RunAgents trial, explore self-hosted deployment, and find the right path for production evaluation.
 ---
 
 # Get Started with RunAgents
 
-RunAgents is in **alpha** — free access for early builders. Sign up at [try.runagents.io](https://try.runagents.io) and get a workspace in under 60 seconds.
+Start with the trial if you want hands-on product access. If you are evaluating self-hosted deployment or a higher-risk production workflow, use this page to find the right contact path.
 
 ---
 
-## Free Alpha Access
+## Trial access
 
 <div style="text-align:center;margin:2rem 0" markdown>
 [🚀 Sign Up — try.runagents.io](https://try.runagents.io){ .cta-button }
@@ -22,7 +22,7 @@ What you get:
 
 ---
 
-## Self-Hosted
+## Self-hosted evaluation
 
 Need to run RunAgents in your own infrastructure? We support deployment to any environment — your cloud account, on-premise, or air-gapped.
 
@@ -48,3 +48,4 @@ See the [Self-Hosted Deployment Guide](self-hosted/deployment.md) for an overvie
 - [Copilot](getting-started/copilot.md) — use natural language to manage the platform
 - [CLI Quickstart](getting-started/cli-quickstart.md) — manage RunAgents from the terminal
 - [Architecture](concepts/architecture.md) — understand how the platform works
+- [Security Overview](security/security-overview.md) — review the governance and action-control model

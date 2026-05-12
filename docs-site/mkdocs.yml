@@ -125,6 +125,7 @@ nav:
     - What's new:
       - Overview: whats-new/index.md
       - Release notes:
+        - RunAgents v1.4.0: whats-new/releases/2026-05-12-v1-4-0-model-budgets-safer-edits-and-smoother-operations.md
         - RunAgents v1.3.1: whats-new/releases/2026-04-10-v1-3-1-release-pipeline-hardening.md
         - SDK & MCP v1.3.0: whats-new/releases/2026-04-10-sdk-mcp-v1-3-0-parity.md
         - CLI v1.2.0: whats-new/releases/2026-04-09-cli-v1-2-0-governance-and-operations.md

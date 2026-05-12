@@ -221,11 +221,11 @@ runagents copilot
 <div style="border:1px solid rgba(46,91,255,0.12);background:rgba(46,91,255,0.04);border-radius:18px;padding:1rem 1.25rem;margin:0.75rem 0 2rem">
   <p style="margin:0 0 0.45rem;font-weight:600;color:var(--ra-ink)">Recent releases across the platform, CLI, SDK, and MCP surface.</p>
   <p style="margin:0;color:var(--ra-ink-muted);line-height:1.65">
+    <a href="whats-new/releases/2026-05-12-v1-4-0-model-budgets-safer-edits-and-smoother-operations/">RunAgents v1.4.0</a>
+    &nbsp;·&nbsp;
     <a href="whats-new/releases/2026-04-10-v1-3-1-release-pipeline-hardening/">RunAgents v1.3.1</a>
     &nbsp;·&nbsp;
     <a href="whats-new/releases/2026-04-10-sdk-mcp-v1-3-0-parity/">SDK &amp; MCP v1.3.0</a>
-    &nbsp;·&nbsp;
-    <a href="whats-new/releases/2026-04-09-cli-v1-2-0-governance-and-operations/">CLI v1.2.0</a>
     &nbsp;·&nbsp;
     <a href="whats-new/">All release notes</a>
   </p>

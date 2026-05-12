@@ -11,6 +11,17 @@ Use it to:
 
 ## Latest releases
 
+### May 12, 2026
+
+[RunAgents v1.4.0: Model Budgets, Safer Edits, and Smoother Operations](releases/2026-05-12-v1-4-0-model-budgets-safer-edits-and-smoother-operations.md)
+
+Highlights:
+
+- model budgets and spend visibility for production workspaces
+- safer edit flows across agents, tools, policies, model providers, and identity providers
+- faster inventory and deployment operations in the console
+- smoother runtime and operator workflow continuity
+
 ### April 10, 2026
 
 [RunAgents v1.3.1: Release Pipeline Hardening](releases/2026-04-10-v1-3-1-release-pipeline-hardening.md)

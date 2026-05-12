@@ -12,14 +12,15 @@ Bring your own interface: a web app, WhatsApp, Slack, an internal portal, or a c
 
 ## What's New
 
+- **RunAgents v1.4.0** — model budgets, safer console edit flows, faster inventory operations, and smoother deployment/runtime handling
 - **RunAgents v1.3.1** — release pipeline hardening for the public SDK and MCP line, with Trusted Publishing wired for PyPI
 - **Scoped approvals** — approve one action, one run, or a short-lived user/agent/tool work window for governed writes
 - **Agent catalog workflows** — start from richer blueprints such as the Google Workspace assistant for real policy, approval, and OAuth flows
-- **Improved pause and resume behavior** — stronger operator and messaging-surface handling for approvals and consent
 
 Read the latest release notes:
 
 - [What's New](https://docs.runagents.io/whats-new/)
+- [RunAgents v1.4.0 release notes](https://docs.runagents.io/whats-new/releases/2026-05-12-v1-4-0-model-budgets-safer-edits-and-smoother-operations/)
 - [RunAgents v1.3.1 release notes](https://docs.runagents.io/whats-new/releases/2026-04-10-v1-3-1-release-pipeline-hardening/)
 - [April 9, 2026 release notes](https://docs.runagents.io/whats-new/releases/2026-04-09-scoped-approvals-console-messaging/)
 

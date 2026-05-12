@@ -88,7 +88,6 @@ def sync(version: str) -> None:
     for path in [
         REPO_ROOT / "docs-site" / "docs" / "sdk" / "index.md",
         REPO_ROOT / "docs-site" / "docs" / "api" / "deploy.md",
-        REPO_ROOT / "docs-site" / "docs" / "whats-new" / "releases" / "2026-04-09-scoped-approvals-console-messaging.md",
         REPO_ROOT / "examples" / "product-assistant" / "deploy.py",
         REPO_ROOT / "cli" / "internal" / "commands" / "deploy_test.go",
     ]:

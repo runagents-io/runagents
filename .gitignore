@@ -1,4 +1,6 @@
 bin/
+!cli/npm/bin/
+!cli/npm/bin/runagents.js
 dist/
 *.exe
 node_modules/

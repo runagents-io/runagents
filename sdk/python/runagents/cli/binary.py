@@ -35,7 +35,9 @@ def ensure_binary(version: str = CLI_VERSION) -> Path | None:
     # 2. Check PATH
     on_path = shutil.which("runagents")
     if on_path:
-        return Path(on_path)
+        candidate = Path(on_path)
+        if not _is_current_wrapper(candidate):
+            return candidate
 
     # 3. Download
     try:
@@ -119,3 +121,18 @@ def _find_hash(checksums_text: str, asset_name: str) -> str | None:
         if len(parts) == 2 and parts[1] == asset_name:
             return parts[0]
     return None
+
+
+def _is_current_wrapper(candidate: Path) -> bool:
+    """Return True when PATH resolves back to the current Python wrapper."""
+    argv0 = sys.argv[0]
+    if not argv0:
+        return False
+
+    try:
+        return os.path.samefile(candidate, argv0)
+    except OSError:
+        try:
+            return candidate.resolve() == Path(argv0).resolve()
+        except OSError:
+            return candidate == Path(argv0)

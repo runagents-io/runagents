@@ -13,6 +13,16 @@ Use it to:
 
 ### May 12, 2026
 
+[RunAgents v1.4.1: CLI Install Path Fixes](releases/2026-05-12-v1-4-1-cli-install-path-fixes.md)
+
+Highlights:
+
+- npm installs now restore the expected `runagents` entrypoint
+- the Python wrapper now downloads and launches the native CLI correctly on first run
+- this patch release keeps npm, PyPI, CLI binaries, Homebrew, docs, and S3 aligned after `v1.4.0`
+
+### May 12, 2026
+
 [RunAgents v1.4.0: Model Budgets, Safer Edits, and Smoother Operations](releases/2026-05-12-v1-4-0-model-budgets-safer-edits-and-smoother-operations.md)
 
 Highlights:

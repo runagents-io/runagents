@@ -1,0 +1,375 @@
+version: 1
+updated_at: "2026-05-13"
+purpose: >-
+  Public capability registry for shipped RunAgents surfaces. This intentionally
+  tracks only released functionality that should stay aligned across the API,
+  Python SDK, CLI, MCP server, docs, and public assistant workflow skills.
+
+surfaces:
+  api:
+    kind: source_of_truth
+    description: Public HTTP contract in the OpenAPI spec.
+  sdk_python:
+    kind: product_surface
+    description: Public Python SDK client and helpers.
+  cli:
+    kind: product_surface
+    description: Public RunAgents operator CLI.
+  mcp:
+    kind: assistant_surface
+    description: Public MCP tools backed by the Python SDK.
+  docs:
+    kind: documentation_surface
+    description: Public docs that describe the shipped capability.
+  assistant_workflows:
+    kind: assistant_surface
+    description: Public skills and workflow packs for AI coding assistants.
+
+capabilities:
+  agents:
+    description: Manage deployed agents and inspect agent configuration.
+    surfaces:
+      api:
+        evidence:
+          - path: openapi/openapi.yaml
+            contains: "/api/agents:"
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "class _AgentResource:"
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newAgentsCmd()"
+      mcp:
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: "def list_agents() -> str:"
+      docs:
+        evidence:
+          - path: docs-site/docs/api/agents.md
+            contains: "# Agents API"
+      assistant_workflows:
+        evidence:
+          - path: skills/runagents-agent-authoring/SKILL.md
+            contains: "# RunAgents Agent Authoring"
+
+  deploy:
+    description: Deploy agents from source, images, drafts, or catalog templates.
+    surfaces:
+      api:
+        evidence:
+          - path: openapi/openapi.yaml
+            contains: "/api/deploy:"
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "def deploy("
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newDeployCmd()"
+      mcp:
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: "def deploy_agent("
+      docs:
+        evidence:
+          - path: docs-site/docs/api/deploy.md
+            contains: "# Deploy API"
+      assistant_workflows:
+        evidence:
+          - path: skills/runagents-catalog-deploy/SKILL.md
+            contains: "# RunAgents Catalog Deploy"
+
+  tools:
+    description: Register and inspect governed external tools.
+    surfaces:
+      api:
+        evidence:
+          - path: openapi/openapi.yaml
+            contains: "/api/tools:"
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "class _ToolResource:"
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newToolsCmd()"
+      mcp:
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: "def create_tool("
+      docs:
+        evidence:
+          - path: docs-site/docs/api/tools.md
+            contains: "# Tools API"
+      assistant_workflows:
+        evidence:
+          - path: skills/runagents-tool-onboarding/SKILL.md
+            contains: "# RunAgents Tool Onboarding"
+
+  model_providers:
+    description: Configure model providers and gateway-backed model access.
+    surfaces:
+      api:
+        evidence:
+          - path: openapi/openapi.yaml
+            contains: "/api/model-providers:"
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "class _ModelResource:"
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newModelsCmd()"
+      mcp:
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: "def list_models() -> str:"
+      docs:
+        evidence:
+          - path: docs-site/docs/api/model-providers.md
+            contains: "# Model Providers API"
+      assistant_workflows:
+        evidence:
+          - path: skills/runagents-model-provider-setup/SKILL.md
+            contains: "# RunAgents Model Provider Setup"
+
+  runs:
+    description: Inspect runs, events, timelines, and exported run state.
+    surfaces:
+      api:
+        evidence:
+          - path: openapi/openapi.yaml
+            contains: "/runs:"
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "class _RunResource:"
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newRunsCmd()"
+      mcp:
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: "def get_run_timeline(run_id: str) -> str:"
+      docs:
+        evidence:
+          - path: docs-site/docs/api/runs.md
+            contains: "# Runs API"
+      assistant_workflows:
+        evidence:
+          - path: skills/runagents-run-debugging/SKILL.md
+            contains: "# RunAgents Run Debugging"
+
+  approvals:
+    description: List, approve, and reject governed approval requests.
+    surfaces:
+      api:
+        evidence:
+          - path: openapi/openapi.yaml
+            contains: "/governance/requests:"
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "class _ApprovalResource:"
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newApprovalsCmd()"
+      mcp:
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: "def approve_request("
+      docs:
+        evidence:
+          - path: docs-site/docs/api/approvals.md
+            contains: "# Approvals API"
+      assistant_workflows:
+        evidence:
+          - path: skills/runagents-approval-policy/SKILL.md
+            contains: "# RunAgents Approval Policy"
+
+  policies:
+    description: Manage policy documents and translate approval rules.
+    surfaces:
+      api:
+        evidence:
+          - path: openapi/openapi.yaml
+            contains: "/api/policies:"
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "class _PolicyResource:"
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newPoliciesCmd()"
+      mcp:
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: "def translate_policy(text: str) -> str:"
+      docs:
+        evidence:
+          - path: docs-site/docs/api/policies.md
+            contains: "# Policies API"
+      assistant_workflows:
+        evidence:
+          - path: skills/runagents-approval-policy/SKILL.md
+            contains: "creating approval-required rules for write actions"
+
+  approval_connectors:
+    description: Configure and test approval delivery connectors.
+    surfaces:
+      api:
+        evidence:
+          - path: openapi/openapi.yaml
+            contains: "/api/settings/approval-connectors:"
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "class _ApprovalConnectorResource:"
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newApprovalConnectorsCmd()"
+      mcp:
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: "def list_approval_connectors() -> str:"
+      docs:
+        evidence:
+          - path: docs-site/docs/api/approval-connectors.md
+            contains: "# Approval Connectors API"
+      assistant_workflows:
+        evidence:
+          - path: skills/runagents-approval-connector/SKILL.md
+            contains: "# RunAgents Approval Connector"
+
+  identity_providers:
+    description: Configure end-user identity propagation for deployed agents.
+    surfaces:
+      api:
+        evidence:
+          - path: openapi/openapi.yaml
+            contains: "/api/identity-providers:"
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "class _IdentityProviderResource:"
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newIdentityProvidersCmd()"
+      mcp:
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: "def list_identity_providers() -> str:"
+      docs:
+        evidence:
+          - path: docs-site/docs/api/identity-providers.md
+            contains: "# Identity Providers API"
+      assistant_workflows:
+        evidence:
+          - path: skills/runagents-identity-provider-setup/SKILL.md
+            contains: "# RunAgents Identity Provider Setup"
+
+  catalog:
+    description: Browse catalog agents and deploy production-shaped blueprints.
+    surfaces:
+      api:
+        evidence:
+          - path: openapi/openapi.yaml
+            contains: "/api/catalog:"
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "class _CatalogResource:"
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newCatalogCmd()"
+      mcp:
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: "def list_catalog_agents("
+      docs:
+        evidence:
+          - path: docs-site/docs/api/catalog.md
+            contains: "# Catalog API"
+      assistant_workflows:
+        evidence:
+          - path: skills/runagents-catalog-deploy/SKILL.md
+            contains: "The best flagship example is the Google Workspace assistant"
+
+  analyze:
+    description: Analyze local source for tools, models, and governance readiness.
+    surfaces:
+      api:
+        evidence:
+          - path: openapi/openapi.yaml
+            contains: "/analyze:"
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "def analyze(self, files: dict[str, str]) -> AnalysisResult:"
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newAnalyzeCmd()"
+      mcp:
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: "def analyze_code(files: dict[str, str]) -> str:"
+      docs:
+        evidence:
+          - path: docs-site/docs/cli/commands.md
+            contains: "runagents analyze --file agent.py"
+
+  context_export_and_action_plans:
+    description: Export workspace context and drive deterministic action plans.
+    surfaces:
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "def export_context(self) -> dict:"
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newContextCmd()"
+          - path: cli/internal/commands/root.go
+            contains: "newActionCmd()"
+      docs:
+        evidence:
+          - path: docs-site/docs/cli/commands.md
+            contains: "runagents context export -o json"
+          - path: docs-site/docs/cli/commands.md
+            contains: "runagents actions validate --file plan.json"
+      assistant_workflows:
+        evidence:
+          - path: skills/runagents-action-plan-workflow/SKILL.md
+            contains: "# RunAgents Action Plan Workflow"
+
+  starter_kit:
+    description: Seed a starter kit workspace and demo resources.
+    surfaces:
+      sdk_python:
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: "def seed_starter_kit(self) -> dict:"
+      cli:
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: "newStarterKitCmd()"
+      mcp:
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: "def seed_starter_kit() -> str:"
+      docs:
+        evidence:
+          - path: docs-site/docs/cli/commands.md
+            contains: "runagents starter-kit"

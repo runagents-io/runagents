@@ -384,6 +384,16 @@ class TestDeployAndApprovalParity(unittest.TestCase):
         self.assertEqual(payload["policies"], ["billing-write-approval"])
         self.assertEqual(payload["identity_provider"], "google-oidc")
 
+    def test_build_agent_deploy_payload_supports_public_request_fields(self):
+        payload = _build_agent_deploy_payload(
+            name="billing-agent",
+            source_files={"agent.py": "print('hi')"},
+            tool_url_mappings={"https://api.stripe.com": "stripe-api"},
+            env=[{"name": "FEATURE_FLAG", "value": "on"}],
+        )
+        self.assertEqual(payload["tool_url_mappings"], {"https://api.stripe.com": "stripe-api"})
+        self.assertEqual(payload["env"], [{"name": "FEATURE_FLAG", "value": "on"}])
+
     def test_build_agent_deploy_payload_rejects_framework_without_source(self):
         with self.assertRaisesRegex(ValueError, "framework can only be used with source_files"):
             _build_agent_deploy_payload(name="artifact-agent", artifact_id="art_123", framework="langgraph")
@@ -392,13 +402,22 @@ class TestDeployAndApprovalParity(unittest.TestCase):
         decision = _build_approval_decision(scope="window", duration="4h")
         self.assertEqual(decision, {"scope": "agent_user_ttl", "duration": "4h"})
 
-    def test_approve_posts_scope_and_duration(self):
+    def test_approve_posts_scope_duration_and_reason(self):
         c = Client(endpoint="http://example.com")
         with mock.patch.object(c, "post", return_value={"status": "approved"}) as mocked_post:
-            c.approvals.approve("req_123", scope="run", duration="")
+            c.approvals.approve("req_123", scope="run", duration="", reason="Reviewed by ops")
         mocked_post.assert_called_once_with(
             "/governance/requests/req_123/approve",
-            {"scope": "run"},
+            {"scope": "run", "reason": "Reviewed by ops"},
+        )
+
+    def test_reject_posts_reason(self):
+        c = Client(endpoint="http://example.com")
+        with mock.patch.object(c, "post", return_value={"status": "rejected"}) as mocked_post:
+            c.approvals.reject("req_123", reason="Not approved for production writes")
+        mocked_post.assert_called_once_with(
+            "/governance/requests/req_123/reject",
+            {"reason": "Not approved for production writes"},
         )
 
 

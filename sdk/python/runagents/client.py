@@ -161,8 +161,10 @@ class _AgentResource:
         image: str | None = None,
         system_prompt: str = "",
         required_tools: list[str] | None = None,
+        tool_url_mappings: dict[str, str] | None = None,
         tools_to_create: list[dict] | None = None,
         llm_configs: list[dict] | None = None,
+        env: list[dict[str, Any]] | None = None,
         requirements: str = "",
         entry_point: str = "",
         framework: str = "",
@@ -177,8 +179,10 @@ class _AgentResource:
             image=image,
             system_prompt=system_prompt,
             required_tools=required_tools,
+            tool_url_mappings=tool_url_mappings,
             tools_to_create=tools_to_create,
             llm_configs=llm_configs,
+            env=env,
             requirements=requirements,
             entry_point=entry_point,
             framework=framework,
@@ -300,13 +304,15 @@ class _ApprovalResource:
             return [ApprovalRequest.from_dict(item) for item in result]
         return []
 
-    def approve(self, request_id: str, scope: str = "", duration: str = "") -> ApprovalRequest:
-        body = _build_approval_decision(scope=scope, duration=duration)
+    def approve(self, request_id: str, scope: str = "", duration: str = "", reason: str = "") -> ApprovalRequest:
+        body = _build_approval_decision(scope=scope, duration=duration, reason=reason)
         result = self._c.post(f"/governance/requests/{urllib.parse.quote(request_id, safe='')}/approve", body)
         return ApprovalRequest.from_dict(result if isinstance(result, dict) else {})
 
-    def reject(self, request_id: str) -> ApprovalRequest:
-        result = self._c.post(f"/governance/requests/{urllib.parse.quote(request_id, safe='')}/reject")
+    def reject(self, request_id: str, reason: str = "") -> ApprovalRequest:
+        body = {"reason": reason.strip()} if reason.strip() else None
+        path = f"/governance/requests/{urllib.parse.quote(request_id, safe='')}/reject"
+        result = self._c.post(path, body) if body else self._c.post(path)
         return ApprovalRequest.from_dict(result if isinstance(result, dict) else {})
 
 
@@ -569,8 +575,10 @@ def _build_agent_deploy_payload(
     image: str | None = None,
     system_prompt: str = "",
     required_tools: list[str] | None = None,
+    tool_url_mappings: dict[str, str] | None = None,
     tools_to_create: list[dict] | None = None,
     llm_configs: list[dict] | None = None,
+    env: list[dict[str, Any]] | None = None,
     requirements: str = "",
     entry_point: str = "",
     framework: str = "",
@@ -622,10 +630,14 @@ def _build_agent_deploy_payload(
         payload["system_prompt"] = system_prompt
     if required_tools:
         payload["required_tools"] = [item.strip() for item in required_tools if item.strip()]
+    if tool_url_mappings:
+        payload["tool_url_mappings"] = tool_url_mappings
     if tools_to_create:
         payload["tools_to_create"] = tools_to_create
     if llm_configs:
         payload["llm_configs"] = llm_configs
+    if env:
+        payload["env"] = env
     if policies:
         payload["policies"] = [item.strip() for item in policies if item.strip()]
     if identity_provider.strip():
@@ -688,16 +700,19 @@ def _build_catalog_deploy_payload(
     return payload
 
 
-def _build_approval_decision(scope: str = "", duration: str = "") -> dict[str, Any] | None:
+def _build_approval_decision(scope: str = "", duration: str = "", reason: str = "") -> dict[str, Any] | None:
     normalized_scope = _normalize_approval_scope(scope=scope, duration=duration)
     duration = duration.strip()
-    if not normalized_scope and not duration:
+    reason = reason.strip()
+    if not normalized_scope and not duration and not reason:
         return None
     body: dict[str, Any] = {}
     if normalized_scope:
         body["scope"] = normalized_scope
     if duration:
         body["duration"] = duration
+    if reason:
+        body["reason"] = reason
     return body or None
 
 

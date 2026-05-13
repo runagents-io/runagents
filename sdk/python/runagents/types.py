@@ -258,15 +258,27 @@ class DeployResult:
     tools_created: list[str] = field(default_factory=list)
     status: str = ""
     message: str = ""
+    build_id: str = ""
+    image_uri: str = ""
+    execution_mode: str = ""
+    build_required: bool = False
+    build_profile: str = ""
+    decision_reason: str = ""
 
     @classmethod
     def from_dict(cls, d: dict) -> "DeployResult":
         return cls(
-            agent_name=d.get("agent_name", ""),
+            agent_name=d.get("agent_name", d.get("agent", "")),
             namespace=d.get("namespace", ""),
             tools_created=d.get("tools_created", []),
-            status=d.get("status", ""),
+            status=d.get("status", d.get("execution_mode", "")),
             message=d.get("message", ""),
+            build_id=d.get("build_id", ""),
+            image_uri=d.get("image_uri", ""),
+            execution_mode=d.get("execution_mode", ""),
+            build_required=bool(d.get("build_required", False)),
+            build_profile=d.get("build_profile", ""),
+            decision_reason=d.get("decision_reason", ""),
         )
 
 

@@ -99,9 +99,27 @@ class TestEventFromDict(unittest.TestCase):
 
 class TestDeployResultFromDict(unittest.TestCase):
     def test_basic(self):
-        d = DeployResult.from_dict({"agent_name": "test", "status": "created", "tools_created": ["echo"]})
+        d = DeployResult.from_dict(
+            {
+                "agent": "test",
+                "namespace": "default",
+                "tools_created": ["echo"],
+                "build_id": "build-a1b2c3",
+                "image_uri": "registry.example.com/test:a1b2c3",
+                "execution_mode": "FAST_OVERLAY",
+                "build_required": True,
+                "build_profile": "fast_overlay",
+                "decision_reason": "Detected framework runtime overlay path",
+            }
+        )
         self.assertEqual(d.agent_name, "test")
         self.assertEqual(d.tools_created, ["echo"])
+        self.assertEqual(d.build_id, "build-a1b2c3")
+        self.assertEqual(d.image_uri, "registry.example.com/test:a1b2c3")
+        self.assertEqual(d.status, "FAST_OVERLAY")
+        self.assertTrue(d.build_required)
+        self.assertEqual(d.build_profile, "fast_overlay")
+        self.assertEqual(d.decision_reason, "Detected framework runtime overlay path")
 
 
 class TestApprovalRequestFromDict(unittest.TestCase):

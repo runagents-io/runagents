@@ -24,6 +24,9 @@ jobs:
       - name: Check repo consistency
         run: python scripts/check_repo_consistency.py
 
+      - name: Check public surface parity
+        run: python scripts/check_surface_parity.py
+
       - name: Verify generated OpenAPI docs artifacts are synchronized
         run: python scripts/sync_openapi_artifacts.py --check
 

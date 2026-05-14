@@ -121,6 +121,8 @@ def _check_contract_artifacts(errors: list[str]) -> None:
     _expect_contains(errors, openapi_loader, 'const REDOC_BUNDLE = "vendor/redoc.standalone.js";')
     _expect_contains(errors, openapi_loader, 'const SWAGGER_BUNDLE = "vendor/swagger-ui-bundle.js";')
     _expect_contains(errors, openapi_loader, 'const SWAGGER_STYLESHEET = "../stylesheets/vendor/swagger-ui.css";')
+    _expect_contains(errors, openapi_loader, "window.document$.subscribe")
+    _expect_contains(errors, openapi_loader, "openApiSpecUrl")
     if "cdn.jsdelivr.net" in openapi_loader.read_text():
         _fail(errors, "docs-site/docs/javascripts/openapi-docs.js: external jsDelivr dependency should not be present")
     if not redoc_bundle.exists():
@@ -133,6 +135,11 @@ def _check_contract_artifacts(errors: list[str]) -> None:
         page = REPO_ROOT / "docs-site" / "docs" / "api" / f"{slug}.md"
         include = f'--8<-- "api-links/{slug}.md"'
         _expect_contains(errors, page, include)
+    _expect_contains(
+        errors,
+        REPO_ROOT / "docs-site" / "includes" / "api-links" / "agents.md",
+        "(/api/redoc/?spec=/api/_generated/specs/agents.yaml)",
+    )
 
 
 def main() -> int:

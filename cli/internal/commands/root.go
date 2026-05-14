@@ -16,10 +16,9 @@ var (
 	BuildDate = "unknown"
 
 	// Persistent flag values.
-	flagEndpoint  string
-	flagAPIKey    string
-	flagNamespace string
-	flagOutput    string
+	flagEndpoint string
+	flagAPIKey   string
+	flagOutput   string
 )
 
 const (
@@ -75,7 +74,6 @@ var versionCmd = &cobra.Command{
 func init() {
 	rootCmd.PersistentFlags().StringVar(&flagEndpoint, "endpoint", "", "API endpoint URL (overrides config)")
 	rootCmd.PersistentFlags().StringVar(&flagAPIKey, "api-key", "", "API key (overrides config)")
-	rootCmd.PersistentFlags().StringVar(&flagNamespace, "namespace", "", "Legacy workspace namespace override; prefer a workspace URL")
 	rootCmd.PersistentFlags().StringVarP(&flagOutput, "output", "o", "table", "Output format: table or json")
 
 	rootCmd.AddCommand(versionCmd)
@@ -106,20 +104,20 @@ func Execute() {
 
 // newAPIClient creates a new API client using config and flag overrides.
 func newAPIClient() (*client.Client, error) {
-	endpoint, apiKey, namespace, err := resolvedAPISettings()
+	endpoint, apiKey, err := resolvedAPISettings()
 	if err != nil {
 		return nil, err
 	}
 	if endpoint == "" {
 		return nil, fmt.Errorf("no endpoint configured; run 'runagents config set endpoint <url>' or use --endpoint")
 	}
-	return client.NewClient(endpoint, apiKey, namespace), nil
+	return client.NewClient(endpoint, apiKey), nil
 }
 
-func resolvedAPISettings() (endpoint, apiKey, namespace string, err error) {
+func resolvedAPISettings() (endpoint, apiKey string, err error) {
 	cfg, err := config.Load()
 	if err != nil {
-		return "", "", "", fmt.Errorf("failed to load config: %w", err)
+		return "", "", fmt.Errorf("failed to load config: %w", err)
 	}
 
 	endpoint = cfg.Endpoint
@@ -131,11 +129,7 @@ func resolvedAPISettings() (endpoint, apiKey, namespace string, err error) {
 	if flagAPIKey != "" {
 		apiKey = flagAPIKey
 	}
-	namespace = cfg.Namespace
-	if flagNamespace != "" {
-		namespace = flagNamespace
-	}
-	return endpoint, apiKey, namespace, nil
+	return endpoint, apiKey, nil
 }
 
 func resolvedAssistantMode() (string, error) {

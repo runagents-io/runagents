@@ -140,7 +140,6 @@ Configuration is stored in `~/.runagents/config.json`.
 |----------|-------------|
 | `RUNAGENTS_ENDPOINT` | API base URL with workspace context |
 | `RUNAGENTS_API_KEY` | API key for authentication |
-| `RUNAGENTS_NAMESPACE` | Legacy namespace override for older deployments |
 | `RUNAGENTS_ASSISTANT_MODE` | Assistant mode override: `external`, `runagents`, or `off` |
 
 ## Shell Completion

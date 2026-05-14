@@ -24,7 +24,7 @@
 ## API Reference
 
 - [Overview](https://docs.runagents.io/api/overview/): API authentication, base URLs, common patterns
-- [Deploy](https://docs.runagents.io/api/deploy/): POST /api/deploy — deploy agents programmatically
+- [Deploy](https://docs.runagents.io/api/deploy/): POST /deploy — deploy agents programmatically
 - [Agents](https://docs.runagents.io/api/agents/): CRUD operations on agents
 - [Tools](https://docs.runagents.io/api/tools/): CRUD operations on tools
 - [Model Providers & LLM Gateway](https://docs.runagents.io/api/model-providers/): Model provider management and OpenAI-compatible gateway

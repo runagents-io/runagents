@@ -5,9 +5,9 @@
 
     | Operation | Redoc | Swagger |
     | --- | --- | --- |
-    | `GET /api/policies` | [Redoc](redoc/?spec=_generated/specs/policies.yaml#operation/getApiPolicies) | [Swagger](swagger/?spec=_generated/specs/policies.yaml#/Policies/getApiPolicies) |
-    | `POST /api/policies` | [Redoc](redoc/?spec=_generated/specs/policies.yaml#operation/postApiPolicies) | [Swagger](swagger/?spec=_generated/specs/policies.yaml#/Policies/postApiPolicies) |
-    | `GET /api/policies/{policyName}` | [Redoc](redoc/?spec=_generated/specs/policies.yaml#operation/getApiPoliciesByPolicyName) | [Swagger](swagger/?spec=_generated/specs/policies.yaml#/Policies/getApiPoliciesByPolicyName) |
-    | `PUT /api/policies/{policyName}` | [Redoc](redoc/?spec=_generated/specs/policies.yaml#operation/putApiPoliciesByPolicyName) | [Swagger](swagger/?spec=_generated/specs/policies.yaml#/Policies/putApiPoliciesByPolicyName) |
-    | `DELETE /api/policies/{policyName}` | [Redoc](redoc/?spec=_generated/specs/policies.yaml#operation/deleteApiPoliciesByPolicyName) | [Swagger](swagger/?spec=_generated/specs/policies.yaml#/Policies/deleteApiPoliciesByPolicyName) |
-    | `POST /api/policies/translate` | [Redoc](redoc/?spec=_generated/specs/policies.yaml#operation/postApiPoliciesTranslate) | [Swagger](swagger/?spec=_generated/specs/policies.yaml#/Policies/postApiPoliciesTranslate) |
+    | `GET /policies` | [Redoc](redoc/?spec=_generated/specs/policies.yaml#operation/getPolicies) | [Swagger](swagger/?spec=_generated/specs/policies.yaml#/Policies/getPolicies) |
+    | `POST /policies` | [Redoc](redoc/?spec=_generated/specs/policies.yaml#operation/postPolicies) | [Swagger](swagger/?spec=_generated/specs/policies.yaml#/Policies/postPolicies) |
+    | `GET /policies/{policyName}` | [Redoc](redoc/?spec=_generated/specs/policies.yaml#operation/getPoliciesByPolicyName) | [Swagger](swagger/?spec=_generated/specs/policies.yaml#/Policies/getPoliciesByPolicyName) |
+    | `PUT /policies/{policyName}` | [Redoc](redoc/?spec=_generated/specs/policies.yaml#operation/putPoliciesByPolicyName) | [Swagger](swagger/?spec=_generated/specs/policies.yaml#/Policies/putPoliciesByPolicyName) |
+    | `DELETE /policies/{policyName}` | [Redoc](redoc/?spec=_generated/specs/policies.yaml#operation/deletePoliciesByPolicyName) | [Swagger](swagger/?spec=_generated/specs/policies.yaml#/Policies/deletePoliciesByPolicyName) |
+    | `POST /policies/translate` | [Redoc](redoc/?spec=_generated/specs/policies.yaml#operation/postPoliciesTranslate) | [Swagger](swagger/?spec=_generated/specs/policies.yaml#/Policies/postPoliciesTranslate) |

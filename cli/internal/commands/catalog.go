@@ -128,7 +128,7 @@ func newCatalogListCmd() *cobra.Command {
 
 			query := catalogListQuery(search, categories, tags, integrations, governance, page, pageSize)
 
-			data, err := c.GetWithQuery("/api/catalog", query)
+			data, err := c.GetWithQuery("/catalog", query)
 			if err != nil {
 				return err
 			}
@@ -208,7 +208,7 @@ func newCatalogVersionsCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Get(fmt.Sprintf("/api/catalog/%s/versions", args[0]))
+			data, err := c.Get(fmt.Sprintf("/catalog/%s/versions", args[0]))
 			if err != nil {
 				return err
 			}
@@ -319,7 +319,7 @@ func newCatalogDeployCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Post("/api/deploy", payload)
+			data, err := c.Post("/deploy", payload)
 			if err != nil {
 				return err
 			}
@@ -375,9 +375,9 @@ func fetchCatalogManifest(agentID, version string) (*catalogManifest, error) {
 	if err != nil {
 		return nil, err
 	}
-	path := fmt.Sprintf("/api/catalog/%s", agentID)
+	path := fmt.Sprintf("/catalog/%s", agentID)
 	if strings.TrimSpace(version) != "" {
-		path = fmt.Sprintf("/api/catalog/%s?version=%s", agentID, url.QueryEscape(strings.TrimSpace(version)))
+		path = fmt.Sprintf("/catalog/%s?version=%s", agentID, url.QueryEscape(strings.TrimSpace(version)))
 	}
 	data, err := c.Get(path)
 	if err != nil {

@@ -8,14 +8,14 @@ Manage deployed AI agents. Use the [Deploy API](deploy.md) to create new agents,
 
 ## List Agents
 
-<span class="method-get">GET</span> <span class="endpoint">/api/agents</span>
+<span class="method-get">GET</span> <span class="endpoint">/agents</span>
 
-Returns all deployed agents across all namespaces.
+Returns all deployed agents in the workspace carried by the base URL.
 
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/agents \
+    curl https://acme.runagents.io/api/v1/agents \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -25,7 +25,7 @@ Returns all deployed agents across all namespaces.
     import requests
 
     resp = requests.get(
-        "https://api.runagents.io/api/agents",
+        "https://acme.runagents.io/api/v1/agents",
         headers={"Authorization": f"Bearer {api_key}"},
     )
     agents = resp.json()
@@ -68,7 +68,7 @@ Returns all deployed agents across all namespaces.
 
 ## Get Agent Details
 
-<span class="method-get">GET</span> <span class="endpoint">/api/agents/:namespace/:name</span>
+<span class="method-get">GET</span> <span class="endpoint">/agents/:name</span>
 
 Retrieve details for a specific agent.
 
@@ -76,13 +76,12 @@ Retrieve details for a specific agent.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `namespace` | string | Agent namespace |
 | `name` | string | Agent name |
 
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/agents/agent-system/payment-agent \
+    curl https://acme.runagents.io/api/v1/agents/payment-agent \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -118,14 +117,14 @@ Retrieve details for a specific agent.
 
 | Status | Error | Description |
 |--------|-------|-------------|
-| `400` | `path must be /api/agents/{namespace}/{name}` | Invalid path format |
-| `404` | `agent {namespace}/{name} not found` | Agent does not exist |
+| `400` | `path must be /agents/{name}` | Invalid path format |
+| `404` | `agent {name} not found` | Agent does not exist |
 
 ---
 
 ## Delete an Agent
 
-<span class="method-delete">DELETE</span> <span class="endpoint">/api/agents/:namespace/:name</span>
+<span class="method-delete">DELETE</span> <span class="endpoint">/agents/:name</span>
 
 Delete an agent and its associated resources.
 
@@ -133,13 +132,12 @@ Delete an agent and its associated resources.
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `namespace` | string | Agent namespace |
 | `name` | string | Agent name |
 
 === "curl"
 
     ```bash
-    curl -X DELETE https://api.runagents.io/api/agents/agent-system/payment-agent \
+    curl -X DELETE https://acme.runagents.io/api/v1/agents/payment-agent \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -155,13 +153,13 @@ Delete an agent and its associated resources.
 
 | Status | Error | Description |
 |--------|-------|-------------|
-| `404` | `agent {namespace}/{name} not found` | Agent does not exist |
+| `404` | `agent {name} not found` | Agent does not exist |
 
 ---
 
 ## Invoke an Agent
 
-<span class="method-post">POST</span> <span class="endpoint">/api/agents/:namespace/:name/invoke</span>
+<span class="method-post">POST</span> <span class="endpoint">/agents/:name/invoke</span>
 
 Send a message to a running agent. The request is proxied to the agent's `/invoke` endpoint.
 
@@ -169,7 +167,6 @@ Send a message to a running agent. The request is proxied to the agent's `/invok
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `namespace` | string | Agent namespace |
 | `name` | string | Agent name |
 
 ### Request Body
@@ -186,7 +183,7 @@ The request body is forwarded directly to the agent. The format depends on the a
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/agents/agent-system/payment-agent/invoke \
+    curl -X POST https://acme.runagents.io/api/v1/agents/payment-agent/invoke \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"message": "What are the recent charges?"}'
@@ -200,7 +197,7 @@ The response is returned directly from the agent. Status code and body format ar
 
 | Status | Error | Description |
 |--------|-------|-------------|
-| `404` | `agent {namespace}/{name} not found` | Agent does not exist |
+| `404` | `agent {name} not found` | Agent does not exist |
 | `502` | `failed to reach agent: ...` | Agent is not responding |
 
 ---
@@ -210,7 +207,7 @@ The response is returned directly from the agent. Status code and body format ar
 | Field | Type | Description |
 |-------|------|-------------|
 | `name` | string | Agent name |
-| `namespace` | string | Namespace |
+| `namespace` | string | Internal workspace namespace, when returned |
 | `labels` | object | Key-value labels (e.g., identity provider association) |
 | `spec.image` | string | Container image URI |
 | `spec.systemPrompt` | string | System prompt injected into the agent's LLM context |

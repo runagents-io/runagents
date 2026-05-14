@@ -17,14 +17,12 @@ class TestLoadConfig(unittest.TestCase):
             cfg = load_config()
         self.assertEqual(cfg.endpoint, "http://localhost:8092")
         self.assertEqual(cfg.api_key, "")
-        self.assertEqual(cfg.namespace, "default")
         self.assertEqual(cfg.assistant_mode, "external")
 
     def test_env_overrides(self):
         env = {
             "RUNAGENTS_ENDPOINT": "https://api.example.com",
             "RUNAGENTS_API_KEY": "sk-test",
-            "RUNAGENTS_NAMESPACE": "prod",
             "RUNAGENTS_ASSISTANT_MODE": "runagents",
         }
         with mock.patch.dict(os.environ, env, clear=True), \
@@ -32,7 +30,6 @@ class TestLoadConfig(unittest.TestCase):
             cfg = load_config()
         self.assertEqual(cfg.endpoint, "https://api.example.com")
         self.assertEqual(cfg.api_key, "sk-test")
-        self.assertEqual(cfg.namespace, "prod")
         self.assertEqual(cfg.assistant_mode, "runagents")
 
     def test_trailing_slash_stripped(self):

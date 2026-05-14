@@ -33,8 +33,8 @@ func TestNormalizeEndpointPromotesWorkspacePath(t *testing.T) {
 	}
 }
 
-func TestNormalizePathMapsLegacyAgentNamespaceToURLWorkspace(t *testing.T) {
-	got := normalizePath("/api/agents/default/billing-agent")
+func TestNormalizePathPreservesCleanResourcePath(t *testing.T) {
+	got := normalizePath("/agents/billing-agent")
 	want := "/agents/billing-agent"
 	if got != want {
 		t.Fatalf("expected %q, got %q", want, got)
@@ -46,7 +46,7 @@ func TestClientUsesBearerOnlyAndTargetPath(t *testing.T) {
 	var workspaceHeader string
 	var apiKeyHeader string
 	var authHeader string
-	c := NewClient("https://acme.runagents.io/workspaces/revops", "ra_ws_test", "legacy")
+	c := NewClient("https://acme.runagents.io/workspaces/revops", "ra_ws_test")
 	c.httpClient = &http.Client{
 		Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
 			capturedPath = r.URL.Path
@@ -60,7 +60,7 @@ func TestClientUsesBearerOnlyAndTargetPath(t *testing.T) {
 			}, nil
 		}),
 	}
-	if _, err := c.Get("/api/tools"); err != nil {
+	if _, err := c.Get("/tools"); err != nil {
 		t.Fatalf("get tools: %v", err)
 	}
 
@@ -94,7 +94,7 @@ func TestClientGetWithQuery(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c := NewClient(server.URL, "", "trial-123")
+	c := NewClient(server.URL, "")
 	query := url.Values{}
 	query.Set("agent_id", "calendar-agent")
 
@@ -113,7 +113,7 @@ func TestClientGetWithQuery(t *testing.T) {
 }
 
 func TestClientBuildURLMergesExistingQuery(t *testing.T) {
-	c := NewClient("https://api.runagents.io/base", "", "default")
+	c := NewClient("https://api.runagents.io/base", "")
 	query := url.Values{}
 	query.Set("status", "PAUSED_APPROVAL")
 
@@ -143,15 +143,15 @@ func TestClientDeleteUsesSharedRequestFlow(t *testing.T) {
 	}))
 	defer server.Close()
 
-	c := NewClient(server.URL, "", "default")
-	if err := c.Delete("/api/agents/demo"); err != nil {
+	c := NewClient(server.URL, "")
+	if err := c.Delete("/agents/demo"); err != nil {
 		t.Fatalf("expected success, got error: %v", err)
 	}
 }
 
 func TestClientPutBuildsJSONRequest(t *testing.T) {
-	c := NewClient("https://api.runagents.io", "token", "default")
-	req, err := c.newRequest(http.MethodPut, "/api/policies/demo", nil, map[string]any{"name": "demo"})
+	c := NewClient("https://api.runagents.io", "token")
+	req, err := c.newRequest(http.MethodPut, "/policies/demo", nil, map[string]any{"name": "demo"})
 	if err != nil {
 		t.Fatalf("expected success, got error: %v", err)
 	}

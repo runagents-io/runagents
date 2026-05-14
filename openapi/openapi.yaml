@@ -1107,7 +1107,7 @@ paths:
       summary: List agents
       responses:
         '200':
-          description: Deployed agents across namespaces.
+          description: Deployed agents in the current workspace.
           content:
             application/json:
               schema:
@@ -2288,8 +2288,6 @@ components:
           type: string
         conversation_id:
           type: string
-        namespace:
-          type: string
         invoke_url:
           type: string
           format: uri
@@ -2579,8 +2577,6 @@ components:
       properties:
         agent_name:
           type: string
-        namespace:
-          type: string
         image:
           type: string
         source_files:
@@ -2674,8 +2670,6 @@ components:
       type: object
       properties:
         agent_name:
-          type: string
-        namespace:
           type: string
         system_prompt:
           type: string
@@ -3400,16 +3394,12 @@ components:
       properties:
         name:
           type: string
-        namespace:
-          type: string
         spec:
           $ref: '#/components/schemas/IdentityProviderSpec'
     SecretRef:
       type: object
       properties:
         name:
-          type: string
-        namespace:
           type: string
     AgentToolRef:
       type: object

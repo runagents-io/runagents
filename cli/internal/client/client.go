@@ -15,16 +15,14 @@ import (
 type Client struct {
 	endpoint   string
 	apiKey     string
-	namespace  string
 	httpClient *http.Client
 }
 
 // NewClient creates a new API client with the given endpoint and API key.
-func NewClient(endpoint, apiKey, namespace string) *Client {
+func NewClient(endpoint, apiKey string) *Client {
 	return &Client{
-		endpoint:  normalizeEndpoint(endpoint),
-		apiKey:    apiKey,
-		namespace: namespace,
+		endpoint: normalizeEndpoint(endpoint),
+		apiKey:   apiKey,
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -201,45 +199,5 @@ func normalizePath(path string) string {
 	if path == "/" {
 		return ""
 	}
-
-	switch {
-	case path == "/api/agents":
-		return "/agents"
-	case strings.HasPrefix(path, "/api/agents/"):
-		parts := strings.SplitN(strings.TrimPrefix(path, "/api/agents/"), "/", 3)
-		if len(parts) >= 2 && parts[0] != "" && parts[1] != "" {
-			if len(parts) == 2 {
-				return "/agents/" + parts[1]
-			}
-			return "/agents/" + parts[1] + "/" + parts[2]
-		}
-		return "/agents/" + strings.TrimPrefix(path, "/api/agents/")
-
-	case path == "/governance/requests":
-		return "/approvals/requests"
-	case strings.HasPrefix(path, "/governance/requests/"):
-		return "/approvals/requests/" + strings.TrimPrefix(path, "/governance/requests/")
-
-	case path == "/api/settings/approval-connectors":
-		return "/approval-connectors"
-	case strings.HasPrefix(path, "/api/settings/approval-connectors/"):
-		return "/approval-connectors/" + strings.TrimPrefix(path, "/api/settings/approval-connectors/")
-
-	case path == "/api/actions/validate":
-		return "/actions/validate"
-	case path == "/api/actions/apply":
-		return "/actions/apply"
-	case path == "/api/context/export":
-		return "/context/export"
-	case path == "/api/deploy":
-		return "/deploy"
-	case path == "/api/deploy/preview":
-		return "/deploy/preview"
-	case path == "/api/starter-kit":
-		return "/starter-kit"
-	case strings.HasPrefix(path, "/api/"):
-		return strings.TrimPrefix(path, "/api")
-	default:
-		return path
-	}
+	return path
 }

@@ -15,7 +15,6 @@ Manage CLI configuration.
 ```bash
 runagents config set endpoint <url>
 runagents config set api-key <key>
-runagents config set namespace <workspace-namespace> # legacy deployments only
 runagents config set assistant-mode <external|runagents|off>
 ```
 
@@ -23,7 +22,6 @@ runagents config set assistant-mode <external|runagents|off>
 |----------|-------------|
 | `endpoint` | RunAgents API base URL with workspace context, e.g. `https://your-workspace.try.runagents.io/api/v1` |
 | `api-key` | Your API key from the console Settings page |
-| `namespace` | Legacy namespace override for deployments that have not moved to workspace URLs |
 | `assistant-mode` | CLI assistant behavior: `external` (default), `runagents` (enable Copilot shell), or `off` |
 
 ### `config get`
@@ -389,7 +387,7 @@ my-agent      Pending   registry.runagents.io/my-agent:def456
 ### `agents get`
 
 ```bash
-runagents agents get <namespace> <name>
+runagents agents get <name>
 ```
 
 Displays full agent details including configuration, required tools, LLM config, and status.
@@ -429,7 +427,7 @@ Example `agent-config.json`:
 ### `agents delete`
 
 ```bash
-runagents agents delete <namespace> <name>
+runagents agents delete <name>
 ```
 
 !!! warning
@@ -664,7 +662,7 @@ ID                       AGENT         USER               STATUS            UPDA
 runagents runs get <run-id>
 ```
 
-Displays run details including namespace, user, blocked action, timestamps, and the initial message when present.
+Displays run details including workspace metadata, user, blocked action, timestamps, and the initial message when present.
 
 ### `runs events`
 

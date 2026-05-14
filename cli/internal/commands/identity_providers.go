@@ -28,9 +28,8 @@ type cliIdentityProviderConfig struct {
 }
 
 type cliIdentityProviderApplyRequest struct {
-	Name      string                  `json:"name,omitempty" yaml:"name,omitempty"`
-	Namespace string                  `json:"namespace,omitempty" yaml:"namespace,omitempty"`
-	Spec      cliIdentityProviderSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
+	Name string                  `json:"name,omitempty" yaml:"name,omitempty"`
+	Spec cliIdentityProviderSpec `json:"spec,omitempty" yaml:"spec,omitempty"`
 }
 
 func newIdentityProvidersCmd() *cobra.Command {
@@ -57,7 +56,7 @@ func newIdentityProvidersListCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Get("/api/identity-providers")
+			data, err := c.Get("/identity-providers")
 			if err != nil {
 				return err
 			}
@@ -101,7 +100,7 @@ func newIdentityProvidersGetCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Get(fmt.Sprintf("/api/identity-providers/%s", args[0]))
+			data, err := c.Get(fmt.Sprintf("/identity-providers/%s", args[0]))
 			if err != nil {
 				return err
 			}
@@ -143,13 +142,13 @@ func newIdentityProvidersApplyCmd() *cobra.Command {
 			}
 
 			action := "created"
-			if _, err := c.Get(fmt.Sprintf("/api/identity-providers/%s", req.Name)); err == nil {
+			if _, err := c.Get(fmt.Sprintf("/identity-providers/%s", req.Name)); err == nil {
 				action = "updated"
 			} else if extractHTTPStatus(err) != httpStatusNotFound {
 				return err
 			}
 
-			data, err := c.Post("/api/identity-providers", req)
+			data, err := c.Post("/identity-providers", req)
 			if err != nil {
 				return err
 			}
@@ -171,7 +170,7 @@ func newIdentityProvidersDeleteCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := c.Delete(fmt.Sprintf("/api/identity-providers/%s", args[0])); err != nil {
+			if err := c.Delete(fmt.Sprintf("/identity-providers/%s", args[0])); err != nil {
 				return err
 			}
 			fmt.Printf("Identity provider %q deleted.\n", args[0])
@@ -197,7 +196,6 @@ func loadIdentityProviderApplyRequest(path, nameOverride string) (cliIdentityPro
 		req.Name = strings.TrimSpace(nameOverride)
 	}
 	req.Name = strings.TrimSpace(req.Name)
-	req.Namespace = strings.TrimSpace(req.Namespace)
 	req.Spec.Host = strings.TrimSpace(req.Spec.Host)
 	req.Spec.UserIDClaim = strings.TrimSpace(req.Spec.UserIDClaim)
 	req.Spec.IdentityProvider.Issuer = strings.TrimSpace(req.Spec.IdentityProvider.Issuer)

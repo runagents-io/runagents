@@ -2,7 +2,7 @@
 
 Deploy or update agents programmatically.
 
-`POST /api/deploy` supports both image-based deploys and source-file deploys with optional server-side build.
+`POST /deploy` supports both image-based deploys and source-file deploys with optional server-side build.
 
 --8<-- "api-links/deploy.md"
 
@@ -10,16 +10,15 @@ Deploy or update agents programmatically.
 
 ## Deploy An Agent
 
-<span class="method-post">POST</span> <span class="endpoint">/api/deploy</span>
+<span class="method-post">POST</span> <span class="endpoint">/deploy</span>
 
-Idempotent by `agent_name` within namespace.
+Idempotent by `agent_name` within the workspace carried by the base URL.
 
 ### Request Body
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `agent_name` | string | Yes | Agent name |
-| `namespace` | string | No | Workspace namespace (must match workspace header) |
 | `image` | string | No* | Pre-built image URI |
 | `source_files` | object | No* | Map of filename to file contents |
 | `artifact_id` | string | No | Existing workflow artifact to deploy |
@@ -76,7 +75,7 @@ Idempotent by `agent_name` within namespace.
 ## Example: Source Deploy With Policy Bindings
 
 ```bash
-curl -X POST https://api.runagents.io/api/deploy \
+curl -X POST https://acme.runagents.io/api/v1/deploy \
   -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -97,7 +96,7 @@ curl -X POST https://api.runagents.io/api/deploy \
 ## Example: Image Deploy
 
 ```bash
-curl -X POST https://api.runagents.io/api/deploy \
+curl -X POST https://acme.runagents.io/api/v1/deploy \
   -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -116,7 +115,6 @@ curl -X POST https://api.runagents.io/api/deploy \
 | Status | Error |
 |--------|-------|
 | `400` | Missing required fields (e.g. `agent_name`) |
-| `400` | Namespace mismatch with workspace header |
 | `400` | No valid deploy source (`image`, `source_files`, `artifact_id`) |
 | `500` | Tool/agent/build creation failed |
 
@@ -124,9 +122,9 @@ curl -X POST https://api.runagents.io/api/deploy \
 
 ## Starter Kit Endpoint
 
-<span class="method-post">POST</span> <span class="endpoint">/api/starter-kit</span>
+<span class="method-post">POST</span> <span class="endpoint">/starter-kit</span>
 
-Seeds demo resources in the workspace namespace:
+Seeds demo resources in the current workspace:
 
 - `echo-tool`
 - `playground-llm`

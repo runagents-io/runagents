@@ -5,6 +5,6 @@
 
     | Operation | Redoc | Swagger |
     | --- | --- | --- |
-    | `GET /api/catalog` | [Redoc](redoc/?spec=_generated/specs/catalog.yaml#operation/getApiCatalog) | [Swagger](swagger/?spec=_generated/specs/catalog.yaml#/Catalog/getApiCatalog) |
-    | `GET /api/catalog/{catalogId}` | [Redoc](redoc/?spec=_generated/specs/catalog.yaml#operation/getApiCatalogByCatalogId) | [Swagger](swagger/?spec=_generated/specs/catalog.yaml#/Catalog/getApiCatalogByCatalogId) |
-    | `GET /api/catalog/{catalogId}/versions` | [Redoc](redoc/?spec=_generated/specs/catalog.yaml#operation/getApiCatalogByCatalogIdVersions) | [Swagger](swagger/?spec=_generated/specs/catalog.yaml#/Catalog/getApiCatalogByCatalogIdVersions) |
+    | `GET /catalog` | [Redoc](redoc/?spec=_generated/specs/catalog.yaml#operation/getCatalog) | [Swagger](swagger/?spec=_generated/specs/catalog.yaml#/Catalog/getCatalog) |
+    | `GET /catalog/{catalogId}` | [Redoc](redoc/?spec=_generated/specs/catalog.yaml#operation/getCatalogByCatalogId) | [Swagger](swagger/?spec=_generated/specs/catalog.yaml#/Catalog/getCatalogByCatalogId) |
+    | `GET /catalog/{catalogId}/versions` | [Redoc](redoc/?spec=_generated/specs/catalog.yaml#operation/getCatalogByCatalogIdVersions) | [Swagger](swagger/?spec=_generated/specs/catalog.yaml#/Catalog/getCatalogByCatalogIdVersions) |

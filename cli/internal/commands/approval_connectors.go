@@ -136,7 +136,7 @@ func newApprovalConnectorsListCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Get("/api/settings/approval-connectors")
+			data, err := c.Get("/approval-connectors")
 			if err != nil {
 				return err
 			}
@@ -179,7 +179,7 @@ func newApprovalConnectorsGetCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Get("/api/settings/approval-connectors/" + strings.TrimSpace(args[0]))
+			data, err := c.Get("/approval-connectors/" + strings.TrimSpace(args[0]))
 			if err != nil {
 				return err
 			}
@@ -228,13 +228,13 @@ func newApprovalConnectorsApplyCmd() *cobra.Command {
 			if target != nil {
 				action = "updated"
 				patch := buildApprovalConnectorPatch(req)
-				data, err = c.Patch("/api/settings/approval-connectors/"+target.ID, patch)
+				data, err = c.Patch("/approval-connectors/"+target.ID, patch)
 			} else {
 				createReq, createErr := buildApprovalConnectorCreate(req)
 				if createErr != nil {
 					return createErr
 				}
-				data, err = c.Post("/api/settings/approval-connectors", createReq)
+				data, err = c.Post("/approval-connectors", createReq)
 			}
 			if err != nil {
 				return err
@@ -260,7 +260,7 @@ func newApprovalConnectorsDeleteCmd() *cobra.Command {
 			if id == "" {
 				return fmt.Errorf("connector id is required")
 			}
-			if err := c.Delete("/api/settings/approval-connectors/" + id); err != nil {
+			if err := c.Delete("/approval-connectors/" + id); err != nil {
 				return err
 			}
 			fmt.Printf("Approval connector %q deleted.\n", id)
@@ -280,7 +280,7 @@ func newApprovalConnectorsTestCmd() *cobra.Command {
 				return err
 			}
 			id := strings.TrimSpace(args[0])
-			data, err := c.Get("/api/settings/approval-connectors/" + id)
+			data, err := c.Get("/approval-connectors/" + id)
 			if err != nil {
 				return err
 			}
@@ -289,7 +289,7 @@ func newApprovalConnectorsTestCmd() *cobra.Command {
 				return fmt.Errorf("failed to parse connector response: %w", err)
 			}
 			testReq := buildApprovalConnectorTestRequest(connector)
-			result, err := c.Post("/api/settings/approval-connectors/test", testReq)
+			result, err := c.Post("/approval-connectors/test", testReq)
 			if err != nil {
 				return err
 			}
@@ -327,7 +327,7 @@ func newApprovalConnectorsDefaultsGetCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Get("/api/settings/approval-connectors/defaults")
+			data, err := c.Get("/approval-connectors/defaults")
 			if err != nil {
 				return err
 			}
@@ -378,7 +378,7 @@ func newApprovalConnectorsDefaultsSetCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Put("/api/settings/approval-connectors/defaults", body)
+			data, err := c.Put("/approval-connectors/defaults", body)
 			if err != nil {
 				return err
 			}
@@ -414,7 +414,7 @@ func newApprovalConnectorsActivityCmd() *cobra.Command {
 				return err
 			}
 			query := approvalConnectorActivityQuery(limit)
-			data, err := c.GetWithQuery("/api/settings/approval-connectors/activity", query)
+			data, err := c.GetWithQuery("/approval-connectors/activity", query)
 			if err != nil {
 				return err
 			}
@@ -450,7 +450,7 @@ func newApprovalConnectorsActivityCmd() *cobra.Command {
 }
 
 func fetchApprovalConnectors(c interface{ Get(string) ([]byte, error) }) ([]cliApprovalConnector, error) {
-	data, err := c.Get("/api/settings/approval-connectors")
+	data, err := c.Get("/approval-connectors")
 	if err != nil {
 		return nil, err
 	}

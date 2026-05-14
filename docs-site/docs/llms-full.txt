@@ -225,7 +225,7 @@ Operation-level allow-lists (method + path). When declared, only matching operat
 
 ## Deploy API
 
-POST /api/deploy — deploy agents programmatically.
+POST /deploy — deploy agents programmatically.
 
 Request body fields:
 - agent_name (required): unique agent name
@@ -240,7 +240,7 @@ Request body fields:
 
 Example:
 ```bash
-curl -X POST https://api.runagents.io/api/deploy \
+curl -X POST https://acme.runagents.io/api/v1/deploy \
   -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -251,7 +251,7 @@ curl -X POST https://api.runagents.io/api/deploy \
   }'
 ```
 
-POST /api/starter-kit — create demo echo-tool and playground-llm (idempotent).
+POST /starter-kit — create demo echo-tool and playground-llm (idempotent).
 
 ---
 
@@ -268,10 +268,10 @@ PyPI: https://pypi.org/project/runagents/ (v1.4.1)
 from runagents import Client
 
 client = Client()  # reads ~/.runagents/config.json + env vars
-# or: Client(endpoint=..., api_key=..., namespace=...)
+# or: Client(endpoint=..., api_key=...)
 
 agents = client.agents.list()           # → list[Agent]
-agent  = client.agents.get(ns, name)    # → Agent
+agent  = client.agents.get("payment-agent")  # → Agent
 result = client.agents.deploy(name, source_files={"agent.py": "..."}, required_tools=["stripe-api"], llm_configs=[{"provider":"openai","model":"gpt-4o-mini","role":"default"}])
 
 tools  = client.tools.list()            # → list[Tool]
@@ -326,7 +326,7 @@ runagents dev --watch     # with hot-reload (requires pip install runagents[dev]
 ```
 
 Config: env vars > ~/.runagents/config.json > defaults
-RUNAGENTS_ENDPOINT, RUNAGENTS_API_KEY, RUNAGENTS_NAMESPACE, RUNAGENTS_ASSISTANT_MODE
+RUNAGENTS_ENDPOINT, RUNAGENTS_API_KEY, RUNAGENTS_ASSISTANT_MODE
 
 ---
 
@@ -359,10 +359,9 @@ Install: `pip install runagents` (recommended — includes CLI, SDK, and runtime
 ```bash
 runagents config set endpoint https://YOUR_WORKSPACE.try.runagents.io
 runagents config set api-key YOUR_KEY
-runagents config set namespace default
 ```
 
-Config stored at ~/.runagents/config.json. Environment variables override: RUNAGENTS_ENDPOINT, RUNAGENTS_API_KEY, RUNAGENTS_NAMESPACE.
+Config stored at ~/.runagents/config.json. Environment variables override: RUNAGENTS_ENDPOINT, RUNAGENTS_API_KEY, RUNAGENTS_ASSISTANT_MODE.
 
 ---
 
@@ -380,8 +379,7 @@ Claude Code config:
       "command": "runagents-mcp",
       "env": {
         "RUNAGENTS_ENDPOINT": "https://YOUR_WORKSPACE.try.runagents.io",
-        "RUNAGENTS_API_KEY": "YOUR_API_KEY",
-        "RUNAGENTS_NAMESPACE": "default"
+        "RUNAGENTS_API_KEY": "YOUR_API_KEY"
       }
     }
   }

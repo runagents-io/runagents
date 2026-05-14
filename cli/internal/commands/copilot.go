@@ -372,7 +372,7 @@ func runCopilotShell() error {
 }
 
 func runCopilotDoctor() error {
-	endpoint, apiKey, namespace, err := resolvedAPISettings()
+	endpoint, apiKey, err := resolvedAPISettings()
 	if err != nil {
 		return err
 	}
@@ -403,20 +403,11 @@ func runCopilotDoctor() error {
 		})
 	}
 
-	namespaceTrimmed := strings.TrimSpace(namespace)
-	if namespaceTrimmed == "" {
-		checks = append(checks, copilotDoctorCheck{
-			Name:    "config.namespace",
-			Status:  "pass",
-			Details: "Workspace scope is resolved from the endpoint URL.",
-		})
-	} else {
-		checks = append(checks, copilotDoctorCheck{
-			Name:    "config.namespace",
-			Status:  "pass",
-			Details: "Legacy namespace override configured: " + namespaceTrimmed,
-		})
-	}
+	checks = append(checks, copilotDoctorCheck{
+		Name:    "workspace.routing",
+		Status:  "pass",
+		Details: "Workspace scope is resolved from the endpoint URL and bearer token.",
+	})
 
 	apiKeyTrimmed := strings.TrimSpace(apiKey)
 	if apiKeyTrimmed == "" {
@@ -452,7 +443,7 @@ func runCopilotDoctor() error {
 	}
 
 	if endpointTrimmed != "" && apiKeyTrimmed != "" {
-		c := client.NewClient(endpointTrimmed, apiKeyTrimmed, namespaceTrimmed)
+		c := client.NewClient(endpointTrimmed, apiKeyTrimmed)
 		if _, getErr := c.Get("/tools"); getErr != nil {
 			statusCode := extractHTTPStatus(getErr)
 			status := "warn"

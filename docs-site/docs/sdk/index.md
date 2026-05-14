@@ -50,7 +50,6 @@ Config is stored at `~/.runagents/config.json` (permissions `0600`). Environment
 |----------|---------|-------------|
 | `RUNAGENTS_ENDPOINT` | `http://localhost:8092` | API base URL with workspace context |
 | `RUNAGENTS_API_KEY` | — | API key or workspace token (`ra_ws_...`) |
-| `RUNAGENTS_NAMESPACE` | `default` | Legacy namespace override for older deployments |
 | `RUNAGENTS_ASSISTANT_MODE` | `external` | `external`, `runagents`, or `off` |
 
 ---
@@ -76,10 +75,10 @@ client = Client(
 # List all agents
 agents = client.agents.list()
 for a in agents:
-    print(a.name, a.namespace, a.status)
+    print(a.name, a.status)
 
 # Get a specific agent
-agent = client.agents.get("default", "payment-agent")  # namespace arg is legacy-compatible
+agent = client.agents.get("payment-agent")
 print(agent.status)   # "Running" | "Pending" | "Failed"
 
 # Deploy from source files

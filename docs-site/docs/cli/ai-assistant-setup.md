@@ -119,7 +119,6 @@ The MCP server reads configuration from environment variables or `~/.runagents/c
 |--------|----------|-------------|
 | Env | `RUNAGENTS_ENDPOINT` | API base URL with workspace context |
 | Env | `RUNAGENTS_API_KEY` | API key or workspace key (`ra_ws_...`) |
-| Env | `RUNAGENTS_NAMESPACE` | Legacy namespace override for older deployments |
 | File | `~/.runagents/config.json` | Fallback — shared with CLI |
 
 Environment variables take precedence over the config file.

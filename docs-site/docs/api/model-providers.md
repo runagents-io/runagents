@@ -8,14 +8,14 @@ Configure LLM model providers that your agents use for inference. RunAgents acts
 
 ## List Model Providers
 
-<span class="method-get">GET</span> <span class="endpoint">/api/model-providers</span>
+<span class="method-get">GET</span> <span class="endpoint">/model-providers</span>
 
 Returns all registered model providers.
 
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/model-providers \
+    curl https://acme.runagents.io/api/v1/model-providers \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -55,7 +55,7 @@ Returns all registered model providers.
 
 ## Create a Model Provider
 
-<span class="method-post">POST</span> <span class="endpoint">/api/model-providers</span>
+<span class="method-post">POST</span> <span class="endpoint">/model-providers</span>
 
 Register a new model provider. Idempotent -- creating with an existing name updates it.
 
@@ -71,7 +71,7 @@ Register a new model provider. Idempotent -- creating with an existing name upda
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/model-providers \
+    curl -X POST https://acme.runagents.io/api/v1/model-providers \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -102,7 +102,7 @@ Register a new model provider. Idempotent -- creating with an existing name upda
     import requests
 
     resp = requests.post(
-        "https://api.runagents.io/api/model-providers",
+        "https://acme.runagents.io/api/v1/model-providers",
         headers={"Authorization": f"Bearer {api_key}"},
         json={
             "name": "openai-prod",
@@ -161,7 +161,7 @@ Register a new model provider. Idempotent -- creating with an existing name upda
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/model-providers \
+    curl -X POST https://acme.runagents.io/api/v1/model-providers \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -191,7 +191,7 @@ Register a new model provider. Idempotent -- creating with an existing name upda
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/model-providers \
+    curl -X POST https://acme.runagents.io/api/v1/model-providers \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -217,7 +217,7 @@ Register a new model provider. Idempotent -- creating with an existing name upda
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/model-providers \
+    curl -X POST https://acme.runagents.io/api/v1/model-providers \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -237,7 +237,7 @@ Register a new model provider. Idempotent -- creating with an existing name upda
 
 ## Get Model Provider Details
 
-<span class="method-get">GET</span> <span class="endpoint">/api/model-providers/:name</span>
+<span class="method-get">GET</span> <span class="endpoint">/model-providers/:name</span>
 
 Retrieve details for a specific model provider.
 
@@ -250,7 +250,7 @@ Retrieve details for a specific model provider.
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/model-providers/openai-prod \
+    curl https://acme.runagents.io/api/v1/model-providers/openai-prod \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -268,7 +268,7 @@ Returns the full model provider object.
 
 ## Delete a Model Provider
 
-<span class="method-delete">DELETE</span> <span class="endpoint">/api/model-providers/:name</span>
+<span class="method-delete">DELETE</span> <span class="endpoint">/model-providers/:name</span>
 
 Delete a model provider.
 
@@ -281,7 +281,7 @@ Delete a model provider.
 === "curl"
 
     ```bash
-    curl -X DELETE https://api.runagents.io/api/model-providers/openai-prod \
+    curl -X DELETE https://acme.runagents.io/api/v1/model-providers/openai-prod \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -359,7 +359,7 @@ Delete a model provider.
 
 Once a model provider is registered, your agents call it through the **RunAgents LLM Gateway** — a single OpenAI-compatible endpoint. The gateway handles credential injection, format translation, and provider routing automatically.
 
-<span class="method-post">POST</span> <span class="endpoint">/v1/chat/completions</span>
+<span class="method-post">POST</span> <span class="endpoint">/chat/completions</span>
 
 
 The LLM Gateway provides an **OpenAI-compatible** endpoint for all configured model providers. Agents call a single endpoint and the gateway handles credential injection, format translation, and provider routing. Your agent code never touches API keys.
@@ -368,7 +368,7 @@ The LLM Gateway provides an **OpenAI-compatible** endpoint for all configured mo
 
 ## Chat Completions
 
-<span class="method-post">POST</span> <span class="endpoint">/v1/chat/completions</span>
+<span class="method-post">POST</span> <span class="endpoint">/chat/completions</span>
 
 Send a chat completion request using the standard OpenAI format. The gateway matches the requested model against registered model providers and routes the request accordingly.
 
@@ -393,7 +393,7 @@ The request body follows the [OpenAI Chat Completions API](https://platform.open
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/v1/chat/completions \
+    curl -X POST https://acme.runagents.io/api/v1/chat/completions \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -412,7 +412,7 @@ The request body follows the [OpenAI Chat Completions API](https://platform.open
     import requests
 
     resp = requests.post(
-        "https://api.runagents.io/v1/chat/completions",
+        "https://acme.runagents.io/api/v1/chat/completions",
         headers={"Authorization": f"Bearer {api_key}"},
         json={
             "model": "gpt-4o-mini",
@@ -433,7 +433,7 @@ The request body follows the [OpenAI Chat Completions API](https://platform.open
 
     # Point the OpenAI SDK at the RunAgents gateway
     client = OpenAI(
-        base_url="https://api.runagents.io/v1",
+        base_url="https://acme.runagents.io/api/v1/v1",
         api_key="your-runagents-api-key",
     )
 
@@ -483,7 +483,7 @@ The gateway automatically translates between OpenAI and Anthropic formats:
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/v1/chat/completions \
+    curl -X POST https://acme.runagents.io/api/v1/chat/completions \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -502,7 +502,7 @@ The response is returned in OpenAI format even though the backend is Anthropic.
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/v1/chat/completions \
+    curl -X POST https://acme.runagents.io/api/v1/chat/completions \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -525,7 +525,7 @@ sequenceDiagram
     participant Gateway as LLM Gateway
     participant Provider
 
-    Agent->>Gateway: POST /v1/chat/completions (model)
+    Agent->>Gateway: POST /chat/completions (model)
     Gateway->>Gateway: 1) Match model to ModelProvider
     Gateway->>Gateway: 2) Read provider credentials
     Gateway->>Gateway: 3) Translate request format (if needed)

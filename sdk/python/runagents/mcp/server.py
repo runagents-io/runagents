@@ -69,33 +69,31 @@ mcp = FastMCP(
 
 @mcp.tool()
 def list_agents() -> str:
-    """List all deployed agents with their status, namespace, and required tools."""
+    """List all deployed agents with their status and required tools."""
     return _safe_call(lambda: _get_client().agents.list())
 
 
 @mcp.tool()
-def get_agent(namespace: str, name: str) -> str:
+def get_agent(name: str) -> str:
     """Get detailed information about a specific agent.
 
     Args:
-        namespace: Agent namespace (e.g., "default", "agent-system")
         name: Agent name
     """
     def _call():
-        return _get_client().agents.get(namespace, name)
+        return _get_client().agents.get(name)
     return _safe_call(_call)
 
 
 @mcp.tool()
-def get_agent_config(name: str, namespace: str = "") -> str:
+def get_agent_config(name: str) -> str:
     """Get editable agent configuration, model budgets, and current model usage.
 
     Args:
         name: Agent name
-        namespace: Legacy namespace hint; workspace is normally carried by the base URL
     """
     def _call():
-        return _get_client().agents.get_config(name, namespace=namespace or None)
+        return _get_client().agents.get_config(name)
     return _safe_call(_call)
 
 
@@ -432,7 +430,7 @@ def validate_plan(plan: dict) -> str:
     Args:
         plan: The action plan object to validate
     """
-    return _safe_call(lambda: _get_client().post("/api/actions/validate", plan))
+    return _safe_call(lambda: _get_client().post("/actions/validate", plan))
 
 
 @mcp.tool()
@@ -442,14 +440,13 @@ def apply_plan(plan: dict) -> str:
     Args:
         plan: The action plan object to apply
     """
-    return _safe_call(lambda: _get_client().post("/api/actions/apply", plan))
+    return _safe_call(lambda: _get_client().post("/actions/apply", plan))
 
 
 @mcp.tool()
 def update_agent_config(
     name: str,
     config: dict,
-    namespace: str = "",
 ) -> str:
     """Update agent configuration, including model budgets.
 
@@ -457,7 +454,6 @@ def update_agent_config(
         name: Agent name
         config: Partial config payload with keys such as llm_configs, required_tools,
             policies, identity_provider, or system_prompt
-        namespace: Legacy namespace hint; workspace is normally carried by the base URL
     """
     def _call():
         return _get_client().agents.update_config(
@@ -467,7 +463,6 @@ def update_agent_config(
             llm_configs=config.get("llm_configs"),
             required_tools=config.get("required_tools"),
             policies=config.get("policies"),
-            namespace=namespace or None,
         )
     return _safe_call(_call)
 

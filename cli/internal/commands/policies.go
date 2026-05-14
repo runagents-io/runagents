@@ -95,7 +95,7 @@ func newPoliciesListCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Get("/api/policies")
+			data, err := c.Get("/policies")
 			if err != nil {
 				return err
 			}
@@ -137,7 +137,7 @@ func newPoliciesGetCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Get(fmt.Sprintf("/api/policies/%s", args[0]))
+			data, err := c.Get(fmt.Sprintf("/policies/%s", args[0]))
 			if err != nil {
 				return err
 			}
@@ -179,10 +179,10 @@ func newPoliciesApplyCmd() *cobra.Command {
 			}
 
 			method := "created"
-			path := "/api/policies"
-			if _, err := c.Get(fmt.Sprintf("/api/policies/%s", req.Name)); err == nil {
+			path := "/policies"
+			if _, err := c.Get(fmt.Sprintf("/policies/%s", req.Name)); err == nil {
 				method = "updated"
-				path = fmt.Sprintf("/api/policies/%s", req.Name)
+				path = fmt.Sprintf("/policies/%s", req.Name)
 				data, putErr := c.Put(path, req)
 				if putErr != nil {
 					return putErr
@@ -214,7 +214,7 @@ func newPoliciesDeleteCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			if err := c.Delete(fmt.Sprintf("/api/policies/%s", args[0])); err != nil {
+			if err := c.Delete(fmt.Sprintf("/policies/%s", args[0])); err != nil {
 				return err
 			}
 			fmt.Printf("Policy %q deleted.\n", args[0])
@@ -237,7 +237,7 @@ func newPoliciesTranslateCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Post("/api/policies/translate", map[string]string{"text": text})
+			data, err := c.Post("/policies/translate", map[string]string{"text": text})
 			if err != nil {
 				return err
 			}

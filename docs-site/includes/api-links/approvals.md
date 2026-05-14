@@ -5,8 +5,8 @@
 
     | Operation | Redoc | Swagger |
     | --- | --- | --- |
-    | `GET /governance/requests` | [Redoc](redoc/?spec=_generated/specs/approvals.yaml#operation/getGovernanceRequests) | [Swagger](swagger/?spec=_generated/specs/approvals.yaml#/Approvals/getGovernanceRequests) |
-    | `POST /governance/requests` | [Redoc](redoc/?spec=_generated/specs/approvals.yaml#operation/postGovernanceRequests) | [Swagger](swagger/?spec=_generated/specs/approvals.yaml#/Approvals/postGovernanceRequests) |
-    | `GET /governance/requests/{requestId}` | [Redoc](redoc/?spec=_generated/specs/approvals.yaml#operation/getGovernanceRequestsByRequestId) | [Swagger](swagger/?spec=_generated/specs/approvals.yaml#/Approvals/getGovernanceRequestsByRequestId) |
-    | `POST /governance/requests/{requestId}/approve` | [Redoc](redoc/?spec=_generated/specs/approvals.yaml#operation/postGovernanceRequestsByRequestIdApprove) | [Swagger](swagger/?spec=_generated/specs/approvals.yaml#/Approvals/postGovernanceRequestsByRequestIdApprove) |
-    | `POST /governance/requests/{requestId}/reject` | [Redoc](redoc/?spec=_generated/specs/approvals.yaml#operation/postGovernanceRequestsByRequestIdReject) | [Swagger](swagger/?spec=_generated/specs/approvals.yaml#/Approvals/postGovernanceRequestsByRequestIdReject) |
+    | `GET /approvals/requests` | [Redoc](redoc/?spec=_generated/specs/approvals.yaml#operation/getApprovalsRequests) | [Swagger](swagger/?spec=_generated/specs/approvals.yaml#/Approvals/getApprovalsRequests) |
+    | `POST /approvals/requests` | [Redoc](redoc/?spec=_generated/specs/approvals.yaml#operation/postApprovalsRequests) | [Swagger](swagger/?spec=_generated/specs/approvals.yaml#/Approvals/postApprovalsRequests) |
+    | `GET /approvals/requests/{requestId}` | [Redoc](redoc/?spec=_generated/specs/approvals.yaml#operation/getApprovalsRequestsByRequestId) | [Swagger](swagger/?spec=_generated/specs/approvals.yaml#/Approvals/getApprovalsRequestsByRequestId) |
+    | `POST /approvals/requests/{requestId}/approve` | [Redoc](redoc/?spec=_generated/specs/approvals.yaml#operation/postApprovalsRequestsByRequestIdApprove) | [Swagger](swagger/?spec=_generated/specs/approvals.yaml#/Approvals/postApprovalsRequestsByRequestIdApprove) |
+    | `POST /approvals/requests/{requestId}/reject` | [Redoc](redoc/?spec=_generated/specs/approvals.yaml#operation/postApprovalsRequestsByRequestIdReject) | [Swagger](swagger/?spec=_generated/specs/approvals.yaml#/Approvals/postApprovalsRequestsByRequestIdReject) |

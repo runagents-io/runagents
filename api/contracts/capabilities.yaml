@@ -1,0 +1,920 @@
+version: 1
+updated_at: "2026-05-13"
+purpose: >-
+  First-pass private capability registry for SDK, CLI, MCP, docs, and assistant-workflow parity.
+  The registry records what surfaces should expose each capability family and what file-level evidence
+  currently proves that coverage exists.
+
+surfaces:
+  api:
+    kind: source_of_truth
+    description: Backend routes and handlers.
+  http_api:
+    kind: generation_source
+    description: Structured public HTTP/OpenAPI contract used for SDK, CLI, MCP, and docs generation.
+  sdk_python:
+    kind: product_surface
+    description: Typed Python client and runtime-facing helper surface.
+  cli:
+    kind: product_surface
+    description: Go operator CLI.
+  mcp:
+    kind: assistant_surface
+    description: Assistant-facing MCP tools built on top of the Python client.
+  docs:
+    kind: descriptive_surface
+    description: Public docs and reference pages.
+  assistant_workflows:
+    kind: downstream_surface
+    description: Assistant setup guides, templates, and action-plan workflows layered on CLI and MCP.
+
+capabilities:
+  agents:
+    description: List, inspect, and deploy agents.
+    owner: governance
+    status: implemented
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/agents", h.requireWorkspaceAPIHandler(h.handleListAgents))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/agents:'
+          - path: api/contracts/openapi.yaml
+            contains: '/deploy:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'self.agents = _AgentResource(self)'
+          - path: sdk/python/runagents/client.py
+            contains: 'def deploy('
+      cli:
+        required: true
+        coverage: full
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: 'rootCmd.AddCommand(newAgentsCmd())'
+          - path: cli/internal/commands/root.go
+            contains: 'rootCmd.AddCommand(newDeployCmd())'
+      mcp:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def list_agents() -> str:'
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def deploy_agent('
+      docs:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/api/agents.md
+            contains: '# Agents API'
+          - path: docs-site/docs/sdk/index.md
+            contains: 'client.agents.deploy('
+      assistant_workflows:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/cli/ai-assistant-setup.md
+            contains: '| `deploy_agent` | Deploy an agent from source or image | Mutate |'
+
+  tools:
+    description: Register, inspect, and use tool connectors.
+    owner: governance
+    status: implemented
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/tools", h.requireWorkspaceAPIHandler(h.handleListTools))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/tools:'
+          - path: api/contracts/openapi.yaml
+            contains: '/tools/{toolName}:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'self.tools = _ToolResource(self)'
+      cli:
+        required: true
+        coverage: full
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: 'rootCmd.AddCommand(newToolsCmd())'
+      mcp:
+        required: true
+        coverage: partial
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def list_tools() -> str:'
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def create_tool('
+      docs:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/api/tools.md
+            contains: '# Tools API'
+          - path: docs-site/docs/sdk/index.md
+            contains: 'client.tools.create('
+      assistant_workflows:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/cli/templates/AGENTS.md
+            contains: 'create_tool'
+
+  model_providers:
+    description: Manage model provider configuration and visibility.
+    owner: llm-gateway
+    status: implemented
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/model-providers", h.requireWorkspaceAPIHandler(h.handleListModelProviders))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/model-providers:'
+          - path: api/contracts/openapi.yaml
+            contains: '/model-providers/{providerName}:'
+      sdk_python:
+        required: true
+        coverage: partial
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'self.models = _ModelResource(self)'
+      cli:
+        required: true
+        coverage: full
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: 'rootCmd.AddCommand(newModelsCmd())'
+      mcp:
+        required: true
+        coverage: partial
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def list_models() -> str:'
+      docs:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/api/model-providers.md
+            contains: '# Model Providers API'
+          - path: docs-site/docs/platform/model-providers.md
+            contains: '# Model Providers'
+      assistant_workflows:
+        required: false
+        coverage: planned
+        evidence: []
+
+  model_spend_budgets:
+    description: Configure agent model budgets and inspect estimated model spend.
+    owner: governance
+    status: implemented
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/dashboard/model-spend", h.requireWorkspaceAPIHandler(h.handleDashboardModelSpend))'
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'if len(parts) == 3 && parts[2] == "config"'
+          - path: services/governance/internal/governance/handler.go
+            contains: 'mux.HandleFunc("/internal/model-spend/check", h.handleInternalModelSpendCheck)'
+          - path: services/governance/internal/governance/handler.go
+            contains: 'mux.HandleFunc("/internal/model-spend/record", h.handleInternalModelSpendRecord)'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/model-spend:'
+          - path: api/contracts/openapi.yaml
+            contains: '/agents/{agentName}/config:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'self.model_spend = _ModelSpendResource(self)'
+          - path: sdk/python/runagents/client.py
+            contains: 'def get_config(self, name: str, namespace: str | None = None) -> AgentConfig:'
+          - path: sdk/python/runagents/client.py
+            contains: 'def update_config('
+      cli:
+        required: true
+        coverage: full
+        evidence:
+          - path: cli/internal/commands/models.go
+            contains: 'func newModelsSpendCmd() *cobra.Command'
+          - path: cli/internal/commands/agents.go
+            contains: 'func newAgentsConfigCmd() *cobra.Command'
+      mcp:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def get_model_spend() -> str:'
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def update_agent_config('
+      docs:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/api/overview.md
+            contains: '| `/model-spend` | View model spend, budget warnings, and top model usage | Full OpenAPI contract |'
+          - path: docs-site/docs/sdk/index.md
+            contains: 'spend = client.model_spend.get()'
+          - path: docs-site/docs/cli/commands.md
+            contains: 'runagents models spend'
+      assistant_workflows:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/cli/ai-assistant-setup.md
+            contains: '| `get_model_spend` | Get model spend, budgets, and warnings | Read |'
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def get_agent_config(name: str, namespace: str = "") -> str:'
+
+  runs:
+    description: Inspect run state, timelines, and audit exports.
+    owner: governance
+    status: implemented
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/handler.go
+            contains: 'mux.HandleFunc("/runs", h.requireWorkspaceAPIHandler(h.handleRuns))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/runs:'
+          - path: api/contracts/openapi.yaml
+            contains: '/runs/{runId}:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'self.runs = _RunResource(self)'
+          - path: sdk/python/runagents/client.py
+            contains: 'def wait('
+          - path: sdk/python/runagents/client.py
+            contains: 'def export('
+      cli:
+        required: true
+        coverage: full
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: 'rootCmd.AddCommand(newRunsCmd())'
+      mcp:
+        required: true
+        coverage: partial
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def list_runs(agent: str = "", limit: int = 20) -> str:'
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def get_run_events(run_id: str) -> str:'
+      docs:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/api/runs.md
+            contains: '# Runs API'
+          - path: docs-site/docs/sdk/index.md
+            contains: 'runs = client.runs.list('
+      assistant_workflows:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/cli/ai-assistant-setup.md
+            contains: '| `get_run_events` | Get events for a run | Read |'
+
+  approvals:
+    description: Review and decide governed access requests.
+    owner: governance
+    status: implemented
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/handler.go
+            contains: 'mux.HandleFunc("/governance/requests", h.handleRequests)'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/approvals/requests:'
+          - path: api/contracts/openapi.yaml
+            contains: '/approvals/requests/{requestId}/approve:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'self.approvals = _ApprovalResource(self)'
+          - path: sdk/python/runagents/client.py
+            contains: 'def approve('
+      cli:
+        required: true
+        coverage: full
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: 'rootCmd.AddCommand(newApprovalsCmd())'
+      mcp:
+        required: true
+        coverage: partial
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def approve_request(request_id: str) -> str:'
+      docs:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/api/approvals.md
+            contains: '# Approvals API'
+          - path: docs-site/docs/platform/approvals.md
+            contains: '# Approvals'
+      assistant_workflows:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/cli/ai-assistant-setup.md
+            contains: '| `approve_request` | Approve a pending access request | Mutate |'
+
+  deploy:
+    description: Deploy agents from source, image, draft, or artifact-backed workflows.
+    owner: governance
+    status: implemented
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/deploy", h.requireWorkspaceAPIHandler(h.handleDeploy))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/deploy:'
+          - path: api/contracts/openapi.yaml
+            contains: '/deploy/preview:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'def deploy('
+          - path: sdk/python/runagents/client.py
+            contains: 'source_bundle_key'
+      cli:
+        required: true
+        coverage: full
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: 'rootCmd.AddCommand(newDeployCmd())'
+      mcp:
+        required: true
+        coverage: partial
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def deploy_agent('
+      docs:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/api/deploy.md
+            contains: '# Deploy API'
+          - path: docs-site/docs/platform/deploying-agents.md
+            contains: '# Deploying Agents'
+      assistant_workflows:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/cli/ai-assistant-setup.md
+            contains: '| `deploy_agent` | Deploy an agent from source or image | Mutate |'
+
+  policies:
+    description: Manage policy objects and translate natural language into policy specs.
+    owner: governance
+    status: in_progress
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/policies", h.requireWorkspaceAPIHandler(h.handleListPolicies))'
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/policies/translate", h.requireWorkspaceAPIHandler(h.handleTranslatePolicy))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/policies:'
+          - path: api/contracts/openapi.yaml
+            contains: '/policies/translate:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'self.policies = _PolicyResource(self)'
+          - path: sdk/python/runagents/client.py
+            contains: 'def translate(self, text: str) -> list[dict[str, Any]]:'
+      cli:
+        required: false
+        coverage: planned
+        evidence: []
+      mcp:
+        required: false
+        coverage: planned
+        evidence: []
+      docs:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/concepts/policy-model.md
+            contains: '# Policy Model'
+      assistant_workflows:
+        required: false
+        coverage: planned
+        evidence: []
+
+  identity_providers:
+    description: Configure identity propagation and JWT validation sources.
+    owner: governance
+    status: in_progress
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/identity-providers", h.requireWorkspaceAPIHandler(h.handleListIdentityProviders))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/identity-providers:'
+          - path: api/contracts/openapi.yaml
+            contains: '/identity-providers/{providerName}:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'self.identity_providers = _IdentityProviderResource(self)'
+      cli:
+        required: false
+        coverage: planned
+        evidence: []
+      mcp:
+        required: false
+        coverage: planned
+        evidence: []
+      docs:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/api/identity-providers.md
+            contains: '# Identity Providers API'
+          - path: docs-site/docs/platform/identity-providers.md
+            contains: '# Identity Providers'
+      assistant_workflows:
+        required: false
+        coverage: planned
+        evidence: []
+
+  approval_connectors:
+    description: Configure approval delivery destinations and tests.
+    owner: governance
+    status: in_progress
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/approval_connectors.go
+            contains: 'mux.HandleFunc("/api/settings/approval-connectors", h.requireWorkspaceAPIHandler(h.handleApprovalConnectors))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/approval-connectors:'
+          - path: api/contracts/openapi.yaml
+            contains: '/approval-connectors/test:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'self.approval_connectors = _ApprovalConnectorResource(self)'
+      cli:
+        required: false
+        coverage: planned
+        evidence: []
+      mcp:
+        required: false
+        coverage: planned
+        evidence: []
+      docs:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/platform/approvals.md
+            contains: 'Approval Connectors'
+      assistant_workflows:
+        required: false
+        coverage: planned
+        evidence: []
+
+  catalog:
+    description: Browse packaged agent patterns and versioned templates.
+    owner: governance
+    status: in_progress
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/catalog", h.requireWorkspaceAPIHandler(h.handleCatalog))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/catalog:'
+          - path: api/contracts/openapi.yaml
+            contains: '/catalog/{catalogId}:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'self.catalog = _CatalogResource(self)'
+      cli:
+        required: false
+        coverage: planned
+        evidence: []
+      mcp:
+        required: false
+        coverage: planned
+        evidence: []
+      docs:
+        required: false
+        coverage: planned
+        evidence: []
+      assistant_workflows:
+        required: false
+        coverage: planned
+        evidence: []
+
+  deploy_drafts:
+    description: Create, inspect, and resume draft deployment workflows.
+    owner: governance
+    status: planned
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/deploy-drafts", h.requireWorkspaceAPIHandler(h.handleDeployDrafts))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/deploy-drafts:'
+          - path: api/contracts/openapi.yaml
+            contains: '/deploy-drafts/{draftId}:'
+      sdk_python:
+        required: false
+        coverage: planned
+        evidence: []
+      cli:
+        required: true
+        coverage: partial
+        evidence:
+          - path: cli/internal/commands/context.go
+            contains: '{key: "deploy_drafts", path: "/deploy-drafts"}'
+          - path: cli/internal/commands/copilot.go
+            contains: 'c.Post("/deploy-drafts", draftPayload)'
+      mcp:
+        required: false
+        coverage: planned
+        evidence: []
+      docs:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/cli/external-assistants.md
+            contains: '- deploy drafts'
+      assistant_workflows:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/cli/external-assistants.md
+            contains: 'deploy drafts'
+
+  analyze:
+    description: Analyze agent source code for tools, models, secrets, and requirements.
+    owner: ingestion
+    status: implemented
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/ingestion/app/main.py
+            contains: '@app.post("/analyze", response_model=AnalysisResult, status_code=201)'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/analyze:'
+          - path: api/contracts/openapi.yaml
+            contains: '/requirements:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'def analyze(self, files: dict[str, str]) -> AnalysisResult:'
+      cli:
+        required: true
+        coverage: full
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: 'rootCmd.AddCommand(newAnalyzeCmd())'
+      mcp:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def analyze_code(files: dict[str, str]) -> str:'
+      docs:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/api/ingestion.md
+            contains: '# Ingestion API'
+      assistant_workflows:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/cli/ai-assistant-setup.md
+            contains: '| `analyze_code` | Analyze source code for tools and LLM usage | Read |'
+
+  context_export:
+    description: Export workspace context for operators and external assistants.
+    owner: governance
+    status: implemented
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/context/export", h.requireWorkspaceAPIHandler(h.handleContextExport))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/context/export:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'def export_context(self) -> dict[str, Any]:'
+      cli:
+        required: true
+        coverage: full
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: 'rootCmd.AddCommand(newContextCmd())'
+      mcp:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def export_context() -> str:'
+      docs:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/sdk/index.md
+            contains: 'ctx = client.export_context()'
+          - path: docs-site/docs/cli/commands.md
+            contains: 'Export workspace context for external assistants'
+      assistant_workflows:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/cli/external-assistants.md
+            contains: 'runagents context export -o json > context.json'
+
+  action_plans:
+    description: Validate and apply deterministic action plans generated by humans or assistants.
+    owner: governance
+    status: implemented
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/action-plans-openapi.yaml
+            contains: '/actions/validate:'
+          - path: api/contracts/action-plans-openapi.yaml
+            contains: '/actions/apply:'
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/actions/validate", h.requireWorkspaceAPIHandler(h.handleValidateActionPlan))'
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/actions/apply", h.requireWorkspaceAPIHandler(h.handleApplyActionPlan))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/actions/validate:'
+          - path: api/contracts/openapi.yaml
+            contains: '/actions/apply:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'self.actions = _ActionPlanResource(self)'
+          - path: sdk/python/runagents/client.py
+            contains: 'def validate(self, plan: dict[str, Any]) -> ActionPlanValidationResponse:'
+          - path: sdk/python/runagents/client.py
+            contains: 'def apply(self, plan: dict[str, Any]) -> ActionPlanApplyResponse:'
+      cli:
+        required: true
+        coverage: full
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: 'rootCmd.AddCommand(newActionCmd())'
+      mcp:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def validate_plan(plan: dict) -> str:'
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def apply_plan(plan: dict) -> str:'
+      docs:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/cli/action-plans.md
+            contains: '# Action Plans'
+          - path: docs-site/docs/api/actions.md
+            contains: '# Action Plans API'
+      assistant_workflows:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/cli/external-assistants.md
+            contains: 'runagents action validate --file plan.json -o json'
+          - path: docs-site/docs/cli/templates/CLAUDE.md
+            contains: 'POST /api/actions/validate'
+
+  starter_kit:
+    description: Seed demo resources that unblock first-time deploy and assistant flows.
+    owner: governance
+    status: implemented
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/console_api.go
+            contains: 'mux.HandleFunc("/api/starter-kit", h.requireWorkspaceAPIHandler(h.handleStarterKit))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/starter-kit:'
+      sdk_python:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/client.py
+            contains: 'def seed_starter_kit(self) -> dict[str, Any]:'
+      cli:
+        required: true
+        coverage: full
+        evidence:
+          - path: cli/internal/commands/root.go
+            contains: 'rootCmd.AddCommand(newStarterKitCmd())'
+      mcp:
+        required: true
+        coverage: full
+        evidence:
+          - path: sdk/python/runagents/mcp/server.py
+            contains: 'def seed_starter_kit() -> str:'
+      docs:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/sdk/index.md
+            contains: 'client.seed_starter_kit()'
+      assistant_workflows:
+        required: true
+        coverage: full
+        evidence:
+          - path: docs-site/docs/cli/ai-assistant-setup.md
+            contains: '| `seed_starter_kit` | Create demo tools and model provider | Mutate |'
+
+  auth:
+    description: Configure workspace auth settings and manage workspace API keys.
+    owner: governance
+    status: implemented
+    surfaces:
+      api:
+        required: true
+        coverage: full
+        evidence:
+          - path: services/governance/internal/governance/auth_handler.go
+            contains: 'mux.HandleFunc("/api/settings/auth", h.requireWorkspaceAPIHandler(h.handleAuthSettings))'
+          - path: services/governance/internal/governance/auth_handler.go
+            contains: 'mux.HandleFunc("/api/auth/api-keys", h.requireWorkspaceAPIHandler(h.handleWorkspaceAPIKeys))'
+          - path: services/governance/internal/governance/auth_handler.go
+            contains: 'mux.HandleFunc("/api/auth/api-keys/", h.requireWorkspaceAPIHandler(h.handleWorkspaceAPIKeyByID))'
+      http_api:
+        required: true
+        coverage: full
+        evidence:
+          - path: api/contracts/openapi.yaml
+            contains: '/settings/auth:'
+          - path: api/contracts/openapi.yaml
+            contains: '/auth/api-keys:'
+          - path: api/contracts/openapi.yaml
+            contains: '/auth/api-keys/{keyId}:'
+          - path: api/contracts/openapi.yaml
+            contains: '/auth/api-keys/{keyId}/rotate:'
+      sdk_python:
+        required: false
+        coverage: planned
+        evidence: []
+      cli:
+        required: false
+        coverage: planned
+        evidence: []
+      mcp:
+        required: false
+        coverage: planned
+        evidence: []
+      docs:
+        required: true
+        coverage: partial
+        evidence:
+          - path: docs-site/docs/api/overview.md
+            contains: 'Authorization: Bearer <token>'
+      assistant_workflows:
+        required: false
+        coverage: planned
+        evidence: []

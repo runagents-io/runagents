@@ -70,7 +70,7 @@ func newActionValidateCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Post("/api/actions/validate", payload)
+			data, err := c.Post("/actions/validate", payload)
 			if err != nil {
 				return err
 			}
@@ -101,7 +101,7 @@ func newActionApplyCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			data, err := c.Post("/api/actions/apply", payload)
+			data, err := c.Post("/actions/apply", payload)
 			if err != nil {
 				return err
 			}

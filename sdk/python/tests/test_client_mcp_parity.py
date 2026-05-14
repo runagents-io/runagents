@@ -43,7 +43,7 @@ class TestCatalogResource(unittest.TestCase):
                 page_size=50,
             )
         mocked.assert_called_once_with(
-            "/api/catalog",
+            "/catalog",
             {
                 "search": "google",
                 "category": ["Enterprise Productivity"],
@@ -59,7 +59,7 @@ class TestCatalogResource(unittest.TestCase):
         c = Client(endpoint="http://example.com")
         with mock.patch.object(c, "get", return_value={"id": "google-agent", "version": "1.2.0"}) as mocked:
             manifest = c.catalog.get("google-agent", version="1.2.0")
-        mocked.assert_called_once_with("/api/catalog/google-agent?version=1.2.0")
+        mocked.assert_called_once_with("/catalog/google-agent?version=1.2.0")
         self.assertEqual(manifest.id, "google-agent")
         self.assertEqual(manifest.version, "1.2.0")
 
@@ -109,7 +109,7 @@ class TestPolicyResource(unittest.TestCase):
                 {"policies": [{"permission": "allow", "operations": ["GET"]}]},
                 name="workspace-read",
             )
-        mocked_get.assert_called_once_with("/api/policies/workspace-read")
+        mocked_get.assert_called_once_with("/policies/workspace-read")
         mocked_post.assert_called_once()
         self.assertEqual(policy.name, "workspace-read")
 
@@ -136,7 +136,7 @@ class TestApprovalConnectorResource(unittest.TestCase):
         ) as mocked_patch:
             connector = c.approval_connectors.apply({"name": "secops-slack", "endpoint": "C456"})
         mocked_patch.assert_called_once_with(
-            "/api/settings/approval-connectors/ac_123",
+            "/approval-connectors/ac_123",
             {"name": "secops-slack", "endpoint": "C456"},
         )
         self.assertEqual(connector.id, "ac_123")
@@ -163,7 +163,7 @@ class TestApprovalConnectorResource(unittest.TestCase):
         ) as mocked_post:
             result = c.approval_connectors.test("ac_123")
         mocked_post.assert_called_once_with(
-            "/api/settings/approval-connectors/test",
+            "/approval-connectors/test",
             {
                 "type": "slack",
                 "endpoint": "C123",
@@ -249,7 +249,7 @@ class TestApprovalResource(unittest.TestCase):
             return_value={"id": "req-1", "status": "APPROVED", "scope": "run", "tool_id": "stripe-api"},
         ) as mocked_post:
             approval = c.approvals.approve("req-1", scope="run")
-        mocked_post.assert_called_once_with("/governance/requests/req-1/approve", {"scope": "run"})
+        mocked_post.assert_called_once_with("/approvals/requests/req-1/approve", {"scope": "run"})
         self.assertIsInstance(approval, ApprovalRequest)
         self.assertEqual(approval.status, "APPROVED")
         self.assertEqual(approval.scope, "run")
@@ -262,7 +262,7 @@ class TestApprovalResource(unittest.TestCase):
             return_value={"id": "req-1", "status": "REJECTED", "reason": "Denied"},
         ) as mocked_post:
             approval = c.approvals.reject("req-1")
-        mocked_post.assert_called_once_with("/governance/requests/req-1/reject")
+        mocked_post.assert_called_once_with("/approvals/requests/req-1/reject")
         self.assertIsInstance(approval, ApprovalRequest)
         self.assertEqual(approval.status, "REJECTED")
         self.assertEqual(approval.reason, "Denied")
@@ -407,7 +407,7 @@ class TestDeployAndApprovalParity(unittest.TestCase):
         with mock.patch.object(c, "post", return_value={"status": "approved"}) as mocked_post:
             c.approvals.approve("req_123", scope="run", duration="", reason="Reviewed by ops")
         mocked_post.assert_called_once_with(
-            "/governance/requests/req_123/approve",
+            "/approvals/requests/req_123/approve",
             {"scope": "run", "reason": "Reviewed by ops"},
         )
 
@@ -416,7 +416,7 @@ class TestDeployAndApprovalParity(unittest.TestCase):
         with mock.patch.object(c, "post", return_value={"status": "rejected"}) as mocked_post:
             c.approvals.reject("req_123", reason="Not approved for production writes")
         mocked_post.assert_called_once_with(
-            "/governance/requests/req_123/reject",
+            "/approvals/requests/req_123/reject",
             {"reason": "Not approved for production writes"},
         )
 

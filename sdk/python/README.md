@@ -119,7 +119,6 @@ Reads from `~/.runagents/config.json` with env var overrides:
 |----------|-------------|---------|
 | `RUNAGENTS_ENDPOINT` | Platform API URL | `http://localhost:8092` |
 | `RUNAGENTS_API_KEY` | API key or workspace key | — |
-| `RUNAGENTS_NAMESPACE` | Target namespace | `default` |
 
 ## Documentation
 

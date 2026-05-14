@@ -8,7 +8,7 @@ The Build API generates container images from agent source code. It automaticall
 
 ## Start a Build
 
-<span class="method-post">POST</span> <span class="endpoint">/api/builds</span>
+<span class="method-post">POST</span> <span class="endpoint">/builds</span>
 
 Start an asynchronous build from source files. Returns immediately with a build ID and the deterministic image URI.
 
@@ -25,7 +25,7 @@ Start an asynchronous build from source files. Returns immediately with a build 
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/builds \
+    curl -X POST https://acme.runagents.io/api/v1/builds \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -46,7 +46,7 @@ Start an asynchronous build from source files. Returns immediately with a build 
 
     # Start the build
     resp = requests.post(
-        "https://api.runagents.io/api/builds",
+        "https://acme.runagents.io/api/v1/builds",
         headers={"Authorization": f"Bearer {api_key}"},
         json={
             "name": "my-agent",
@@ -65,7 +65,7 @@ Start an asynchronous build from source files. Returns immediately with a build 
     # Poll for completion
     while True:
         status = requests.get(
-            f"https://api.runagents.io/api/builds/{build_id}",
+            f"https://acme.runagents.io/api/v1/builds/{build_id}",
             headers={"Authorization": f"Bearer {api_key}"},
         ).json()
 
@@ -100,7 +100,7 @@ Start an asynchronous build from source files. Returns immediately with a build 
 
 ## Get Build Status
 
-<span class="method-get">GET</span> <span class="endpoint">/api/builds/:id</span>
+<span class="method-get">GET</span> <span class="endpoint">/builds/:id</span>
 
 Poll the status of a build.
 
@@ -113,7 +113,7 @@ Poll the status of a build.
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/builds/build-a1b2c3d4 \
+    curl https://acme.runagents.io/api/v1/builds/build-a1b2c3d4 \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -240,7 +240,7 @@ For most workflows, you do not need to call the Build API directly. The [Deploy 
 
     ```bash
     # This automatically triggers a build + deploy
-    curl -X POST https://api.runagents.io/api/deploy \
+    curl -X POST https://acme.runagents.io/api/v1/deploy \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{

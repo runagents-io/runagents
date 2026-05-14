@@ -42,9 +42,8 @@ curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh
 ### Configure
 
 ```bash
-runagents config set endpoint https://your-workspace.try.runagents.io
+runagents config set endpoint https://your-workspace.try.runagents.io/api/v1
 runagents config set api-key YOUR_API_KEY
-runagents config set namespace default
 ```
 
 ### Start a session

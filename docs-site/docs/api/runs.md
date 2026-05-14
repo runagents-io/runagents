@@ -19,20 +19,18 @@ Start tracking a new agent run.
 | `agent_id` | string | Yes | Name of the agent |
 | `user_id` | string | Yes | ID of the user who triggered the run |
 | `conversation_id` | string | No | Conversation or session ID for grouping related runs |
-| `namespace` | string | No | Agent namespace |
 | `invoke_url` | string | No | Custom invoke endpoint URL. Auto-derived if not set |
 
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/runs \
+    curl -X POST https://acme.runagents.io/api/v1/runs \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "agent_id": "payment-agent",
         "user_id": "user@example.com",
-        "conversation_id": "conv-abc123",
-        "namespace": "agent-system"
+        "conversation_id": "conv-abc123"
       }'
     ```
 
@@ -42,13 +40,12 @@ Start tracking a new agent run.
     import requests
 
     resp = requests.post(
-        "https://api.runagents.io/runs",
+        "https://acme.runagents.io/api/v1/runs",
         headers={"Authorization": f"Bearer {api_key}"},
         json={
             "agent_id": "payment-agent",
             "user_id": "user@example.com",
             "conversation_id": "conv-abc123",
-            "namespace": "agent-system",
         },
     )
     run = resp.json()
@@ -89,15 +86,15 @@ List runs with optional filters. Without filters, returns all runs in `RUNNING` 
 
     ```bash
     # List all running runs
-    curl https://api.runagents.io/runs \
+    curl https://acme.runagents.io/api/v1/runs \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
 
     # Filter by agent
-    curl "https://api.runagents.io/runs?agent_id=payment-agent" \
+    curl "https://acme.runagents.io/api/v1/runs?agent_id=payment-agent" \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
 
     # Filter by status
-    curl "https://api.runagents.io/runs?status=PAUSED_APPROVAL" \
+    curl "https://acme.runagents.io/api/v1/runs?status=PAUSED_APPROVAL" \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -135,7 +132,7 @@ Retrieve details for a specific run.
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479 \
+    curl https://acme.runagents.io/api/v1/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479 \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -184,7 +181,7 @@ Update the status of a run. Only valid state transitions are allowed.
 === "curl"
 
     ```bash
-    curl -X PATCH https://api.runagents.io/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479 \
+    curl -X PATCH https://acme.runagents.io/api/v1/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479 \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"status": "COMPLETED"}'
@@ -245,7 +242,7 @@ Append an event to a run's audit log. Sequence numbers are assigned automaticall
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/events \
+    curl -X POST https://acme.runagents.io/api/v1/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/events \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -312,11 +309,11 @@ List events for a run, ordered by sequence number.
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/events \
+    curl https://acme.runagents.io/api/v1/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/events \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
 
     # Fetch the next 25 events after sequence 10
-    curl "https://api.runagents.io/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/events?after_seq=10&limit=25" \
+    curl "https://acme.runagents.io/api/v1/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/events?after_seq=10&limit=25" \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -375,7 +372,7 @@ Create a blocked action for a tool call that requires approval. This automatical
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/actions \
+    curl -X POST https://acme.runagents.io/api/v1/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/actions \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -425,7 +422,7 @@ Check the status of a blocked action.
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/actions/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
+    curl https://acme.runagents.io/api/v1/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/actions/a1b2c3d4-e5f6-7890-abcd-ef1234567890 \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -478,7 +475,7 @@ Approve a blocked action. If the action has a `payload_hash`, the approval must 
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/actions/a1b2c3d4-e5f6-7890-abcd-ef1234567890/approve \
+    curl -X POST https://acme.runagents.io/api/v1/runs/f47ac10b-58cc-4372-a567-0e02b2c3d479/actions/a1b2c3d4-e5f6-7890-abcd-ef1234567890/approve \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"payload_hash": "sha256:a1b2c3d4..."}'
@@ -517,30 +514,29 @@ Here is a complete flow showing a run that gets blocked on a tool call, approved
 
     ```bash
     # 1. Create a run
-    RUN=$(curl -s -X POST https://api.runagents.io/runs \
+    RUN=$(curl -s -X POST https://acme.runagents.io/api/v1/runs \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "agent_id": "payment-agent",
-        "user_id": "admin@example.com",
-        "namespace": "agent-system"
+        "user_id": "admin@example.com"
       }')
     RUN_ID=$(echo $RUN | jq -r '.id')
     echo "Run created: $RUN_ID"
 
     # 2. Add events as the agent works
-    curl -s -X POST https://api.runagents.io/runs/$RUN_ID/events \
+    curl -s -X POST https://acme.runagents.io/api/v1/runs/$RUN_ID/events \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"type": "USER_MESSAGE", "actor": "admin@example.com"}'
 
-    curl -s -X POST https://api.runagents.io/runs/$RUN_ID/events \
+    curl -s -X POST https://acme.runagents.io/api/v1/runs/$RUN_ID/events \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"type": "TOOL_REQUEST", "actor": "payment-agent"}'
 
     # 3. Agent hits a restricted tool -- create blocked action
-    ACTION=$(curl -s -X POST https://api.runagents.io/runs/$RUN_ID/actions \
+    ACTION=$(curl -s -X POST https://acme.runagents.io/api/v1/runs/$RUN_ID/actions \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -552,24 +548,24 @@ Here is a complete flow showing a run that gets blocked on a tool call, approved
     echo "Action blocked: $ACTION_ID"
 
     # 4. Run is now PAUSED_APPROVAL -- verify
-    curl -s https://api.runagents.io/runs/$RUN_ID \
+    curl -s https://acme.runagents.io/api/v1/runs/$RUN_ID \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" | jq '.status'
     # "PAUSED_APPROVAL"
 
     # 5. Admin approves the action
-    curl -s -X POST https://api.runagents.io/runs/$RUN_ID/actions/$ACTION_ID/approve \
+    curl -s -X POST https://acme.runagents.io/api/v1/runs/$RUN_ID/actions/$ACTION_ID/approve \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"payload_hash": "sha256:abc123"}'
 
     # 6. Agent resumes and completes
-    curl -s -X PATCH https://api.runagents.io/runs/$RUN_ID \
+    curl -s -X PATCH https://acme.runagents.io/api/v1/runs/$RUN_ID \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"status": "COMPLETED"}'
 
     # 7. View full event timeline
-    curl -s https://api.runagents.io/runs/$RUN_ID/events \
+    curl -s https://acme.runagents.io/api/v1/runs/$RUN_ID/events \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" | jq '.[].type'
     # "USER_MESSAGE"
     # "TOOL_REQUEST"
@@ -587,7 +583,7 @@ Here is a complete flow showing a run that gets blocked on a tool call, approved
 | `conversation_id` | string | Conversation/session grouping ID |
 | `initial_message` | string | The user's first message in this run (set automatically by the playground) |
 | `agent_id` | string | Agent name |
-| `namespace` | string | Agent namespace |
+| `namespace` | string | Internal workspace namespace, when returned |
 | `user_id` | string | User who triggered the run |
 | `status` | string | Current status |
 | `blocked_action_id` | string | ID of the action blocking this run (when paused) |

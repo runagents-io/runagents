@@ -8,14 +8,14 @@ Register and manage external tools that your agents can access. Tools represent 
 
 ## List Tools
 
-<span class="method-get">GET</span> <span class="endpoint">/api/tools</span>
+<span class="method-get">GET</span> <span class="endpoint">/tools</span>
 
 Returns all registered tools.
 
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/tools \
+    curl https://acme.runagents.io/api/v1/tools \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -60,7 +60,7 @@ Returns all registered tools.
 
 ## Create a Tool
 
-<span class="method-post">POST</span> <span class="endpoint">/api/tools</span>
+<span class="method-post">POST</span> <span class="endpoint">/tools</span>
 
 Register a new tool. Idempotent -- creating a tool with an existing name updates it.
 
@@ -88,7 +88,7 @@ Register a new tool. Idempotent -- creating a tool with an existing name updates
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/tools \
+    curl -X POST https://acme.runagents.io/api/v1/tools \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -147,7 +147,7 @@ Register a new tool. Idempotent -- creating a tool with an existing name updates
     import requests
 
     resp = requests.post(
-        "https://api.runagents.io/api/tools",
+        "https://acme.runagents.io/api/v1/tools",
         headers={"Authorization": f"Bearer {api_key}"},
         json={
             "name": "google-drive",
@@ -245,7 +245,7 @@ Register a new tool. Idempotent -- creating a tool with an existing name updates
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/tools \
+    curl -X POST https://acme.runagents.io/api/v1/tools \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -290,7 +290,7 @@ Register a new tool. Idempotent -- creating a tool with an existing name updates
 
 ## Get Tool Details
 
-<span class="method-get">GET</span> <span class="endpoint">/api/tools/:name</span>
+<span class="method-get">GET</span> <span class="endpoint">/tools/:name</span>
 
 Retrieve details for a specific tool.
 
@@ -303,7 +303,7 @@ Retrieve details for a specific tool.
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/tools/stripe-api \
+    curl https://acme.runagents.io/api/v1/tools/stripe-api \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -321,7 +321,7 @@ Returns the full tool object (same format as the create response).
 
 ## Delete a Tool
 
-<span class="method-delete">DELETE</span> <span class="endpoint">/api/tools/:name</span>
+<span class="method-delete">DELETE</span> <span class="endpoint">/tools/:name</span>
 
 Delete a registered tool.
 
@@ -334,7 +334,7 @@ Delete a registered tool.
 === "curl"
 
     ```bash
-    curl -X DELETE https://api.runagents.io/api/tools/stripe-api \
+    curl -X DELETE https://acme.runagents.io/api/v1/tools/stripe-api \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -356,7 +356,7 @@ Delete a registered tool.
 
 ## Probe a URL
 
-<span class="method-post">POST</span> <span class="endpoint">/api/tools/probe</span>
+<span class="method-post">POST</span> <span class="endpoint">/tools/probe</span>
 
 Test connectivity to a URL before registering it as a tool. Returns reachability status and latency.
 
@@ -369,7 +369,7 @@ Test connectivity to a URL before registering it as a tool. Returns reachability
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/tools/probe \
+    curl -X POST https://acme.runagents.io/api/v1/tools/probe \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"url": "https://api.stripe.com"}'
@@ -392,14 +392,14 @@ Test connectivity to a URL before registering it as a tool. Returns reachability
 
 ## Test a Registered Tool
 
-<span class="method-post">POST</span> <span class="endpoint">/api/tools/:name/test</span>
+<span class="method-post">POST</span> <span class="endpoint">/tools/:name/test</span>
 
 Probe a registered tool's base URL and update its status with the result.
 
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/tools/stripe-api/test \
+    curl -X POST https://acme.runagents.io/api/v1/tools/stripe-api/test \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 

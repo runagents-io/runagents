@@ -5,8 +5,8 @@
 
     | Operation | Redoc | Swagger |
     | --- | --- | --- |
-    | `GET /api/model-providers` | [Redoc](redoc/?spec=_generated/specs/model-providers.yaml#operation/getApiModelProviders) | [Swagger](swagger/?spec=_generated/specs/model-providers.yaml#/Model%20Providers/getApiModelProviders) |
-    | `POST /api/model-providers` | [Redoc](redoc/?spec=_generated/specs/model-providers.yaml#operation/postApiModelProviders) | [Swagger](swagger/?spec=_generated/specs/model-providers.yaml#/Model%20Providers/postApiModelProviders) |
-    | `GET /api/model-providers/{providerName}` | [Redoc](redoc/?spec=_generated/specs/model-providers.yaml#operation/getApiModelProvidersByProviderName) | [Swagger](swagger/?spec=_generated/specs/model-providers.yaml#/Model%20Providers/getApiModelProvidersByProviderName) |
-    | `DELETE /api/model-providers/{providerName}` | [Redoc](redoc/?spec=_generated/specs/model-providers.yaml#operation/deleteApiModelProvidersByProviderName) | [Swagger](swagger/?spec=_generated/specs/model-providers.yaml#/Model%20Providers/deleteApiModelProvidersByProviderName) |
-    | `POST /v1/chat/completions` | [Redoc](redoc/?spec=_generated/specs/model-providers.yaml#operation/postV1ChatCompletions) | [Swagger](swagger/?spec=_generated/specs/model-providers.yaml#/Model%20Providers/postV1ChatCompletions) |
+    | `GET /model-providers` | [Redoc](redoc/?spec=_generated/specs/model-providers.yaml#operation/getModelProviders) | [Swagger](swagger/?spec=_generated/specs/model-providers.yaml#/Model%20Providers/getModelProviders) |
+    | `POST /model-providers` | [Redoc](redoc/?spec=_generated/specs/model-providers.yaml#operation/postModelProviders) | [Swagger](swagger/?spec=_generated/specs/model-providers.yaml#/Model%20Providers/postModelProviders) |
+    | `GET /model-providers/{providerName}` | [Redoc](redoc/?spec=_generated/specs/model-providers.yaml#operation/getModelProvidersByProviderName) | [Swagger](swagger/?spec=_generated/specs/model-providers.yaml#/Model%20Providers/getModelProvidersByProviderName) |
+    | `DELETE /model-providers/{providerName}` | [Redoc](redoc/?spec=_generated/specs/model-providers.yaml#operation/deleteModelProvidersByProviderName) | [Swagger](swagger/?spec=_generated/specs/model-providers.yaml#/Model%20Providers/deleteModelProvidersByProviderName) |
+    | `POST /chat/completions` | [Redoc](redoc/?spec=_generated/specs/model-providers.yaml#operation/postChatCompletions) | [Swagger](swagger/?spec=_generated/specs/model-providers.yaml#/Model%20Providers/postChatCompletions) |

@@ -2,14 +2,6 @@
 
 > RunAgents is a platform for deploying and orchestrating AI agents with secure, policy-driven access to external tools and services. It handles identity propagation, credential injection, approval workflows, and access control so agent developers can focus on logic instead of security plumbing.
 
-The same governed runtime can sit behind a web app, WhatsApp, Slack, an internal portal, or a custom client. RunAgents owns execution, identity propagation, policy enforcement, approval workflows, and outbound tool security behind that surface.
-
-## What's New
-
-- [What's New](https://docs.runagents.io/whats-new/): Release-oriented overview of recent platform updates
-- [SDK & MCP v1.3.0 release notes](https://docs.runagents.io/whats-new/releases/2026-04-10-sdk-mcp-v1-3-0-parity/): Catalog, governance, identity, and richer run operations now land on the public SDK and assistant tool surface
-- [April 9, 2026 release notes](https://docs.runagents.io/whats-new/releases/2026-04-09-scoped-approvals-console-messaging/): Scoped approvals, clearer operations, Google Workspace calendar writes, and stronger messaging-surface workflows
-
 ## Getting Started
 
 - [Quickstart](https://docs.runagents.io/getting-started/quickstart/): Deploy your first agent in 5 minutes using the console
@@ -23,19 +15,16 @@ The same governed runtime can sit behind a web app, WhatsApp, Slack, an internal
 
 - [Dashboard](https://docs.runagents.io/platform/dashboard/): Platform overview, run counts, setup checklist
 - [Agent Runtime](https://docs.runagents.io/platform/agent-runtime/): How the built-in runtime executes agents (tiers, tool loop, SSE streaming)
-- [Agent Catalog](https://docs.runagents.io/platform/agent-catalog/): Production-shaped starting points such as the Google Workspace assistant
 - [Deploying Agents](https://docs.runagents.io/platform/deploying-agents/): Three-step deploy wizard — Upload, Wire, Deploy
 - [Registering Tools](https://docs.runagents.io/platform/registering-tools/): Register external APIs with auth, access control, and capabilities
 - [Model Providers](https://docs.runagents.io/platform/model-providers/): Configure LLM providers (OpenAI, Anthropic, Bedrock, Ollama)
 - [Identity Providers](https://docs.runagents.io/platform/identity-providers/): JWT-based client authentication
-- [Approvals](https://docs.runagents.io/platform/approvals/): Policy-driven approval workflow with scoped approvals for sensitive actions
+- [Approvals](https://docs.runagents.io/platform/approvals/): Just-in-time access request workflow for sensitive tools
 
 ## API Reference
 
 - [Overview](https://docs.runagents.io/api/overview/): API authentication, base URLs, common patterns
-- [Deploy](https://docs.runagents.io/api/deploy/): POST /api/deploy — deploy agents programmatically
-- [Policies](https://docs.runagents.io/api/policies/): Policy management and translation
-- [Approval Connectors](https://docs.runagents.io/api/approval-connectors/): Approval delivery integrations, defaults, and activity
+- [Deploy](https://docs.runagents.io/api/deploy/): POST /deploy — deploy agents programmatically
 - [Agents](https://docs.runagents.io/api/agents/): CRUD operations on agents
 - [Tools](https://docs.runagents.io/api/tools/): CRUD operations on tools
 - [Model Providers & LLM Gateway](https://docs.runagents.io/api/model-providers/): Model provider management and OpenAI-compatible gateway
@@ -50,8 +39,8 @@ The same governed runtime can sit behind a web app, WhatsApp, Slack, an internal
 
 - [Python SDK](https://docs.runagents.io/sdk/): Full reference — Client, Agent, @tool, CLI, MCP, runtime
 - `pip install runagents` — zero dependencies, Python 3.10+
-- `pip install runagents[mcp]` — includes the MCP server for AI coding assistants, with tools for deploy, catalog, policies, identity providers, approval connectors, runs, and scoped approvals
-- `Client` — manage agents, tools, runs, approvals, deploy, analyze from Python
+- `pip install runagents[mcp]` — includes MCP server tools for AI coding assistants
+- `Client` — manage agents, model budgets, tools, runs, approvals, deploy, analyze from Python
 - `Agent` — write agent code: call_tool(), chat(), reads operator env vars
 - `@tool` — decorator for tool handler functions
 - `runagents init [name]` — scaffold a project with agent.py, runagents.yaml, CLAUDE.md, .mcp.json
@@ -61,23 +50,22 @@ The same governed runtime can sit behind a web app, WhatsApp, Slack, an internal
 ## CLI Reference
 
 - [Installation](https://docs.runagents.io/cli/installation/): Install via pip (recommended), curl, npm, or Homebrew
-- [Commands](https://docs.runagents.io/cli/commands/): Full command reference including catalog, policies, approval connectors, identity providers, and richer run workflows
+- [Commands](https://docs.runagents.io/cli/commands/): CLI command reference
 - [Action Plans](https://docs.runagents.io/cli/action-plans/): Validate-then-apply deployment workflow
 - [Action Plan Examples](https://docs.runagents.io/cli/plan-examples/): Real-world action plan walkthroughs
 - [External Assistants](https://docs.runagents.io/cli/external-assistants/): Use RunAgents with Claude Code, Cursor, Codex
 - [AI Assistant Setup](https://docs.runagents.io/cli/ai-assistant-setup/): Templates and MCP server for AI coding assistants
-- [RunAgents Skills](https://docs.runagents.io/cli/skills/): Reusable workflow skills for Codex, Claude Code, Cursor, and similar assistants across catalog deploys, approvals, tools, debugging, and anywhere-interfaces
 
 ## Concepts
 
-- [Architecture](https://docs.runagents.io/concepts/architecture/): Three-stage flow — Ingress, Runtime, Egress — behind any user-facing interface
+- [Architecture](https://docs.runagents.io/concepts/architecture/): Three-stage flow — Ingress, Runtime, Egress
 - [Identity Propagation](https://docs.runagents.io/concepts/identity-propagation/): How user identity flows from client to agent to tool
 - [Policy Model](https://docs.runagents.io/concepts/policy-model/): Access control rules and evaluation
 - [OAuth & Consent](https://docs.runagents.io/concepts/oauth-consent/): OAuth2 consent flow for tools requiring user authorization
 
 ## Operations
 
-- [Run Lifecycle](https://docs.runagents.io/operations/runs/): Run states, events, approval, consent, and automatic resume behavior
+- [Run Lifecycle](https://docs.runagents.io/operations/runs/): Run states, events, approval workflow
 - [Troubleshooting](https://docs.runagents.io/operations/troubleshooting/): Common issues and fixes
 
 ## Self-Hosted

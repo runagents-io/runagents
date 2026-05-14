@@ -5,7 +5,9 @@
 
     | Operation | Redoc | Swagger |
     | --- | --- | --- |
-    | `GET /api/agents` | [Redoc](redoc/?spec=_generated/specs/agents.yaml#operation/getApiAgents) | [Swagger](swagger/?spec=_generated/specs/agents.yaml#/Agents/getApiAgents) |
-    | `GET /api/agents/{namespace}/{agentName}` | [Redoc](redoc/?spec=_generated/specs/agents.yaml#operation/getApiAgentsByNamespaceByAgentName) | [Swagger](swagger/?spec=_generated/specs/agents.yaml#/Agents/getApiAgentsByNamespaceByAgentName) |
-    | `DELETE /api/agents/{namespace}/{agentName}` | [Redoc](redoc/?spec=_generated/specs/agents.yaml#operation/deleteApiAgentsByNamespaceByAgentName) | [Swagger](swagger/?spec=_generated/specs/agents.yaml#/Agents/deleteApiAgentsByNamespaceByAgentName) |
-    | `POST /api/agents/{namespace}/{agentName}/invoke` | [Redoc](redoc/?spec=_generated/specs/agents.yaml#operation/postApiAgentsByNamespaceByAgentNameInvoke) | [Swagger](swagger/?spec=_generated/specs/agents.yaml#/Agents/postApiAgentsByNamespaceByAgentNameInvoke) |
+    | `GET /agents` | [Redoc](redoc/?spec=_generated/specs/agents.yaml#operation/getAgents) | [Swagger](swagger/?spec=_generated/specs/agents.yaml#/Agents/getAgents) |
+    | `GET /agents/{agentName}` | [Redoc](redoc/?spec=_generated/specs/agents.yaml#operation/getAgentsByAgentName) | [Swagger](swagger/?spec=_generated/specs/agents.yaml#/Agents/getAgentsByAgentName) |
+    | `DELETE /agents/{agentName}` | [Redoc](redoc/?spec=_generated/specs/agents.yaml#operation/deleteAgentsByAgentName) | [Swagger](swagger/?spec=_generated/specs/agents.yaml#/Agents/deleteAgentsByAgentName) |
+    | `GET /agents/{agentName}/config` | [Redoc](redoc/?spec=_generated/specs/agents.yaml#operation/getAgentConfig) | [Swagger](swagger/?spec=_generated/specs/agents.yaml#/Agents/getAgentConfig) |
+    | `PUT /agents/{agentName}/config` | [Redoc](redoc/?spec=_generated/specs/agents.yaml#operation/updateAgentConfig) | [Swagger](swagger/?spec=_generated/specs/agents.yaml#/Agents/updateAgentConfig) |
+    | `POST /agents/{agentName}/invoke` | [Redoc](redoc/?spec=_generated/specs/agents.yaml#operation/postAgentsByAgentNameInvoke) | [Swagger](swagger/?spec=_generated/specs/agents.yaml#/Agents/postAgentsByAgentNameInvoke) |

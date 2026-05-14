@@ -8,14 +8,14 @@ Configure identity providers to authenticate end users calling your agents. When
 
 ## List Identity Providers
 
-<span class="method-get">GET</span> <span class="endpoint">/api/identity-providers</span>
+<span class="method-get">GET</span> <span class="endpoint">/identity-providers</span>
 
 Returns all registered identity providers.
 
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/identity-providers \
+    curl https://acme.runagents.io/api/v1/identity-providers \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -44,7 +44,7 @@ Returns all registered identity providers.
 
 ## Create an Identity Provider
 
-<span class="method-post">POST</span> <span class="endpoint">/api/identity-providers</span>
+<span class="method-post">POST</span> <span class="endpoint">/identity-providers</span>
 
 Register a new identity provider. Idempotent -- creating with an existing name updates it.
 
@@ -53,7 +53,6 @@ Register a new identity provider. Idempotent -- creating with an existing name u
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `name` | string | Yes | Unique identity provider name |
-| `namespace` | string | No | Namespace (defaults to `default`) |
 | `spec` | object | Yes | Identity provider specification |
 
 ### Example: Google OIDC
@@ -61,7 +60,7 @@ Register a new identity provider. Idempotent -- creating with an existing name u
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/identity-providers \
+    curl -X POST https://acme.runagents.io/api/v1/identity-providers \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -85,7 +84,7 @@ Register a new identity provider. Idempotent -- creating with an existing name u
     import requests
 
     resp = requests.post(
-        "https://api.runagents.io/api/identity-providers",
+        "https://acme.runagents.io/api/v1/identity-providers",
         headers={"Authorization": f"Bearer {api_key}"},
         json={
             "name": "google-oidc",
@@ -128,7 +127,7 @@ Register a new identity provider. Idempotent -- creating with an existing name u
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/identity-providers \
+    curl -X POST https://acme.runagents.io/api/v1/identity-providers \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -151,7 +150,7 @@ Register a new identity provider. Idempotent -- creating with an existing name u
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/identity-providers \
+    curl -X POST https://acme.runagents.io/api/v1/identity-providers \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -172,7 +171,7 @@ Register a new identity provider. Idempotent -- creating with an existing name u
 
 ## Get Identity Provider Details
 
-<span class="method-get">GET</span> <span class="endpoint">/api/identity-providers/:name</span>
+<span class="method-get">GET</span> <span class="endpoint">/identity-providers/:name</span>
 
 Retrieve details for a specific identity provider.
 
@@ -185,7 +184,7 @@ Retrieve details for a specific identity provider.
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/identity-providers/google-oidc \
+    curl https://acme.runagents.io/api/v1/identity-providers/google-oidc \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -203,7 +202,7 @@ Returns the full identity provider object.
 
 ## Delete an Identity Provider
 
-<span class="method-delete">DELETE</span> <span class="endpoint">/api/identity-providers/:name</span>
+<span class="method-delete">DELETE</span> <span class="endpoint">/identity-providers/:name</span>
 
 Delete an identity provider.
 
@@ -216,7 +215,7 @@ Delete an identity provider.
 === "curl"
 
     ```bash
-    curl -X DELETE https://api.runagents.io/api/identity-providers/google-oidc \
+    curl -X DELETE https://acme.runagents.io/api/v1/identity-providers/google-oidc \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 

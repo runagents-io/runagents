@@ -5,28 +5,28 @@ import os
 import unittest
 from unittest import mock
 
-from runagents.client import Client, APIError
+from runagents.client import Client, APIError, _normalize_endpoint, _normalize_path
 
 
 class TestClientHeaders(unittest.TestCase):
     def test_basic_headers(self):
         with mock.patch.dict(os.environ, {"RUNAGENTS_ENDPOINT": "http://test:8092"}, clear=True):
-            c = Client(api_key="sk-test", namespace="prod")
+            c = Client(api_key="sk-test")
         h = c._headers()
         self.assertEqual(h["Authorization"], "Bearer sk-test")
-        self.assertEqual(h["X-Workspace-Namespace"], "prod")
+        self.assertNotIn("X-Workspace-Namespace", h)
         self.assertNotIn("X-RunAgents-API-Key", h)
 
     def test_workspace_key_headers(self):
         with mock.patch.dict(os.environ, {"RUNAGENTS_ENDPOINT": "http://test:8092"}, clear=True):
-            c = Client(api_key="ra_ws_abc123", namespace="trial-1")
+            c = Client(api_key="ra_ws_abc123")
         h = c._headers()
         self.assertEqual(h["Authorization"], "Bearer ra_ws_abc123")
-        self.assertEqual(h["X-RunAgents-API-Key"], "ra_ws_abc123")
+        self.assertNotIn("X-RunAgents-API-Key", h)
 
     def test_no_auth(self):
         with mock.patch.dict(os.environ, {"RUNAGENTS_ENDPOINT": "http://test:8092"}, clear=True):
-            c = Client(api_key="", namespace="")
+            c = Client(api_key="")
         h = c._headers()
         self.assertNotIn("Authorization", h)
         self.assertNotIn("X-Workspace-Namespace", h)
@@ -35,9 +35,26 @@ class TestClientHeaders(unittest.TestCase):
 class TestClientRepr(unittest.TestCase):
     def test_repr(self):
         with mock.patch.dict(os.environ, {}, clear=True):
-            c = Client(endpoint="http://example.com", namespace="ns")
+            c = Client(endpoint="http://example.com")
         self.assertIn("example.com", repr(c))
-        self.assertIn("ns", repr(c))
+        self.assertNotIn("namespace", repr(c))
+
+
+class TestURLNormalization(unittest.TestCase):
+    def test_endpoint_adds_api_v1(self):
+        self.assertEqual(
+            _normalize_endpoint("https://1406e38143ac0e57.try.runagents.io/"),
+            "https://1406e38143ac0e57.try.runagents.io/api/v1",
+        )
+
+    def test_endpoint_preserves_workspace_path(self):
+        self.assertEqual(
+            _normalize_endpoint("https://acme.runagents.io/workspaces/revops"),
+            "https://acme.runagents.io/api/v1/workspaces/revops",
+        )
+
+    def test_path_preserves_clean_resource_path(self):
+        self.assertEqual(_normalize_path("/agents/billing-agent"), "/agents/billing-agent")
 
 
 class TestClientResources(unittest.TestCase):
@@ -47,6 +64,7 @@ class TestClientResources(unittest.TestCase):
         self.assertTrue(hasattr(c, "agents"))
         self.assertTrue(hasattr(c, "tools"))
         self.assertTrue(hasattr(c, "models"))
+        self.assertTrue(hasattr(c, "model_spend"))
         self.assertTrue(hasattr(c, "runs"))
         self.assertTrue(hasattr(c, "approvals"))
 

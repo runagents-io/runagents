@@ -5,7 +5,7 @@
 
     | Operation | Redoc | Swagger |
     | --- | --- | --- |
-    | `GET /api/identity-providers` | [Redoc](redoc/?spec=_generated/specs/identity-providers.yaml#operation/getApiIdentityProviders) | [Swagger](swagger/?spec=_generated/specs/identity-providers.yaml#/Identity%20Providers/getApiIdentityProviders) |
-    | `POST /api/identity-providers` | [Redoc](redoc/?spec=_generated/specs/identity-providers.yaml#operation/postApiIdentityProviders) | [Swagger](swagger/?spec=_generated/specs/identity-providers.yaml#/Identity%20Providers/postApiIdentityProviders) |
-    | `GET /api/identity-providers/{providerName}` | [Redoc](redoc/?spec=_generated/specs/identity-providers.yaml#operation/getApiIdentityProvidersByProviderName) | [Swagger](swagger/?spec=_generated/specs/identity-providers.yaml#/Identity%20Providers/getApiIdentityProvidersByProviderName) |
-    | `DELETE /api/identity-providers/{providerName}` | [Redoc](redoc/?spec=_generated/specs/identity-providers.yaml#operation/deleteApiIdentityProvidersByProviderName) | [Swagger](swagger/?spec=_generated/specs/identity-providers.yaml#/Identity%20Providers/deleteApiIdentityProvidersByProviderName) |
+    | `GET /identity-providers` | [Redoc](redoc/?spec=_generated/specs/identity-providers.yaml#operation/getIdentityProviders) | [Swagger](swagger/?spec=_generated/specs/identity-providers.yaml#/Identity%20Providers/getIdentityProviders) |
+    | `POST /identity-providers` | [Redoc](redoc/?spec=_generated/specs/identity-providers.yaml#operation/postIdentityProviders) | [Swagger](swagger/?spec=_generated/specs/identity-providers.yaml#/Identity%20Providers/postIdentityProviders) |
+    | `GET /identity-providers/{providerName}` | [Redoc](redoc/?spec=_generated/specs/identity-providers.yaml#operation/getIdentityProvidersByProviderName) | [Swagger](swagger/?spec=_generated/specs/identity-providers.yaml#/Identity%20Providers/getIdentityProvidersByProviderName) |
+    | `DELETE /identity-providers/{providerName}` | [Redoc](redoc/?spec=_generated/specs/identity-providers.yaml#operation/deleteIdentityProvidersByProviderName) | [Swagger](swagger/?spec=_generated/specs/identity-providers.yaml#/Identity%20Providers/deleteIdentityProvidersByProviderName) |

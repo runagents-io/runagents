@@ -10,7 +10,7 @@ Requests are typically created by the platform when policy evaluation returns `a
 
 ## Create Access Request
 
-<span class="method-post">POST</span> <span class="endpoint">/governance/requests</span>
+<span class="method-post">POST</span> <span class="endpoint">/approvals/requests</span>
 
 Creates a new request.
 
@@ -47,7 +47,7 @@ If the same blocked action is retried in the same pending run context, RunAgents
 
 ## List Requests
 
-<span class="method-get">GET</span> <span class="endpoint">/governance/requests</span>
+<span class="method-get">GET</span> <span class="endpoint">/approvals/requests</span>
 
 ### Query Parameters
 
@@ -76,7 +76,7 @@ If the same blocked action is retried in the same pending run context, RunAgents
 
 ## Get Request
 
-<span class="method-get">GET</span> <span class="endpoint">/governance/requests/:id</span>
+<span class="method-get">GET</span> <span class="endpoint">/approvals/requests/:id</span>
 
 Returns the full request record.
 
@@ -84,7 +84,7 @@ Returns the full request record.
 
 ## Approve Request
 
-<span class="method-post">POST</span> <span class="endpoint">/governance/requests/:id/approve</span>
+<span class="method-post">POST</span> <span class="endpoint">/approvals/requests/:id/approve</span>
 
 Approves a pending request.
 
@@ -115,7 +115,7 @@ On approval, RunAgents creates a scoped runtime approval outcome that can be app
 
 ## Reject Request
 
-<span class="method-post">POST</span> <span class="endpoint">/governance/requests/:id/reject</span>
+<span class="method-post">POST</span> <span class="endpoint">/approvals/requests/:id/reject</span>
 
 Rejects a pending request.
 

@@ -1,37 +1,52 @@
 # API Overview
 
-The RunAgents API lets you programmatically deploy agents, register tools, manage model providers, orchestrate runs, and handle approvals. Everything you can do in the console is available via the API.
-
-!!! info "Reference Views"
-    [:material-file-code-outline: OpenAPI Contract](openapi.md){ .md-button .md-button--primary }
-    [:material-book-open-variant: Redoc Reference](redoc.md){ .md-button }
-    [:material-api: Swagger UI](swagger.md){ .md-button }
-
-    Use the OpenAPI contract as the canonical REST definition, or jump into Redoc and Swagger UI for interactive reference views. Each API page in this section also includes generated links to filtered Redoc and Swagger views for that specific endpoint group.
+The RunAgents API lets you programmatically deploy agents, register tools, manage model providers, validate and apply action plans, orchestrate runs, and handle approvals.
 
 ## Base URL
 
-All API requests are made to:
+RunAgents API clients use the URL they receive for their trial, company, or
+workspace.
 
-```
-https://api.runagents.io
-```
+=== "Trial"
+
+    ```text
+    https://1406e38143ac0e57.try.runagents.io/api/v1
+    ```
+
+=== "Company default workspace"
+
+    ```text
+    https://acme.runagents.io/api/v1
+    ```
+
+=== "Company workspace"
+
+    ```text
+    https://acme.runagents.io/api/v1/workspaces/revops
+    ```
+
+The base URL carries tenant and workspace context. Kubernetes namespaces remain
+internal to RunAgents.
 
 ## Authentication
 
-Every API request must include an API key in the `Authorization` header:
+Every API request should include a bearer token:
 
-```
-Authorization: Bearer <api-key>
+```http
+Authorization: Bearer <token>
 ```
 
-Obtain your API key from **Settings** in the [RunAgents Console](https://console.runagents.io).
+Tokens identify the caller and authorize access to the tenant/workspace in the
+base URL. Tokens may be personal, service, or workspace-bound depending on how
+they are created.
+
+You can create and rotate workspace API keys from **Settings** in the [RunAgents Console](https://console.runagents.io) or programmatically through the auth endpoints documented in the canonical OpenAPI contract.
 
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/agents \
-      -H "Authorization: Bearer ra_live_abc123..."
+    curl https://acme.runagents.io/api/v1/workspaces/revops/agents \
+      -H "Authorization: Bearer ra_ws_abc123..."
     ```
 
 === "Python"
@@ -39,8 +54,11 @@ Obtain your API key from **Settings** in the [RunAgents Console](https://console
     ```python
     import requests
 
-    headers = {"Authorization": "Bearer ra_live_abc123..."}
-    resp = requests.get("https://api.runagents.io/api/agents", headers=headers)
+    headers = {"Authorization": "Bearer ra_ws_abc123..."}
+    resp = requests.get(
+        "https://acme.runagents.io/api/v1/workspaces/revops/agents",
+        headers=headers,
+    )
     ```
 
 ## Content Type
@@ -104,46 +122,29 @@ Stable, versioned APIs (e.g., `/v1/...`) are planned for general availability. S
 
 ## OpenAPI Contract
 
-The public REST API contract now lives in-repo at `openapi/openapi.yaml`.
+The canonical machine-readable contract for the public programmatic API is maintained at `openapi/openapi.yaml` and mirrored into the docs site:
 
-Current machine-readable coverage includes:
+- [Full OpenAPI contract (`openapi.yaml`)](openapi.yaml)
+- [Focused action plans fragment (`action-plans-openapi.yaml`)](action-plans-openapi.yaml)
 
-- approvals
-- runs
-- catalog
-- deploy
-- billing
-- ingestion
-- policies
-- approval connectors
-- identity providers
-- agents
-- tools
-- model providers
-- builds
-
-Additional public API groups will be added to the same contract incrementally so the spec can become the canonical source for generated API reference pages.
-
-The docs site now publishes generated views from the same contract:
-
-- [OpenAPI Contract](openapi.md)
-- [Redoc Reference](redoc.md)
-- [Swagger UI](swagger.md)
+Use the full contract as the source for generated SDK, CLI, and assistant
+artifacts. The action plans fragment is kept as a focused reference for the
+deterministic validate/apply flow.
 
 ## API Endpoints at a Glance
 
 | Endpoint Group | Description | Documentation |
 |----------------|-------------|---------------|
-| `/api/catalog` | Discover catalog agents and versions | [Catalog API](catalog.md) |
-| `/api/deploy` | Deploy agents programmatically | [Deploy API](deploy.md) |
-| `/api/policies` | Manage policy rules and approval routing | [Policies API](policies.md) |
-| `/api/settings/approval-connectors` | Manage approval delivery connectors, defaults, and activity | [Approval Connectors API](approval-connectors.md) |
-| `/api/agents` | List, get, and delete agents | [Agents API](agents.md) |
-| `/api/tools` | Register and manage tools | [Tools API](tools.md) |
-| `/api/model-providers` | Configure LLM providers | [Model Providers API](model-providers.md) |
-| `/api/identity-providers` | Set up authentication providers | [Identity Providers API](identity-providers.md) |
+| `/deploy` | Deploy agents programmatically | [Deploy API](deploy.md) |
+| `/actions/*` | Validate and apply deterministic action plans | [Action Plans API](actions.md) |
+| `/agents` | List, get, delete, invoke, and configure agents | [Agents API](agents.md) |
+| `/agents/{agentName}/config` | Configure model mappings, budgets, tools, policies, and identity | Full OpenAPI contract |
+| `/tools` | Register and manage tools | [Tools API](tools.md) |
+| `/model-providers` | Configure LLM providers | [Model Providers API](model-providers.md) |
+| `/model-spend` | View model spend, budget warnings, and top model usage | Full OpenAPI contract |
+| `/identity-providers` | Set up authentication providers | [Identity Providers API](identity-providers.md) |
 | `/runs` | Agent run lifecycle and events | [Runs API](runs.md) |
-| `/governance/requests` | JIT access request approvals | [Approvals API](approvals.md) |
-| `/v1/chat/completions` | OpenAI-compatible LLM gateway | [Model Providers & LLM Gateway](model-providers.md) |
+| `/approvals/requests` | JIT access request approvals | [Approvals API](approvals.md) |
+| `/chat/completions` | OpenAI-compatible LLM gateway | [Model Providers & LLM Gateway](model-providers.md) |
 | `/analyze` | Code analysis and detection | [Ingestion API](ingestion.md) |
-| `/api/builds` | Container image builds | [Build API](build.md) |
+| `/builds` | Container image builds | [Build API](build.md) |

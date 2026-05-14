@@ -2,20 +2,44 @@ openapi: 3.1.0
 info:
   title: RunAgents API
   version: v1alpha
-  summary: Public REST API contract for RunAgents.
-  description: 'This OpenAPI document is the canonical machine-readable contract for
-    the public RunAgents REST API where coverage exists.
+  summary: Target programmatic REST API contract for RunAgents.
+  description: 'This OpenAPI document is the target machine-readable contract for
+    the RunAgents programmatic API. It is the source contract for generated SDK, CLI,
+    and assistant-facing integrations where coverage exists. Tenant and workspace
+    context are carried by the base URL. Caller identity, scopes, and optional default
+    workspace are carried by the bearer token. Kubernetes namespaces are an internal
+    implementation detail and are not part of this public contract.
 
     '
 servers:
-- url: https://api.runagents.io
+- url: https://{trialId}.try.runagents.io/api/v1
+  description: Trial host with one default workspace.
+  variables:
+    trialId:
+      default: 1406e38143ac0e57
+      description: Trial workspace host id.
+- url: https://{company}.runagents.io/api/v1
+  description: Company host using the caller token's default workspace.
+  variables:
+    company:
+      default: acme
+      description: Company tenant slug.
+- url: https://{company}.runagents.io/api/v1/workspaces/{workspace}
+  description: Company host with an explicit workspace in the base URL.
+  variables:
+    company:
+      default: acme
+      description: Company tenant slug.
+    workspace:
+      default: revops
+      description: Workspace slug inside the company tenant.
 security:
 - bearerAuth: []
 tags:
 - name: Model Providers
   description: Provider registration and OpenAI-compatible gateway access.
 paths:
-  /api/model-providers:
+  /model-providers:
     get:
       tags:
       - Model Providers
@@ -31,7 +55,7 @@ paths:
                   $ref: '#/components/schemas/ModelProvider'
         '401':
           $ref: '#/components/responses/Unauthorized'
-      operationId: getApiModelProviders
+      operationId: getModelProviders
     post:
       tags:
       - Model Providers
@@ -53,8 +77,8 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
-      operationId: postApiModelProviders
-  /api/model-providers/{providerName}:
+      operationId: postModelProviders
+  /model-providers/{providerName}:
     get:
       tags:
       - Model Providers
@@ -72,7 +96,7 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-      operationId: getApiModelProvidersByProviderName
+      operationId: getModelProvidersByProviderName
     delete:
       tags:
       - Model Providers
@@ -90,8 +114,8 @@ paths:
           $ref: '#/components/responses/Unauthorized'
         '404':
           $ref: '#/components/responses/NotFound'
-      operationId: deleteApiModelProvidersByProviderName
-  /v1/chat/completions:
+      operationId: deleteModelProvidersByProviderName
+  /chat/completions:
     post:
       tags:
       - Model Providers
@@ -121,13 +145,18 @@ paths:
           $ref: '#/components/responses/NotFound'
         '502':
           $ref: '#/components/responses/BadGateway'
-      operationId: postV1ChatCompletions
+      operationId: postChatCompletions
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: API key
+      description: 'Standard bearer token auth. Personal, service, and workspace-bound
+        tokens identify the caller and authorize access to the tenant/workspace carried
+        by the base URL.
+
+        '
   parameters:
     RequestId:
       name: requestId
@@ -149,6 +178,12 @@ components:
       schema:
         type: string
         format: uuid
+    KeyId:
+      name: keyId
+      in: path
+      required: true
+      schema:
+        type: string
     CatalogId:
       name: catalogId
       in: path
@@ -173,12 +208,6 @@ components:
       required: true
       schema:
         type: string
-    Namespace:
-      name: namespace
-      in: path
-      required: true
-      schema:
-        type: string
     AgentName:
       name: agentName
       in: path
@@ -197,6 +226,12 @@ components:
       required: true
       schema:
         type: string
+    DraftId:
+      name: draftId
+      in: path
+      required: true
+      schema:
+        type: string
   responses:
     BadRequest:
       description: Invalid request body or parameters.
@@ -206,6 +241,12 @@ components:
             $ref: '#/components/schemas/Error'
     Unauthorized:
       description: Missing or invalid API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Authenticated caller cannot access this resource.
       content:
         application/json:
           schema:
@@ -397,8 +438,6 @@ components:
         user_id:
           type: string
         conversation_id:
-          type: string
-        namespace:
           type: string
         invoke_url:
           type: string
@@ -694,8 +733,6 @@ components:
       properties:
         agent_name:
           type: string
-        namespace:
-          type: string
         image:
           type: string
         source_files:
@@ -766,12 +803,449 @@ components:
           type: string
         decision_reason:
           type: string
+    DeployDraftStatus:
+      type: string
+      enum:
+      - IN_PROGRESS
+      - COMPLETED
+      - ABANDONED
+    DeployDraftModelMapping:
+      type: object
+      required:
+      - provider
+      - model
+      properties:
+        provider:
+          type: string
+        model:
+          type: string
+        monthly_budget_usd:
+          type: number
+          format: double
+    DeployDraftAgentConfig:
+      type: object
+      properties:
+        agent_name:
+          type: string
+        system_prompt:
+          type: string
+        use_custom_image:
+          type: boolean
+        custom_image:
+          type: string
+        access_mode:
+          type: string
+          enum:
+          - open
+          - authenticated
+        identity_provider:
+          type: string
+    DeployDraftInput:
+      type: object
+      properties:
+        artifact_id:
+          type: string
+        source_type:
+          type: string
+        runtime_family:
+          type: string
+        adapter:
+          type: string
+        step:
+          type: string
+        policies:
+          type: array
+          items:
+            type: string
+        required_tool_names:
+          type: array
+          items:
+            type: string
+        recommended_tool_names:
+          type: array
+          items:
+            type: string
+        tool_mappings:
+          type: object
+          additionalProperties:
+            type: string
+        tool_states:
+          type: object
+          additionalProperties:
+            type: string
+        model_mappings:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DeployDraftModelMapping'
+        agent_config:
+          $ref: '#/components/schemas/DeployDraftAgentConfig'
+    DeployDraftPatch:
+      allOf:
+      - $ref: '#/components/schemas/DeployDraftInput'
+      - type: object
+        properties:
+          expected_version:
+            type: integer
+          status:
+            $ref: '#/components/schemas/DeployDraftStatus'
+    DeployDraft:
+      type: object
+      required:
+      - id
+      - status
+      - version
+      - created_at
+      - updated_at
+      properties:
+        id:
+          type: string
+        namespace:
+          type: string
+        user_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/DeployDraftStatus'
+        step:
+          type: string
+        artifact_id:
+          type: string
+        source_type:
+          type: string
+        runtime_family:
+          type: string
+        adapter:
+          type: string
+        policies:
+          type: array
+          items:
+            type: string
+        required_tool_names:
+          type: array
+          items:
+            type: string
+        recommended_tool_names:
+          type: array
+          items:
+            type: string
+        tool_mappings:
+          type: object
+          additionalProperties:
+            type: string
+        tool_states:
+          type: object
+          additionalProperties:
+            type: string
+        model_mappings:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DeployDraftModelMapping'
+        agent_config:
+          $ref: '#/components/schemas/DeployDraftAgentConfig'
+        version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
     StarterKitResponse:
       type: object
       properties:
         tool_created:
           type: string
         model_provider_created:
+          type: string
+    DeployPreviewAdvancedDetails:
+      type: object
+      required:
+      - execution_mode
+      - build_required
+      properties:
+        execution_mode:
+          type: string
+        build_required:
+          type: boolean
+        build_profile:
+          type: string
+        decision_reason:
+          type: string
+        execution_kind:
+          type: string
+        support_level:
+          type: string
+    DeployPreviewResponse:
+      type: object
+      required:
+      - user_state
+      - state_label
+      - eta_range
+      - confidence
+      - short_reason
+      - advanced_details
+      properties:
+        user_state:
+          type: string
+          enum:
+          - instant
+          - preparing_runtime
+          - compatibility_setup
+        state_label:
+          type: string
+        eta_range:
+          type: string
+        confidence:
+          type: string
+          enum:
+          - high
+          - medium
+          - low
+        short_reason:
+          type: string
+        advanced_details:
+          $ref: '#/components/schemas/DeployPreviewAdvancedDetails'
+    ContextExportResponse:
+      type: object
+      required:
+      - generated_at
+      - namespace
+      - resources
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        namespace:
+          type: string
+        user_id:
+          type: string
+        resources:
+          type: object
+          additionalProperties: true
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+        meta:
+          type: object
+          additionalProperties: true
+    ActionPlanRequest:
+      type: object
+      required:
+      - actions
+      additionalProperties: false
+      properties:
+        plan_id:
+          type: string
+        continue_on_error:
+          type: boolean
+        actions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ActionPlanAction'
+    ActionPlanAction:
+      type: object
+      required:
+      - type
+      - idempotency_key
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+          - tool.upsert
+          - model_provider.upsert
+          - policy.upsert
+          - deploy_draft.create_or_patch
+          - deploy.execute
+          - starter_kit.seed
+        idempotency_key:
+          type: string
+          minLength: 1
+        params:
+          type: object
+          additionalProperties: true
+    ActionPlanValidationResponse:
+      type: object
+      required:
+      - namespace
+      - valid
+      - results
+      properties:
+        plan_id:
+          type: string
+        namespace:
+          type: string
+        valid:
+          type: boolean
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionPlanValidationResult'
+    ActionPlanValidationResult:
+      type: object
+      required:
+      - id
+      - type
+      - valid
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        idempotency_key:
+          type: string
+        valid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        resource_ref:
+          type: string
+    ActionPlanApplyResponse:
+      type: object
+      required:
+      - namespace
+      - applied
+      - applied_count
+      - failed_count
+      - results
+      properties:
+        plan_id:
+          type: string
+        namespace:
+          type: string
+        applied:
+          type: boolean
+        applied_count:
+          type: integer
+          minimum: 0
+        failed_count:
+          type: integer
+          minimum: 0
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionPlanApplyResult'
+    ActionPlanApplyResult:
+      type: object
+      required:
+      - id
+      - type
+      - status
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        idempotency_key:
+          type: string
+        status:
+          type: string
+          enum:
+          - applied
+          - failed
+          - skipped
+          - invalid
+        resource_ref:
+          type: string
+        error:
+          type: string
+        output:
+          type: object
+          additionalProperties: true
+    AuthSettings:
+      type: object
+      required:
+      - sessionIdleTimeoutMinutes
+      - minSessionIdleTimeoutMinutes
+      - maxSessionIdleTimeoutMinutes
+      - programmaticHeader
+      - apiKeyPrefix
+      - apiKeyCount
+      properties:
+        sessionIdleTimeoutMinutes:
+          type: integer
+        minSessionIdleTimeoutMinutes:
+          type: integer
+        maxSessionIdleTimeoutMinutes:
+          type: integer
+        programmaticHeader:
+          type: string
+        apiKeyPrefix:
+          type: string
+        apiKeyCount:
+          type: integer
+        oauthCallbackUrl:
+          type: string
+    UpdateAuthSettingsRequest:
+      type: object
+      required:
+      - sessionIdleTimeoutMinutes
+      properties:
+        sessionIdleTimeoutMinutes:
+          type: integer
+    WorkspaceApiKey:
+      type: object
+      required:
+      - id
+      - name
+      - prefix
+      - last4
+      - createdAt
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        prefix:
+          type: string
+        last4:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        lastUsedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    CreateWorkspaceApiKeyRequest:
+      type: object
+      required:
+      - name
+      properties:
+        name:
+          type: string
+        expiresInDays:
+          type: integer
+          minimum: 1
+    RotateWorkspaceApiKeyRequest:
+      type: object
+      properties:
+        expiresInDays:
+          type: integer
+          minimum: 1
+    CreateWorkspaceApiKeyResponse:
+      type: object
+      required:
+      - key
+      - token
+      - header
+      properties:
+        key:
+          $ref: '#/components/schemas/WorkspaceApiKey'
+        token:
+          type: string
+        header:
           type: string
     PolicyRule:
       type: object
@@ -1121,16 +1595,12 @@ components:
       properties:
         name:
           type: string
-        namespace:
-          type: string
         spec:
           $ref: '#/components/schemas/IdentityProviderSpec'
     SecretRef:
       type: object
       properties:
         name:
-          type: string
-        namespace:
           type: string
     AgentToolRef:
       type: object
@@ -1187,6 +1657,121 @@ components:
           $ref: '#/components/schemas/AgentSpec'
         status:
           $ref: '#/components/schemas/AgentStatus'
+    AgentConfigLLM:
+      type: object
+      required:
+      - model
+      properties:
+        role:
+          type: string
+          description: Model role, such as chat, embedding, classify, or reranking.
+        model_provider:
+          type: string
+          description: Registered RunAgents model provider name.
+        provider:
+          type: string
+          description: Underlying provider type, such as openai or anthropic.
+        model:
+          type: string
+        monthly_budget_usd:
+          type: number
+          format: double
+          minimum: 0
+          description: Optional monthly budget for this agent/model mapping.
+    AgentModelUsage:
+      type: object
+      required:
+      - label
+      - model
+      - estimated_spend_usd
+      - status
+      properties:
+        label:
+          type: string
+        role:
+          type: string
+        model_provider:
+          type: string
+        provider:
+          type: string
+        model:
+          type: string
+        monthly_budget_usd:
+          type: number
+          format: double
+        estimated_spend_usd:
+          type: number
+          format: double
+        remaining_budget_usd:
+          type: number
+          format: double
+        period_start:
+          type: string
+          format: date-time
+        period_end:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+          - Active
+          - Near budget
+          - Budget reached
+          - Uncapped
+    AgentConfig:
+      type: object
+      required:
+      - agent_name
+      - namespace
+      - image
+      properties:
+        agent_name:
+          type: string
+        namespace:
+          type: string
+        image:
+          type: string
+        runtime:
+          type: string
+        system_prompt:
+          type: string
+        identity_provider:
+          type: string
+        llm_configs:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentConfigLLM'
+        model_usage:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentModelUsage'
+        required_tools:
+          type: array
+          items:
+            type: string
+        policies:
+          type: array
+          items:
+            type: string
+    AgentConfigUpdateRequest:
+      type: object
+      properties:
+        system_prompt:
+          type: string
+        identity_provider:
+          type: string
+        llm_configs:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentConfigLLM'
+        required_tools:
+          type: array
+          items:
+            type: string
+        policies:
+          type: array
+          items:
+            type: string
     ToolApiKeyConfig:
       type: object
       properties:
@@ -1399,6 +1984,70 @@ components:
           type: string
         spec:
           $ref: '#/components/schemas/ModelProviderSpec'
+    ModelSpendSummary:
+      type: object
+      required:
+      - total_estimated_spend_usd
+      - total_budget_usd
+      - remaining_budget_usd
+      - budgeted_model_count
+      - near_budget_count
+      - blocked_count
+      - uncapped_spend_usd
+      properties:
+        total_estimated_spend_usd:
+          type: number
+          format: double
+        total_budget_usd:
+          type: number
+          format: double
+        remaining_budget_usd:
+          type: number
+          format: double
+        budgeted_model_count:
+          type: integer
+        near_budget_count:
+          type: integer
+        blocked_count:
+          type: integer
+        uncapped_spend_usd:
+          type: number
+          format: double
+        period_start:
+          type: string
+          format: date-time
+        period_end:
+          type: string
+          format: date-time
+    ModelSpendItem:
+      allOf:
+      - $ref: '#/components/schemas/AgentModelUsage'
+      - type: object
+        required:
+        - agent_name
+        - agent_namespace
+        properties:
+          agent_name:
+            type: string
+          agent_namespace:
+            type: string
+    ModelSpendResponse:
+      type: object
+      required:
+      - summary
+      - warnings
+      - top_models
+      properties:
+        summary:
+          $ref: '#/components/schemas/ModelSpendSummary'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModelSpendItem'
+        top_models:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModelSpendItem'
     ChatMessage:
       type: object
       required:

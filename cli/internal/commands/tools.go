@@ -33,7 +33,7 @@ func newToolsListCmd() *cobra.Command {
 				return err
 			}
 
-			data, err := c.Get("/api/tools")
+			data, err := c.Get("/tools")
 			if err != nil {
 				return err
 			}
@@ -78,7 +78,7 @@ func newToolsGetCmd() *cobra.Command {
 				return err
 			}
 
-			data, err := c.Get(fmt.Sprintf("/api/tools/%s", name))
+			data, err := c.Get(fmt.Sprintf("/tools/%s", name))
 			if err != nil {
 				return err
 			}
@@ -130,7 +130,7 @@ func newToolsCreateCmd() *cobra.Command {
 				return err
 			}
 
-			data, err := c.Post("/api/tools", payload)
+			data, err := c.Post("/tools", payload)
 			if err != nil {
 				return err
 			}
@@ -164,7 +164,7 @@ func newToolsDeleteCmd() *cobra.Command {
 				return err
 			}
 
-			if err := c.Delete(fmt.Sprintf("/api/tools/%s", name)); err != nil {
+			if err := c.Delete(fmt.Sprintf("/tools/%s", name)); err != nil {
 				return err
 			}
 

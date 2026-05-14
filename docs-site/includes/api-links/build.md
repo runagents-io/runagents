@@ -5,5 +5,5 @@
 
     | Operation | Redoc | Swagger |
     | --- | --- | --- |
-    | `POST /api/builds` | [Redoc](redoc/?spec=_generated/specs/build.yaml#operation/postApiBuilds) | [Swagger](swagger/?spec=_generated/specs/build.yaml#/Builds/postApiBuilds) |
-    | `GET /api/builds/{buildId}` | [Redoc](redoc/?spec=_generated/specs/build.yaml#operation/getApiBuildsByBuildId) | [Swagger](swagger/?spec=_generated/specs/build.yaml#/Builds/getApiBuildsByBuildId) |
+    | `POST /builds` | [Redoc](redoc/?spec=_generated/specs/build.yaml#operation/postBuilds) | [Swagger](swagger/?spec=_generated/specs/build.yaml#/Builds/postBuilds) |
+    | `GET /builds/{buildId}` | [Redoc](redoc/?spec=_generated/specs/build.yaml#operation/getBuildsByBuildId) | [Swagger](swagger/?spec=_generated/specs/build.yaml#/Builds/getBuildsByBuildId) |

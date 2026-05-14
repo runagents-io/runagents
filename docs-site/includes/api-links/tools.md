@@ -5,9 +5,9 @@
 
     | Operation | Redoc | Swagger |
     | --- | --- | --- |
-    | `GET /api/tools` | [Redoc](redoc/?spec=_generated/specs/tools.yaml#operation/getApiTools) | [Swagger](swagger/?spec=_generated/specs/tools.yaml#/Tools/getApiTools) |
-    | `POST /api/tools` | [Redoc](redoc/?spec=_generated/specs/tools.yaml#operation/postApiTools) | [Swagger](swagger/?spec=_generated/specs/tools.yaml#/Tools/postApiTools) |
-    | `GET /api/tools/{toolName}` | [Redoc](redoc/?spec=_generated/specs/tools.yaml#operation/getApiToolsByToolName) | [Swagger](swagger/?spec=_generated/specs/tools.yaml#/Tools/getApiToolsByToolName) |
-    | `DELETE /api/tools/{toolName}` | [Redoc](redoc/?spec=_generated/specs/tools.yaml#operation/deleteApiToolsByToolName) | [Swagger](swagger/?spec=_generated/specs/tools.yaml#/Tools/deleteApiToolsByToolName) |
-    | `POST /api/tools/probe` | [Redoc](redoc/?spec=_generated/specs/tools.yaml#operation/postApiToolsProbe) | [Swagger](swagger/?spec=_generated/specs/tools.yaml#/Tools/postApiToolsProbe) |
-    | `POST /api/tools/{toolName}/test` | [Redoc](redoc/?spec=_generated/specs/tools.yaml#operation/postApiToolsByToolNameTest) | [Swagger](swagger/?spec=_generated/specs/tools.yaml#/Tools/postApiToolsByToolNameTest) |
+    | `GET /tools` | [Redoc](redoc/?spec=_generated/specs/tools.yaml#operation/getTools) | [Swagger](swagger/?spec=_generated/specs/tools.yaml#/Tools/getTools) |
+    | `POST /tools` | [Redoc](redoc/?spec=_generated/specs/tools.yaml#operation/postTools) | [Swagger](swagger/?spec=_generated/specs/tools.yaml#/Tools/postTools) |
+    | `GET /tools/{toolName}` | [Redoc](redoc/?spec=_generated/specs/tools.yaml#operation/getToolsByToolName) | [Swagger](swagger/?spec=_generated/specs/tools.yaml#/Tools/getToolsByToolName) |
+    | `DELETE /tools/{toolName}` | [Redoc](redoc/?spec=_generated/specs/tools.yaml#operation/deleteToolsByToolName) | [Swagger](swagger/?spec=_generated/specs/tools.yaml#/Tools/deleteToolsByToolName) |
+    | `POST /tools/probe` | [Redoc](redoc/?spec=_generated/specs/tools.yaml#operation/postToolsProbe) | [Swagger](swagger/?spec=_generated/specs/tools.yaml#/Tools/postToolsProbe) |
+    | `POST /tools/{toolName}/test` | [Redoc](redoc/?spec=_generated/specs/tools.yaml#operation/postToolsByToolNameTest) | [Swagger](swagger/?spec=_generated/specs/tools.yaml#/Tools/postToolsByToolNameTest) |

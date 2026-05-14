@@ -13,21 +13,8 @@ description: Install, configure, and use the RunAgents Python SDK — Client, Ag
 | **Agent** — write agent code with SDK helpers | `from runagents import Agent` |
 | **`@tool` decorator** — mark tool handler functions | `from runagents import tool` |
 | **CLI** — `init`, `dev`, `deploy` from the terminal | `runagents init my-agent` |
-| **MCP server** — assistant tools for catalog, governance, identity, approvals, and run operations | `pip install runagents[mcp]` |
+| **MCP server** — platform tools for AI coding assistants | `pip install runagents[mcp]` |
 | **Runtime** — HTTP server for deployed agents | auto-mounted by the platform |
-
----
-
-## SDK, CLI, MCP, and Skills
-
-RunAgents has four complementary developer surfaces:
-
-- **CLI** — explicit operator commands from the terminal
-- **Python SDK** — programmatic resource and runtime access from Python
-- **MCP server** — structured tools for Claude Code, Cursor, Codex, and similar assistants
-- **Skills** — reusable workflow guidance layered on top of CLI and MCP
-
-The Python SDK and MCP server source now live in the public repo under `sdk/python/`. The CLI currently exposes the broadest public management surface. The MCP server is being brought into parity in waves and now covers catalog deployment, policies, approval connectors, identity providers, richer run operations, and scoped approval decisions.
 
 ---
 
@@ -49,23 +36,20 @@ The SDK reads config from `~/.runagents/config.json` (written by `runagents conf
 
 ```bash
 # Set via CLI (recommended)
-runagents config set endpoint https://YOUR_WORKSPACE.try.runagents.io
+runagents config set endpoint https://YOUR_WORKSPACE.try.runagents.io/api/v1
 runagents config set api-key  ra_ws_YOUR_KEY
-runagents config set namespace default
 
 # Or via environment variables
-export RUNAGENTS_ENDPOINT=https://YOUR_WORKSPACE.try.runagents.io
+export RUNAGENTS_ENDPOINT=https://YOUR_WORKSPACE.try.runagents.io/api/v1
 export RUNAGENTS_API_KEY=ra_ws_YOUR_KEY
-export RUNAGENTS_NAMESPACE=default
 ```
 
 Config is stored at `~/.runagents/config.json` (permissions `0600`). Environment variables always take precedence.
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `RUNAGENTS_ENDPOINT` | `http://localhost:8092` | Platform API URL |
+| `RUNAGENTS_ENDPOINT` | `http://localhost:8092` | API base URL with workspace context |
 | `RUNAGENTS_API_KEY` | — | API key or workspace token (`ra_ws_...`) |
-| `RUNAGENTS_NAMESPACE` | `default` | Target namespace |
 | `RUNAGENTS_ASSISTANT_MODE` | `external` | `external`, `runagents`, or `off` |
 
 ---
@@ -80,9 +64,8 @@ from runagents import Client
 client = Client()  # auto-loads from config + env vars
 # or explicitly:
 client = Client(
-    endpoint="https://YOUR_WORKSPACE.try.runagents.io",
+    endpoint="https://YOUR_WORKSPACE.try.runagents.io/api/v1",
     api_key="ra_ws_...",
-    namespace="default",
 )
 ```
 
@@ -92,10 +75,10 @@ client = Client(
 # List all agents
 agents = client.agents.list()
 for a in agents:
-    print(a.name, a.namespace, a.status)
+    print(a.name, a.status)
 
 # Get a specific agent
-agent = client.agents.get("default", "payment-agent")
+agent = client.agents.get("payment-agent")
 print(agent.status)   # "Running" | "Pending" | "Failed"
 
 # Deploy from source files
@@ -109,6 +92,36 @@ result = client.agents.deploy(
     entry_point="agent.py",
 )
 print(result.status)  # "created" | "updated"
+```
+
+### Model Budgets And Spend
+
+```python
+# Workspace-level model spend and budget posture
+spend = client.model_spend.get()
+print(spend.summary.total_estimated_spend_usd, spend.summary.total_budget_usd)
+for item in spend.warnings:
+    print(item.agent_name, item.model, item.status)
+
+# Agent-level model configuration and current usage
+cfg = client.agents.get_config("payment-agent")
+for mapping in cfg.llm_configs:
+    print(mapping.role, mapping.model, mapping.monthly_budget_usd)
+for usage in cfg.model_usage:
+    print(usage.label, usage.estimated_spend_usd, usage.status)
+
+# Update configured model budgets
+client.agents.update_config(
+    "payment-agent",
+    llm_configs=[
+        {
+            "role": "chat",
+            "provider": "openai",
+            "model": "gpt-4o",
+            "monthly_budget_usd": 75,
+        }
+    ],
+)
 ```
 
 ### Tools
@@ -150,23 +163,31 @@ for event in events:
 ```python
 # List pending access requests
 approvals = client.approvals.list()
-for request in approvals:
-    print(request.id, request.tool_id, request.status)
 
 # Approve / reject
 client.approvals.approve("req-abc123")
-client.approvals.approve("req-abc123", scope="run")
-client.approvals.approve("req-abc123", scope="window", duration="4h")
 client.approvals.reject("req-abc123")
 ```
 
-Approval scopes:
+### Action Plans
 
-- `once` for one blocked action
-- `run` for the current run
-- `window` for a short-lived approval window
+```python
+plan = {
+    "plan_id": "bootstrap-payments-agent",
+    "actions": [
+        {
+            "type": "starter_kit.seed",
+            "idempotency_key": "starter-kit-v1",
+        }
+    ],
+}
 
-The SDK returns typed `ApprovalRequest` objects for `list`, `approve`, and `reject`.
+validation = client.actions.validate(plan)
+print(validation.valid)
+
+apply_result = client.actions.apply(plan)
+print(apply_result.applied, apply_result.applied_count)
+```
 
 ### Other operations
 
@@ -405,7 +426,7 @@ Add to your project's `.mcp.json`:
 }
 ```
 
-This gives AI coding assistants (Claude Code, Cursor, Codex) a growing structured toolset to deploy agents, inspect catalog manifests, manage policies and approval connectors, monitor runs, and handle approvals — without leaving the editor. See [AI Assistant Setup](../cli/ai-assistant-setup.md) for the full tool list and configuration guide.
+This gives AI coding assistants (Claude Code, Cursor, Codex) tools to deploy agents, manage tools, inspect model budgets, monitor runs, and handle approvals — without leaving the editor. See [AI Assistant Setup](../cli/ai-assistant-setup.md) for the full tool list and configuration guide.
 
 ---
 

@@ -8,14 +8,14 @@ Manage workspace billing, metering, and payment methods. The billing API tracks 
 
 ## Get Billing Status
 
-<span class="method-get">GET</span> <span class="endpoint">/api/billing</span>
+<span class="method-get">GET</span> <span class="endpoint">/billing</span>
 
 Returns the current billing status for the workspace, including plan state, usage counters, and payment method status.
 
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/billing \
+    curl https://acme.runagents.io/api/v1/billing \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -25,7 +25,7 @@ Returns the current billing status for the workspace, including plan state, usag
     import requests
 
     resp = requests.get(
-        "https://api.runagents.io/api/billing",
+        "https://acme.runagents.io/api/v1/billing",
         headers={"Authorization": f"Bearer {api_key}"},
     )
     print(resp.json())
@@ -61,14 +61,14 @@ Returns the current billing status for the workspace, including plan state, usag
 
 ## Get Daily Usage
 
-<span class="method-get">GET</span> <span class="endpoint">/api/billing/usage/daily</span>
+<span class="method-get">GET</span> <span class="endpoint">/billing/usage/daily</span>
 
 Returns daily action usage for the last 30 days. Useful for rendering usage charts and identifying consumption trends.
 
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/billing/usage/daily \
+    curl https://acme.runagents.io/api/v1/billing/usage/daily \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -78,7 +78,7 @@ Returns daily action usage for the last 30 days. Useful for rendering usage char
     import requests
 
     resp = requests.get(
-        "https://api.runagents.io/api/billing/usage/daily",
+        "https://acme.runagents.io/api/v1/billing/usage/daily",
         headers={"Authorization": f"Bearer {api_key}"},
     )
     print(resp.json())
@@ -105,14 +105,14 @@ Returns daily action usage for the last 30 days. Useful for rendering usage char
 
 ## Create Setup Intent
 
-<span class="method-post">POST</span> <span class="endpoint">/api/billing/setup-intent</span>
+<span class="method-post">POST</span> <span class="endpoint">/billing/setup-intent</span>
 
 Creates a Stripe SetupIntent for securely collecting a payment method. Use the returned `client_secret` with Stripe Elements on the frontend to confirm the card details without charging the user.
 
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/billing/setup-intent \
+    curl -X POST https://acme.runagents.io/api/v1/billing/setup-intent \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -122,7 +122,7 @@ Creates a Stripe SetupIntent for securely collecting a payment method. Use the r
     import requests
 
     resp = requests.post(
-        "https://api.runagents.io/api/billing/setup-intent",
+        "https://acme.runagents.io/api/v1/billing/setup-intent",
         headers={"Authorization": f"Bearer {api_key}"},
     )
     print(resp.json())
@@ -149,7 +149,7 @@ Creates a Stripe SetupIntent for securely collecting a payment method. Use the r
 
 ## Attach Payment Method
 
-<span class="method-post">POST</span> <span class="endpoint">/api/billing/payment-method</span>
+<span class="method-post">POST</span> <span class="endpoint">/billing/payment-method</span>
 
 Attaches a payment method to the workspace after a SetupIntent has been confirmed on the frontend. For workspaces on the `trial` plan, this automatically transitions the plan to `promo` (3 months free).
 
@@ -162,7 +162,7 @@ Attaches a payment method to the workspace after a SetupIntent has been confirme
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/billing/payment-method \
+    curl -X POST https://acme.runagents.io/api/v1/billing/payment-method \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"payment_method_id": "pm_1N4k8q2eZvKYlo2CkFz7Ob3E"}'
@@ -174,7 +174,7 @@ Attaches a payment method to the workspace after a SetupIntent has been confirme
     import requests
 
     resp = requests.post(
-        "https://api.runagents.io/api/billing/payment-method",
+        "https://acme.runagents.io/api/v1/billing/payment-method",
         headers={"Authorization": f"Bearer {api_key}"},
         json={"payment_method_id": "pm_1N4k8q2eZvKYlo2CkFz7Ob3E"},
     )
@@ -202,7 +202,7 @@ Attaches a payment method to the workspace after a SetupIntent has been confirme
 
 ## Create Checkout Session
 
-<span class="method-post">POST</span> <span class="endpoint">/api/billing/subscribe</span>
+<span class="method-post">POST</span> <span class="endpoint">/billing/subscribe</span>
 
 Creates a Stripe Checkout session for subscribing to a paid plan. Redirects the user to Stripe's hosted checkout page.
 
@@ -216,7 +216,7 @@ Creates a Stripe Checkout session for subscribing to a paid plan. Redirects the 
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/billing/subscribe \
+    curl -X POST https://acme.runagents.io/api/v1/billing/subscribe \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -231,7 +231,7 @@ Creates a Stripe Checkout session for subscribing to a paid plan. Redirects the 
     import requests
 
     resp = requests.post(
-        "https://api.runagents.io/api/billing/subscribe",
+        "https://acme.runagents.io/api/v1/billing/subscribe",
         headers={"Authorization": f"Bearer {api_key}"},
         json={
             "success_url": "https://app.runagents.io/settings?billing=success",
@@ -259,7 +259,7 @@ Creates a Stripe Checkout session for subscribing to a paid plan. Redirects the 
 
 ## Create Billing Portal Session
 
-<span class="method-post">POST</span> <span class="endpoint">/api/billing/portal</span>
+<span class="method-post">POST</span> <span class="endpoint">/billing/portal</span>
 
 Creates a Stripe Billing Portal session. The portal allows users to manage their subscription, update payment methods, and view invoice history.
 
@@ -272,7 +272,7 @@ Creates a Stripe Billing Portal session. The portal allows users to manage their
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/billing/portal \
+    curl -X POST https://acme.runagents.io/api/v1/billing/portal \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"return_url": "https://app.runagents.io/settings"}'
@@ -284,7 +284,7 @@ Creates a Stripe Billing Portal session. The portal allows users to manage their
     import requests
 
     resp = requests.post(
-        "https://api.runagents.io/api/billing/portal",
+        "https://acme.runagents.io/api/v1/billing/portal",
         headers={"Authorization": f"Bearer {api_key}"},
         json={"return_url": "https://app.runagents.io/settings"},
     )
@@ -309,14 +309,14 @@ Creates a Stripe Billing Portal session. The portal allows users to manage their
 
 ## Get Publishable Key
 
-<span class="method-get">GET</span> <span class="endpoint">/api/billing/publishable-key</span>
+<span class="method-get">GET</span> <span class="endpoint">/billing/publishable-key</span>
 
 Returns the Stripe publishable key for initializing Stripe Elements on the frontend. This key is safe to expose in client-side code.
 
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/billing/publishable-key \
+    curl https://acme.runagents.io/api/v1/billing/publishable-key \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -326,7 +326,7 @@ Returns the Stripe publishable key for initializing Stripe Elements on the front
     import requests
 
     resp = requests.get(
-        "https://api.runagents.io/api/billing/publishable-key",
+        "https://acme.runagents.io/api/v1/billing/publishable-key",
         headers={"Authorization": f"Bearer {api_key}"},
     )
     print(resp.json())
@@ -374,7 +374,7 @@ flowchart TD
 
 | From | To | Trigger |
 |------|----|---------|
-| `trial` | `promo` | Payment method attached via `/api/billing/payment-method` |
+| `trial` | `promo` | Payment method attached via `/billing/payment-method` |
 | `trial` | `readonly` | Trial period (30 days) or action limit (1,000) exceeded without a payment method |
 | `promo` | `active` | Promotional period (3 months) expires; first charge at $24/month |
 | `active` | `suspended` | Stripe payment fails (card declined, expired, etc.) |

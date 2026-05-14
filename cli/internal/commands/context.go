@@ -12,7 +12,6 @@ import (
 type contextExportResult struct {
 	GeneratedAt string                 `json:"generated_at"`
 	Endpoint    string                 `json:"endpoint"`
-	Namespace   string                 `json:"namespace"`
 	Resources   map[string]any         `json:"resources"`
 	Errors      map[string]string      `json:"errors,omitempty"`
 	Meta        map[string]interface{} `json:"meta,omitempty"`
@@ -24,14 +23,14 @@ type contextExportFetch struct {
 }
 
 var contextExportFetches = []contextExportFetch{
-	{key: "agents", path: "/api/agents"},
-	{key: "tools", path: "/api/tools"},
-	{key: "model_providers", path: "/api/model-providers"},
-	{key: "policies", path: "/api/policies"},
-	{key: "identity_providers", path: "/api/identity-providers"},
-	{key: "approval_connectors", path: "/api/settings/approval-connectors"},
-	{key: "approvals", path: "/governance/requests"},
-	{key: "deploy_drafts", path: "/api/deploy-drafts"},
+	{key: "agents", path: "/agents"},
+	{key: "tools", path: "/tools"},
+	{key: "model_providers", path: "/model-providers"},
+	{key: "policies", path: "/policies"},
+	{key: "identity_providers", path: "/identity-providers"},
+	{key: "approval_connectors", path: "/approval-connectors"},
+	{key: "approvals", path: "/approvals/requests"},
+	{key: "deploy_drafts", path: "/deploy-drafts"},
 }
 
 func newContextCmd() *cobra.Command {
@@ -55,26 +54,25 @@ func newContextExportCmd() *cobra.Command {
 			if err != nil {
 				return err
 			}
-			endpoint, _, namespace, err := resolvedAPISettings()
+			endpoint, _, err := resolvedAPISettings()
 			if err != nil {
 				return err
 			}
 
-			serverPayload, serverErr := fetchJSONResource(c, "/api/context/export")
+			serverPayload, serverErr := fetchJSONResource(c, "/context/export")
 			if payloadMap, ok := serverPayload.(map[string]interface{}); ok && serverErr == nil {
 				if err := enrichContextExportPayload(
 					func(path string) (any, error) { return fetchJSONResource(c, path) },
 					payloadMap,
 					strict,
 					endpoint,
-					namespace,
 				); err != nil {
 					return err
 				}
 				return printContextExport(payloadMap)
 			}
 
-			payload := newContextExportPayload(endpoint, namespace)
+			payload := newContextExportPayload(endpoint)
 			if serverErr != nil {
 				errorsMap := ensureContextExportObject(payload, "errors")
 				errorsMap["context_export"] = serverErr.Error()
@@ -84,7 +82,6 @@ func newContextExportCmd() *cobra.Command {
 				payload,
 				strict,
 				endpoint,
-				namespace,
 			); err != nil {
 				return err
 			}
@@ -95,18 +92,17 @@ func newContextExportCmd() *cobra.Command {
 	return cmd
 }
 
-func newContextExportPayload(endpoint, namespace string) map[string]any {
+func newContextExportPayload(endpoint string) map[string]any {
 	return map[string]any{
 		"generated_at": time.Now().UTC().Format(time.RFC3339),
 		"endpoint":     endpoint,
-		"namespace":    namespace,
 		"resources":    map[string]any{},
 		"errors":       map[string]any{},
 		"meta":         map[string]any{},
 	}
 }
 
-func enrichContextExportPayload(fetch func(string) (any, error), payload map[string]any, strict bool, endpoint, namespace string) error {
+func enrichContextExportPayload(fetch func(string) (any, error), payload map[string]any, strict bool, endpoint string) error {
 	if payload == nil {
 		return fmt.Errorf("context export payload cannot be nil")
 	}
@@ -115,9 +111,6 @@ func enrichContextExportPayload(fetch func(string) (any, error), payload map[str
 	}
 	if _, exists := payload["endpoint"]; !exists || payload["endpoint"] == "" {
 		payload["endpoint"] = endpoint
-	}
-	if _, exists := payload["namespace"]; !exists || payload["namespace"] == "" {
-		payload["namespace"] = namespace
 	}
 
 	resources := ensureContextExportObject(payload, "resources")

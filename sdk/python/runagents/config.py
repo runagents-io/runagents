@@ -15,7 +15,6 @@ _CONFIG_FILE = _CONFIG_DIR / "config.json"
 _DEFAULTS = {
     "endpoint": "http://localhost:8092",
     "api_key": "",
-    "namespace": "default",
     "assistant_mode": "external",
 }
 
@@ -24,7 +23,6 @@ _DEFAULTS = {
 class Config:
     endpoint: str = _DEFAULTS["endpoint"]
     api_key: str = _DEFAULTS["api_key"]
-    namespace: str = _DEFAULTS["namespace"]
     assistant_mode: str = _DEFAULTS["assistant_mode"]
 
 
@@ -40,8 +38,6 @@ def load_config() -> Config:
                 cfg.endpoint = data["endpoint"]
             if data.get("api_key"):
                 cfg.api_key = data["api_key"]
-            if data.get("namespace"):
-                cfg.namespace = data["namespace"]
             if data.get("assistant_mode"):
                 cfg.assistant_mode = data["assistant_mode"]
         except (json.JSONDecodeError, OSError):
@@ -52,8 +48,6 @@ def load_config() -> Config:
         cfg.endpoint = os.environ["RUNAGENTS_ENDPOINT"]
     if os.environ.get("RUNAGENTS_API_KEY"):
         cfg.api_key = os.environ["RUNAGENTS_API_KEY"]
-    if os.environ.get("RUNAGENTS_NAMESPACE"):
-        cfg.namespace = os.environ["RUNAGENTS_NAMESPACE"]
     if os.environ.get("RUNAGENTS_ASSISTANT_MODE"):
         cfg.assistant_mode = os.environ["RUNAGENTS_ASSISTANT_MODE"]
 

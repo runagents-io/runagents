@@ -21,7 +21,7 @@ Analyze source files to detect tools, models, secrets, and dependencies. Results
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/analyze \
+    curl -X POST https://acme.runagents.io/api/v1/analyze \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
@@ -40,7 +40,7 @@ Analyze source files to detect tools, models, secrets, and dependencies. Results
         code = f.read()
 
     resp = requests.post(
-        "https://api.runagents.io/analyze",
+        "https://acme.runagents.io/api/v1/analyze",
         headers={"Authorization": f"Bearer {api_key}"},
         json={"files": {"agent.py": code}},
     )
@@ -159,7 +159,7 @@ Retrieve a previously computed analysis result. Results are cached for 1 hour.
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/analysis/analysis-a1b2c3d4 \
+    curl https://acme.runagents.io/api/v1/analysis/analysis-a1b2c3d4 \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -190,7 +190,7 @@ Detect Python package requirements and entry point from source files. This is a 
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/requirements \
+    curl -X POST https://acme.runagents.io/api/v1/requirements \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{

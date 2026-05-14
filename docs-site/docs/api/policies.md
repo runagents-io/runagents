@@ -14,14 +14,14 @@ Policies are the core governance object in RunAgents. They determine whether too
 
 ## List Policies
 
-<span class="method-get">GET</span> <span class="endpoint">/api/policies</span>
+<span class="method-get">GET</span> <span class="endpoint">/policies</span>
 
 Returns policies in the current workspace, including bound-agent usage when available.
 
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/policies \
+    curl https://acme.runagents.io/api/v1/policies \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -73,7 +73,7 @@ Returns policies in the current workspace, including bound-agent usage when avai
 
 ## Create Policy
 
-<span class="method-post">POST</span> <span class="endpoint">/api/policies</span>
+<span class="method-post">POST</span> <span class="endpoint">/policies</span>
 
 Create a policy from structured rules.
 
@@ -118,7 +118,7 @@ Create a policy from structured rules.
 
 ## Get Policy
 
-<span class="method-get">GET</span> <span class="endpoint">/api/policies/:name</span>
+<span class="method-get">GET</span> <span class="endpoint">/policies/:name</span>
 
 Returns a single policy with usage metadata.
 
@@ -126,17 +126,17 @@ Returns a single policy with usage metadata.
 
 ## Update Policy
 
-<span class="method-put">PUT</span> <span class="endpoint">/api/policies/:name</span>
+<span class="method-put">PUT</span> <span class="endpoint">/policies/:name</span>
 
 Replace the policy spec for an existing policy.
 
-The request body matches `POST /api/policies`.
+The request body matches `POST /policies`.
 
 ---
 
 ## Delete Policy
 
-<span class="method-delete">DELETE</span> <span class="endpoint">/api/policies/:name</span>
+<span class="method-delete">DELETE</span> <span class="endpoint">/policies/:name</span>
 
 Deletes the named policy.
 
@@ -152,14 +152,14 @@ Deletes the named policy.
 
 ## Translate Natural Language to Policy Rules
 
-<span class="method-post">POST</span> <span class="endpoint">/api/policies/translate</span>
+<span class="method-post">POST</span> <span class="endpoint">/policies/translate</span>
 
 Translate a natural-language description into structured policy rules.
 
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/policies/translate \
+    curl -X POST https://acme.runagents.io/api/v1/policies/translate \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"text":"Allow Google Workspace reads and require approval for writes"}'

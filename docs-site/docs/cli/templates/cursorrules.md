@@ -15,6 +15,8 @@ runagents analyze --file agent.py                     # Preview code analysis
 runagents agents list                                 # List agents
 runagents tools list                                  # List registered tools
 runagents models list                                 # List model providers
+runagents models spend                                # Inspect model spend and budgets
+runagents agents config get my-agent                  # Inspect agent model budgets
 runagents runs list --agent my-agent                  # Monitor runs
 runagents approvals list                              # Check pending approvals
 runagents approvals approve <id> --scope once         # Approve one blocked action

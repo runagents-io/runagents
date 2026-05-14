@@ -69,20 +69,31 @@ mcp = FastMCP(
 
 @mcp.tool()
 def list_agents() -> str:
-    """List all deployed agents with their status, namespace, and required tools."""
+    """List all deployed agents with their status and required tools."""
     return _safe_call(lambda: _get_client().agents.list())
 
 
 @mcp.tool()
-def get_agent(namespace: str, name: str) -> str:
+def get_agent(name: str) -> str:
     """Get detailed information about a specific agent.
 
     Args:
-        namespace: Agent namespace (e.g., "default", "agent-system")
         name: Agent name
     """
     def _call():
-        return _get_client().agents.get(namespace, name)
+        return _get_client().agents.get(name)
+    return _safe_call(_call)
+
+
+@mcp.tool()
+def get_agent_config(name: str) -> str:
+    """Get editable agent configuration, model budgets, and current model usage.
+
+    Args:
+        name: Agent name
+    """
+    def _call():
+        return _get_client().agents.get_config(name)
     return _safe_call(_call)
 
 
@@ -96,6 +107,12 @@ def list_tools() -> str:
 def list_models() -> str:
     """List all model providers with their supported models and status."""
     return _safe_call(lambda: _get_client().models.list())
+
+
+@mcp.tool()
+def get_model_spend() -> str:
+    """Get current model spend, configured budgets, warnings, and top model usage."""
+    return _safe_call(lambda: _get_client().model_spend.get())
 
 
 @mcp.tool()
@@ -413,7 +430,7 @@ def validate_plan(plan: dict) -> str:
     Args:
         plan: The action plan object to validate
     """
-    return _safe_call(lambda: _get_client().post("/api/actions/validate", plan))
+    return _safe_call(lambda: _get_client().post("/actions/validate", plan))
 
 
 @mcp.tool()
@@ -423,7 +440,31 @@ def apply_plan(plan: dict) -> str:
     Args:
         plan: The action plan object to apply
     """
-    return _safe_call(lambda: _get_client().post("/api/actions/apply", plan))
+    return _safe_call(lambda: _get_client().post("/actions/apply", plan))
+
+
+@mcp.tool()
+def update_agent_config(
+    name: str,
+    config: dict,
+) -> str:
+    """Update agent configuration, including model budgets.
+
+    Args:
+        name: Agent name
+        config: Partial config payload with keys such as llm_configs, required_tools,
+            policies, identity_provider, or system_prompt
+    """
+    def _call():
+        return _get_client().agents.update_config(
+            name,
+            system_prompt=config.get("system_prompt"),
+            identity_provider=config.get("identity_provider"),
+            llm_configs=config.get("llm_configs"),
+            required_tools=config.get("required_tools"),
+            policies=config.get("policies"),
+        )
+    return _safe_call(_call)
 
 
 @mcp.tool()

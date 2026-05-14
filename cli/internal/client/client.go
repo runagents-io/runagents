@@ -15,16 +15,14 @@ import (
 type Client struct {
 	endpoint   string
 	apiKey     string
-	namespace  string
 	httpClient *http.Client
 }
 
 // NewClient creates a new API client with the given endpoint and API key.
-func NewClient(endpoint, apiKey, namespace string) *Client {
+func NewClient(endpoint, apiKey string) *Client {
 	return &Client{
-		endpoint:  endpoint,
-		apiKey:    apiKey,
-		namespace: namespace,
+		endpoint: normalizeEndpoint(endpoint),
+		apiKey:   apiKey,
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -109,11 +107,18 @@ func (c *Client) buildURL(path string, query url.Values) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("invalid endpoint: %w", err)
 	}
-	ref, err := url.Parse(path)
+	normalizedPath := normalizePath(path)
+	ref, err := url.Parse(normalizedPath)
 	if err != nil {
 		return "", fmt.Errorf("invalid path: %w", err)
 	}
-	target = target.ResolveReference(ref)
+	if ref.IsAbs() {
+		target = ref
+	} else if ref.Path != "" {
+		basePath := strings.TrimRight(target.Path, "/")
+		target.Path = basePath + "/" + strings.TrimLeft(ref.Path, "/")
+		target.RawQuery = ref.RawQuery
+	}
 	if len(query) > 0 {
 		values := target.Query()
 		for key, items := range query {
@@ -158,13 +163,41 @@ func (c *Client) do(req *http.Request) ([]byte, error) {
 
 // setHeaders adds common headers to the request.
 func (c *Client) setHeaders(req *http.Request) {
-	if c.namespace != "" {
-		req.Header.Set("X-Workspace-Namespace", c.namespace)
-	}
 	if c.apiKey != "" {
 		req.Header.Set("Authorization", "Bearer "+c.apiKey)
-		if strings.HasPrefix(c.apiKey, "ra_ws_") {
-			req.Header.Set("X-RunAgents-API-Key", c.apiKey)
-		}
 	}
+}
+
+func normalizeEndpoint(endpoint string) string {
+	endpoint = strings.TrimRight(strings.TrimSpace(endpoint), "/")
+	if endpoint == "" {
+		return ""
+	}
+	u, err := url.Parse(endpoint)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return endpoint
+	}
+	path := strings.TrimRight(u.Path, "/")
+	switch {
+	case path == "/api/v1" || strings.HasPrefix(path, "/api/v1/workspaces/"):
+		u.Path = path
+	case strings.HasPrefix(path, "/workspaces/"):
+		u.Path = "/api/v1" + path
+	default:
+		u.Path = strings.TrimRight(path+"/api/v1", "/")
+	}
+	u.RawQuery = ""
+	u.Fragment = ""
+	return strings.TrimRight(u.String(), "/")
+}
+
+func normalizePath(path string) string {
+	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
+		return path
+	}
+	path = "/" + strings.TrimLeft(strings.TrimSpace(path), "/")
+	if path == "/" {
+		return ""
+	}
+	return path
 }

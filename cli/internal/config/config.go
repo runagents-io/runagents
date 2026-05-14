@@ -18,7 +18,6 @@ const (
 type Config struct {
 	Endpoint      string `json:"endpoint"`
 	APIKey        string `json:"api_key"`
-	Namespace     string `json:"namespace"`
 	AssistantMode string `json:"assistant_mode"`
 }
 
@@ -50,7 +49,6 @@ func Load() (*Config, error) {
 
 	defaultCfg := &Config{
 		Endpoint:      "http://localhost:8092",
-		Namespace:     "default",
 		AssistantMode: AssistantModeExternal,
 	}
 
@@ -74,9 +72,6 @@ func Load() (*Config, error) {
 	}
 	if cfg.Endpoint == "" {
 		cfg.Endpoint = defaultCfg.Endpoint
-	}
-	if cfg.Namespace == "" {
-		cfg.Namespace = defaultCfg.Namespace
 	}
 	if cfg.AssistantMode == "" {
 		cfg.AssistantMode = defaultCfg.AssistantMode
@@ -135,9 +130,6 @@ func applyEnvOverrides(cfg *Config) {
 	}
 	if apiKey := os.Getenv("RUNAGENTS_API_KEY"); apiKey != "" {
 		cfg.APIKey = apiKey
-	}
-	if namespace := os.Getenv("RUNAGENTS_NAMESPACE"); namespace != "" {
-		cfg.Namespace = namespace
 	}
 	if mode := os.Getenv("RUNAGENTS_ASSISTANT_MODE"); mode != "" {
 		cfg.AssistantMode = mode

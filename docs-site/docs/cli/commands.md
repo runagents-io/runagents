@@ -15,15 +15,13 @@ Manage CLI configuration.
 ```bash
 runagents config set endpoint <url>
 runagents config set api-key <key>
-runagents config set namespace <workspace-namespace>
 runagents config set assistant-mode <external|runagents|off>
 ```
 
 | Argument | Description |
 |----------|-------------|
-| `endpoint` | RunAgents API base URL (e.g., `https://api.runagents.io`) |
+| `endpoint` | RunAgents API base URL with workspace context, e.g. `https://your-workspace.try.runagents.io/api/v1` |
 | `api-key` | Your API key from the console Settings page |
-| `namespace` | Workspace namespace used for API scoping (e.g., `default`) |
 | `assistant-mode` | CLI assistant behavior: `external` (default), `runagents` (enable Copilot shell), or `off` |
 
 ### `config get`
@@ -389,15 +387,47 @@ my-agent      Pending   registry.runagents.io/my-agent:def456
 ### `agents get`
 
 ```bash
-runagents agents get <namespace> <name>
+runagents agents get <name>
 ```
 
 Displays full agent details including configuration, required tools, LLM config, and status.
 
+### `agents config get`
+
+```bash
+runagents agents config get <name>
+runagents agents config get <name> -o json
+```
+
+Displays editable agent configuration, configured model budgets, and current model usage.
+
+### `agents config update`
+
+```bash
+runagents agents config update <name> --file agent-config.json
+```
+
+Updates system prompt, identity provider, required tools, policies, or model mappings. Use `llm_configs[].monthly_budget_usd` to set monthly model budgets.
+
+Example `agent-config.json`:
+
+```json
+{
+  "llm_configs": [
+    {
+      "role": "chat",
+      "provider": "openai",
+      "model": "gpt-4o",
+      "monthly_budget_usd": 75
+    }
+  ]
+}
+```
+
 ### `agents delete`
 
 ```bash
-runagents agents delete <namespace> <name>
+runagents agents delete <name>
 ```
 
 !!! warning
@@ -495,6 +525,15 @@ bedrock-llm       bedrock    anthropic.claude-opus-4-6-v1 Available
 ```bash
 runagents models get <name>
 ```
+
+### `models spend`
+
+```bash
+runagents models spend
+runagents models spend -o json
+```
+
+Shows current workspace model spend, configured budget totals, near-budget warnings, and top model usage rows.
 
 ### `models create`
 
@@ -623,7 +662,7 @@ ID                       AGENT         USER               STATUS            UPDA
 runagents runs get <run-id>
 ```
 
-Displays run details including namespace, user, blocked action, timestamps, and the initial message when present.
+Displays run details including workspace metadata, user, blocked action, timestamps, and the initial message when present.
 
 ### `runs events`
 

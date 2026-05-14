@@ -55,21 +55,20 @@ func TestContextExportErrorCount(t *testing.T) {
 func TestEnrichContextExportPayloadAddsMissingGovernanceResources(t *testing.T) {
 	payload := map[string]any{
 		"generated_at": "2026-04-09T00:00:00Z",
-		"endpoint":     "https://api.runagents.io",
-		"namespace":    "default",
+		"endpoint":     "https://acme.runagents.io/api/v1/workspaces/revops",
 		"resources": map[string]any{
 			"agents": []any{map[string]any{"name": "billing-agent"}},
 		},
 	}
 
 	responses := map[string]any{
-		"/api/tools":                        []any{map[string]any{"name": "stripe-api"}},
-		"/api/model-providers":              []any{map[string]any{"name": "openai"}},
-		"/api/policies":                     []any{map[string]any{"name": "billing-write-approval"}},
-		"/api/identity-providers":           []any{map[string]any{"name": "google-oidc"}},
-		"/api/settings/approval-connectors": []any{map[string]any{"id": "ac_123"}},
-		"/governance/requests":              []any{},
-		"/api/deploy-drafts":                []any{},
+		"/tools":               []any{map[string]any{"name": "stripe-api"}},
+		"/model-providers":     []any{map[string]any{"name": "openai"}},
+		"/policies":            []any{map[string]any{"name": "billing-write-approval"}},
+		"/identity-providers":  []any{map[string]any{"name": "google-oidc"}},
+		"/approval-connectors": []any{map[string]any{"id": "ac_123"}},
+		"/approvals/requests":  []any{},
+		"/deploy-drafts":       []any{},
 	}
 
 	err := enrichContextExportPayload(func(path string) (any, error) {
@@ -78,7 +77,7 @@ func TestEnrichContextExportPayloadAddsMissingGovernanceResources(t *testing.T) 
 			return nil, fmt.Errorf("unexpected path: %s", path)
 		}
 		return value, nil
-	}, payload, false, "https://api.runagents.io", "default")
+	}, payload, false, "https://acme.runagents.io/api/v1/workspaces/revops")
 	if err != nil {
 		t.Fatalf("enrichContextExportPayload: %v", err)
 	}
@@ -96,13 +95,13 @@ func TestEnrichContextExportPayloadAddsMissingGovernanceResources(t *testing.T) 
 }
 
 func TestEnrichContextExportPayloadStrictModeFailsOnFetchError(t *testing.T) {
-	payload := newContextExportPayload("https://api.runagents.io", "default")
+	payload := newContextExportPayload("https://acme.runagents.io/api/v1/workspaces/revops")
 	err := enrichContextExportPayload(func(path string) (any, error) {
-		if path == "/api/policies" {
+		if path == "/policies" {
 			return nil, fmt.Errorf("policies unavailable")
 		}
 		return []any{}, nil
-	}, payload, true, "https://api.runagents.io", "default")
+	}, payload, true, "https://acme.runagents.io/api/v1/workspaces/revops")
 	if err == nil {
 		t.Fatalf("expected strict mode fetch error")
 	}

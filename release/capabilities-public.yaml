@@ -32,7 +32,7 @@ capabilities:
       api:
         evidence:
           - path: openapi/openapi.yaml
-            contains: "/api/agents:"
+            contains: "/agents:"
       sdk_python:
         evidence:
           - path: sdk/python/runagents/client.py
@@ -60,7 +60,7 @@ capabilities:
       api:
         evidence:
           - path: openapi/openapi.yaml
-            contains: "/api/deploy:"
+            contains: "/deploy:"
       sdk_python:
         evidence:
           - path: sdk/python/runagents/client.py
@@ -88,7 +88,7 @@ capabilities:
       api:
         evidence:
           - path: openapi/openapi.yaml
-            contains: "/api/tools:"
+            contains: "/tools:"
       sdk_python:
         evidence:
           - path: sdk/python/runagents/client.py
@@ -116,7 +116,7 @@ capabilities:
       api:
         evidence:
           - path: openapi/openapi.yaml
-            contains: "/api/model-providers:"
+            contains: "/model-providers:"
       sdk_python:
         evidence:
           - path: sdk/python/runagents/client.py
@@ -172,7 +172,7 @@ capabilities:
       api:
         evidence:
           - path: openapi/openapi.yaml
-            contains: "/governance/requests:"
+            contains: "/approvals/requests:"
       sdk_python:
         evidence:
           - path: sdk/python/runagents/client.py
@@ -200,7 +200,7 @@ capabilities:
       api:
         evidence:
           - path: openapi/openapi.yaml
-            contains: "/api/policies:"
+            contains: "/policies:"
       sdk_python:
         evidence:
           - path: sdk/python/runagents/client.py
@@ -228,7 +228,7 @@ capabilities:
       api:
         evidence:
           - path: openapi/openapi.yaml
-            contains: "/api/settings/approval-connectors:"
+            contains: "/approval-connectors:"
       sdk_python:
         evidence:
           - path: sdk/python/runagents/client.py
@@ -256,7 +256,7 @@ capabilities:
       api:
         evidence:
           - path: openapi/openapi.yaml
-            contains: "/api/identity-providers:"
+            contains: "/identity-providers:"
       sdk_python:
         evidence:
           - path: sdk/python/runagents/client.py
@@ -284,7 +284,7 @@ capabilities:
       api:
         evidence:
           - path: openapi/openapi.yaml
-            contains: "/api/catalog:"
+            contains: "/catalog:"
       sdk_python:
         evidence:
           - path: sdk/python/runagents/client.py

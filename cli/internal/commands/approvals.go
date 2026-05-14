@@ -37,7 +37,7 @@ func newApprovalsListCmd() *cobra.Command {
 				return err
 			}
 
-			data, err := c.Get("/governance/requests")
+			data, err := c.Get("/approvals/requests")
 			if err != nil {
 				return err
 			}
@@ -96,7 +96,7 @@ func newApprovalsApproveCmd() *cobra.Command {
 				return err
 			}
 
-			_, err = c.Post(fmt.Sprintf("/governance/requests/%s/approve", id), body)
+			_, err = c.Post(fmt.Sprintf("/approvals/requests/%s/approve", id), body)
 			if err != nil {
 				return err
 			}
@@ -185,7 +185,7 @@ func newApprovalsRejectCmd() *cobra.Command {
 				return err
 			}
 
-			_, err = c.Post(fmt.Sprintf("/governance/requests/%s/reject", id), nil)
+			_, err = c.Post(fmt.Sprintf("/approvals/requests/%s/reject", id), nil)
 			if err != nil {
 				return err
 			}

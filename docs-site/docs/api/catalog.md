@@ -15,7 +15,7 @@ The catalog powers workflows such as:
 
 ## List Catalog Agents
 
-<span class="method-get">GET</span> <span class="endpoint">/api/catalog</span>
+<span class="method-get">GET</span> <span class="endpoint">/catalog</span>
 
 Returns paginated catalog entries.
 
@@ -34,7 +34,7 @@ Returns paginated catalog entries.
 === "curl"
 
     ```bash
-    curl "https://api.runagents.io/api/catalog?search=google&integration=calendar" \
+    curl "https://acme.runagents.io/api/v1/catalog?search=google&integration=calendar" \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -66,7 +66,7 @@ Returns paginated catalog entries.
 
 ## Get Latest Catalog Manifest
 
-<span class="method-get">GET</span> <span class="endpoint">/api/catalog/:id</span>
+<span class="method-get">GET</span> <span class="endpoint">/catalog/:id</span>
 
 Returns the latest manifest for a catalog agent, or a specific version when `version` is supplied.
 
@@ -85,7 +85,7 @@ Returns the latest manifest for a catalog agent, or a specific version when `ver
 === "curl"
 
     ```bash
-    curl "https://api.runagents.io/api/catalog/google-workspace-assistant-agent" \
+    curl "https://acme.runagents.io/api/v1/catalog/google-workspace-assistant-agent" \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 
@@ -118,14 +118,14 @@ Returns the latest manifest for a catalog agent, or a specific version when `ver
 
 ## List Catalog Versions
 
-<span class="method-get">GET</span> <span class="endpoint">/api/catalog/:id/versions</span>
+<span class="method-get">GET</span> <span class="endpoint">/catalog/:id/versions</span>
 
 Returns the published versions for a catalog agent in descending semantic-version order.
 
 === "curl"
 
     ```bash
-    curl "https://api.runagents.io/api/catalog/google-workspace-assistant-agent/versions" \
+    curl "https://acme.runagents.io/api/v1/catalog/google-workspace-assistant-agent/versions" \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY"
     ```
 

@@ -11,7 +11,6 @@ func TestLoadIdentityProviderApplyRequestEnvelope(t *testing.T) {
 	path := filepath.Join(dir, "idp.yaml")
 	if err := os.WriteFile(path, []byte(`
 name: google-oidc
-namespace: default
 spec:
   host: portal.example.com
   identityProvider:

@@ -1,10 +1,10 @@
 !!! info "Generated Reference Views"
-    - [Filtered OpenAPI YAML](_generated/specs/catalog.yaml)
-    - [Redoc for Catalog API](redoc/?spec=_generated/specs/catalog.yaml)
-    - [Swagger UI for Catalog API](swagger/?spec=_generated/specs/catalog.yaml)
+    - [Filtered OpenAPI YAML](/api/_generated/specs/catalog.yaml)
+    - [Redoc for Catalog API](/api/redoc/?spec=/api/_generated/specs/catalog.yaml)
+    - [Swagger UI for Catalog API](/api/swagger/?spec=/api/_generated/specs/catalog.yaml)
 
     | Operation | Redoc | Swagger |
     | --- | --- | --- |
-    | `GET /catalog` | [Redoc](redoc/?spec=_generated/specs/catalog.yaml#operation/getCatalog) | [Swagger](swagger/?spec=_generated/specs/catalog.yaml#/Catalog/getCatalog) |
-    | `GET /catalog/{catalogId}` | [Redoc](redoc/?spec=_generated/specs/catalog.yaml#operation/getCatalogByCatalogId) | [Swagger](swagger/?spec=_generated/specs/catalog.yaml#/Catalog/getCatalogByCatalogId) |
-    | `GET /catalog/{catalogId}/versions` | [Redoc](redoc/?spec=_generated/specs/catalog.yaml#operation/getCatalogByCatalogIdVersions) | [Swagger](swagger/?spec=_generated/specs/catalog.yaml#/Catalog/getCatalogByCatalogIdVersions) |
+    | `GET /catalog` | [Redoc](/api/redoc/?spec=/api/_generated/specs/catalog.yaml#operation/getCatalog) | [Swagger](/api/swagger/?spec=/api/_generated/specs/catalog.yaml#/Catalog/getCatalog) |
+    | `GET /catalog/{catalogId}` | [Redoc](/api/redoc/?spec=/api/_generated/specs/catalog.yaml#operation/getCatalogByCatalogId) | [Swagger](/api/swagger/?spec=/api/_generated/specs/catalog.yaml#/Catalog/getCatalogByCatalogId) |
+    | `GET /catalog/{catalogId}/versions` | [Redoc](/api/redoc/?spec=/api/_generated/specs/catalog.yaml#operation/getCatalogByCatalogIdVersions) | [Swagger](/api/swagger/?spec=/api/_generated/specs/catalog.yaml#/Catalog/getCatalogByCatalogIdVersions) |

@@ -45,7 +45,7 @@
 - `@tool` — decorator for tool handler functions
 - `runagents init [name]` — scaffold a project with agent.py, runagents.yaml, CLAUDE.md, .mcp.json
 - `runagents dev` — local dev server with mock tools, optional hot-reload
-- [PyPI](https://pypi.org/project/runagents/): v1.4.0
+- [PyPI](https://pypi.org/project/runagents/): v1.4.1
 
 ## CLI Reference
 

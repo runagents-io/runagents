@@ -2,27 +2,58 @@ openapi: 3.1.0
 info:
   title: RunAgents API
   version: v1alpha
-  summary: Public REST API contract for RunAgents.
+  summary: Target programmatic REST API contract for RunAgents.
   description: >
-    This OpenAPI document is the canonical machine-readable contract for the
-    public RunAgents REST API where coverage exists.
+    This OpenAPI document is the target machine-readable contract for the
+    RunAgents programmatic API. It is the source contract for generated SDK,
+    CLI, and assistant-facing integrations where coverage exists. Tenant and
+    workspace context are carried by the base URL. Caller identity, scopes, and
+    optional default workspace are carried by the bearer token. Kubernetes
+    namespaces are an internal implementation detail and are not part of this
+    public contract.
 servers:
-  - url: https://api.runagents.io
+  - url: https://{trialId}.try.runagents.io/api/v1
+    description: Trial host with one default workspace.
+    variables:
+      trialId:
+        default: 1406e38143ac0e57
+        description: Trial workspace host id.
+  - url: https://{company}.runagents.io/api/v1
+    description: Company host using the caller token's default workspace.
+    variables:
+      company:
+        default: acme
+        description: Company tenant slug.
+  - url: https://{company}.runagents.io/api/v1/workspaces/{workspace}
+    description: Company host with an explicit workspace in the base URL.
+    variables:
+      company:
+        default: acme
+        description: Company tenant slug.
+      workspace:
+        default: revops
+        description: Workspace slug inside the company tenant.
 security:
   - bearerAuth: []
 tags:
   - name: Approvals
     description: Policy-driven access request workflows.
+  - name: Action Plans
+    description: Deterministic validate-then-apply workflows for assistant-driven changes.
   - name: Runs
     description: Agent run lifecycle, events, and blocked actions.
   - name: Catalog
     description: Discover and inspect catalog agent blueprints.
+  - name: Context
+    description: Export workspace state for external assistants and automation.
   - name: Deploy
     description: Deploy and seed agents programmatically.
   - name: Policies
     description: Policy rules and approval routing.
   - name: Approval Connectors
     description: External approval delivery connectors and defaults.
+  - name: Workspace Auth
+    description: Workspace token configuration and programmatic API key lifecycle.
   - name: Identity Providers
     description: End-user JWT identity provider configuration.
   - name: Agents
@@ -38,7 +69,7 @@ tags:
   - name: Ingestion
     description: Source-code analysis and lightweight requirements detection.
 paths:
-  /governance/requests:
+  /approvals/requests:
     get:
       tags: [Approvals]
       summary: List approval requests
@@ -90,7 +121,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /governance/requests/{requestId}:
+  /approvals/requests/{requestId}:
     get:
       tags: [Approvals]
       summary: Get an approval request
@@ -108,7 +139,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /governance/requests/{requestId}/approve:
+  /approvals/requests/{requestId}/approve:
     post:
       tags: [Approvals]
       summary: Approve an approval request
@@ -136,7 +167,7 @@ paths:
         '409':
           $ref: '#/components/responses/Conflict'
 
-  /governance/requests/{requestId}/reject:
+  /approvals/requests/{requestId}/reject:
     post:
       tags: [Approvals]
       summary: Reject an approval request
@@ -383,7 +414,7 @@ paths:
         '409':
           $ref: '#/components/responses/Conflict'
 
-  /api/catalog:
+  /catalog:
     get:
       tags: [Catalog]
       summary: List catalog agents
@@ -435,7 +466,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/catalog/{catalogId}:
+  /catalog/{catalogId}:
     get:
       tags: [Catalog]
       summary: Get the latest catalog manifest
@@ -459,7 +490,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /api/catalog/{catalogId}/versions:
+  /catalog/{catalogId}/versions:
     get:
       tags: [Catalog]
       summary: List catalog versions
@@ -479,7 +510,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /api/deploy:
+  /deploy:
     post:
       tags: [Deploy]
       summary: Deploy an agent
@@ -506,7 +537,198 @@ paths:
         '500':
           $ref: '#/components/responses/InternalError'
 
-  /api/starter-kit:
+  /deploy/preview:
+    post:
+      tags: [Deploy]
+      summary: Preview deploy behavior
+      description: >
+        Evaluate how a deploy request will execute before mutating resources.
+        This is primarily used by the console deploy flow to explain build and
+        runtime decisions before a deploy is submitted.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeployRequest'
+      responses:
+        '200':
+          description: Predicted deploy execution path.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeployPreviewResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /deploy-drafts:
+    get:
+      tags: [Deploy]
+      summary: List deploy drafts
+      description: >
+        List draft deployment workflows for the current caller and workspace.
+        Drafts are used by console and assistant workflows to preserve build,
+        connect, and deploy state before an agent is deployed.
+      operationId: listDeployDrafts
+      parameters:
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/DeployDraftStatus'
+          description: Defaults to `IN_PROGRESS`.
+        - name: mine
+          in: query
+          schema:
+            type: string
+            enum: ["0", "1"]
+          description: Defaults to `1`, returning drafts owned by the caller.
+      responses:
+        '200':
+          description: Deploy drafts for the current workspace.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeployDraft'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Deploy]
+      summary: Create a deploy draft
+      operationId: createDeployDraft
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeployDraftInput'
+      responses:
+        '201':
+          description: Deploy draft created.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeployDraft'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /deploy-drafts/{draftId}:
+    get:
+      tags: [Deploy]
+      summary: Get a deploy draft
+      operationId: getDeployDraft
+      parameters:
+        - $ref: '#/components/parameters/DraftId'
+      responses:
+        '200':
+          description: Deploy draft.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeployDraft'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Deploy]
+      summary: Patch a deploy draft
+      operationId: patchDeployDraft
+      parameters:
+        - $ref: '#/components/parameters/DraftId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeployDraftPatch'
+      responses:
+        '200':
+          description: Deploy draft updated.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeployDraft'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [Deploy]
+      summary: Delete a deploy draft
+      operationId: deleteDeployDraft
+      parameters:
+        - $ref: '#/components/parameters/DraftId'
+      responses:
+        '200':
+          description: Deploy draft deleted.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /deploy-drafts/{draftId}/complete:
+    post:
+      tags: [Deploy]
+      summary: Mark a deploy draft complete
+      operationId: completeDeployDraft
+      parameters:
+        - $ref: '#/components/parameters/DraftId'
+      responses:
+        '200':
+          description: Deploy draft marked complete.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeployDraft'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /deploy-drafts/{draftId}/abandon:
+    post:
+      tags: [Deploy]
+      summary: Mark a deploy draft abandoned
+      operationId: abandonDeployDraft
+      parameters:
+        - $ref: '#/components/parameters/DraftId'
+      responses:
+        '200':
+          description: Deploy draft marked abandoned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeployDraft'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /starter-kit:
     post:
       tags: [Deploy]
       summary: Seed the starter kit
@@ -520,7 +742,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/policies:
+  /policies:
     get:
       tags: [Policies]
       summary: List policies
@@ -556,7 +778,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/policies/{policyName}:
+  /policies/{policyName}:
     get:
       tags: [Policies]
       summary: Get a policy
@@ -614,7 +836,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /api/policies/translate:
+  /policies/translate:
     post:
       tags: [Policies]
       summary: Translate natural language into policy rules
@@ -636,7 +858,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/settings/approval-connectors:
+  /approval-connectors:
     get:
       tags: [Approval Connectors]
       summary: List approval connectors
@@ -672,7 +894,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/settings/approval-connectors/{connectorId}:
+  /approval-connectors/{connectorId}:
     get:
       tags: [Approval Connectors]
       summary: Get an approval connector
@@ -730,7 +952,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /api/settings/approval-connectors/test:
+  /approval-connectors/test:
     post:
       tags: [Approval Connectors]
       summary: Test an approval connector
@@ -752,7 +974,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/settings/approval-connectors/defaults:
+  /approval-connectors/defaults:
     get:
       tags: [Approval Connectors]
       summary: Get connector defaults
@@ -786,7 +1008,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/settings/approval-connectors/activity:
+  /approval-connectors/activity:
     get:
       tags: [Approval Connectors]
       summary: Get connector activity
@@ -808,7 +1030,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/identity-providers:
+  /identity-providers:
     get:
       tags: [Identity Providers]
       summary: List identity providers
@@ -845,7 +1067,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/identity-providers/{providerName}:
+  /identity-providers/{providerName}:
     get:
       tags: [Identity Providers]
       summary: Get identity provider details
@@ -879,7 +1101,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /api/agents:
+  /agents:
     get:
       tags: [Agents]
       summary: List agents
@@ -895,12 +1117,11 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/agents/{namespace}/{agentName}:
+  /agents/{agentName}:
     get:
       tags: [Agents]
       summary: Get agent details
       parameters:
-        - $ref: '#/components/parameters/Namespace'
         - $ref: '#/components/parameters/AgentName'
       responses:
         '200':
@@ -919,7 +1140,6 @@ paths:
       tags: [Agents]
       summary: Delete an agent
       parameters:
-        - $ref: '#/components/parameters/Namespace'
         - $ref: '#/components/parameters/AgentName'
       responses:
         '200':
@@ -933,7 +1153,59 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /api/agents/{namespace}/{agentName}/invoke:
+  /agents/{agentName}/config:
+    get:
+      tags: [Agents]
+      summary: Get agent configuration
+      description: >
+        Return editable agent configuration, including configured model roles,
+        monthly model budgets, and current-period model spend.
+      operationId: getAgentConfig
+      parameters:
+        - $ref: '#/components/parameters/AgentName'
+      responses:
+        '200':
+          description: Agent configuration with model budget and usage details.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentConfig'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [Agents]
+      summary: Update agent configuration
+      description: >
+        Update model mappings, monthly model budgets, required tools, policies,
+        identity provider, and system prompt for an existing agent.
+      operationId: updateAgentConfig
+      parameters:
+        - $ref: '#/components/parameters/AgentName'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AgentConfigUpdateRequest'
+      responses:
+        '200':
+          description: Updated agent configuration.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AgentConfig'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /agents/{agentName}/invoke:
     post:
       tags: [Agents]
       summary: Invoke an agent
@@ -941,7 +1213,6 @@ paths:
         Proxy a request to the deployed agent's invoke endpoint. The request
         and response bodies are agent-defined.
       parameters:
-        - $ref: '#/components/parameters/Namespace'
         - $ref: '#/components/parameters/AgentName'
       requestBody:
         required: true
@@ -965,7 +1236,7 @@ paths:
         '502':
           $ref: '#/components/responses/BadGateway'
 
-  /api/tools:
+  /tools:
     get:
       tags: [Tools]
       summary: List tools
@@ -1001,7 +1272,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/tools/{toolName}:
+  /tools/{toolName}:
     get:
       tags: [Tools]
       summary: Get tool details
@@ -1035,7 +1306,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /api/tools/probe:
+  /tools/probe:
     post:
       tags: [Tools]
       summary: Probe a URL
@@ -1057,7 +1328,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/tools/{toolName}/test:
+  /tools/{toolName}/test:
     post:
       tags: [Tools]
       summary: Test a registered tool
@@ -1075,7 +1346,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /api/model-providers:
+  /model-providers:
     get:
       tags: [Model Providers]
       summary: List model providers
@@ -1111,7 +1382,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/model-providers/{providerName}:
+  /model-providers/{providerName}:
     get:
       tags: [Model Providers]
       summary: Get model provider details
@@ -1145,7 +1416,26 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /v1/chat/completions:
+  /model-spend:
+    get:
+      tags: [Model Spend]
+      summary: Get model spend and budget summary
+      description: >
+        Return the current monthly model spend posture for the workspace,
+        including budget totals, near-budget warnings, and top model spend rows.
+        Budgets are configured on agent model mappings.
+      operationId: getModelSpend
+      responses:
+        '200':
+          description: Current workspace model spend and budget posture.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ModelSpendResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /chat/completions:
     post:
       tags: [Model Providers]
       summary: OpenAI-compatible chat completions
@@ -1174,7 +1464,7 @@ paths:
         '502':
           $ref: '#/components/responses/BadGateway'
 
-  /api/builds:
+  /builds:
     post:
       tags: [Builds]
       summary: Start a build
@@ -1196,7 +1486,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/builds/{buildId}:
+  /builds/{buildId}:
     get:
       tags: [Builds]
       summary: Get build status
@@ -1214,7 +1504,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
 
-  /api/billing:
+  /billing:
     get:
       tags: [Billing]
       summary: Get billing status
@@ -1253,7 +1543,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/billing/usage/daily:
+  /billing/usage/daily:
     get:
       tags: [Billing]
       summary: Get daily billing usage
@@ -1278,7 +1568,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/billing/setup-intent:
+  /billing/setup-intent:
     post:
       tags: [Billing]
       summary: Create a Stripe setup intent
@@ -1297,7 +1587,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/billing/payment-method:
+  /billing/payment-method:
     post:
       tags: [Billing]
       summary: Attach a payment method
@@ -1329,7 +1619,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/billing/subscribe:
+  /billing/subscribe:
     post:
       tags: [Billing]
       summary: Create a Stripe checkout session
@@ -1367,7 +1657,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/billing/portal:
+  /billing/portal:
     post:
       tags: [Billing]
       summary: Create a Stripe billing portal session
@@ -1401,7 +1691,7 @@ paths:
         '401':
           $ref: '#/components/responses/Unauthorized'
 
-  /api/billing/publishable-key:
+  /billing/publishable-key:
     get:
       tags: [Billing]
       summary: Get Stripe publishable key
@@ -1510,12 +1800,215 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '401':
           $ref: '#/components/responses/Unauthorized'
+
+  /context/export:
+    get:
+      tags: [Context]
+      summary: Export workspace context
+      description: >
+        Export a snapshot of workspace resources for external assistants and
+        deterministic automation. The response includes per-resource counts and
+        partial-failure reporting.
+      responses:
+        '200':
+          description: Exported workspace context snapshot.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContextExportResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /actions/validate:
+    post:
+      tags: [Action Plans]
+      summary: Validate an action plan
+      description: >
+        Validate schema, idempotency keys, and action-level readiness without
+        mutating resources.
+      operationId: validateActionPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionPlanRequest'
+      responses:
+        '200':
+          description: Validation result for the plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionPlanValidationResponse'
+        '400':
+          description: Malformed request body or empty actions list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /actions/apply:
+    post:
+      tags: [Action Plans]
+      summary: Apply an action plan
+      description: >
+        Validate the plan and, if valid, execute actions in order. Per-action
+        results report `applied`, `failed`, `skipped`, or `invalid`.
+      operationId: applyActionPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionPlanRequest'
+      responses:
+        '200':
+          description: Apply result for the plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionPlanApplyResponse'
+        '400':
+          description: Validation failed before mutation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionPlanApplyResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /settings/auth:
+    get:
+      tags: [Workspace Auth]
+      summary: Get workspace auth settings
+      responses:
+        '200':
+          description: Current auth settings and workspace token metadata.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSettings'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    put:
+      tags: [Workspace Auth]
+      summary: Update workspace auth settings
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAuthSettingsRequest'
+      responses:
+        '200':
+          description: Updated auth settings.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthSettings'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/api-keys:
+    get:
+      tags: [Workspace Auth]
+      summary: List workspace API keys
+      responses:
+        '200':
+          description: Programmatic workspace API keys.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkspaceApiKey'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+    post:
+      tags: [Workspace Auth]
+      summary: Create a workspace API key
+      description: >
+        Create a new programmatic workspace token. The secret token is returned
+        once and should be stored immediately by the caller.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkspaceApiKeyRequest'
+      responses:
+        '201':
+          description: API key created and secret token returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateWorkspaceApiKeyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /auth/api-keys/{keyId}:
+    delete:
+      tags: [Workspace Auth]
+      summary: Revoke a workspace API key
+      parameters:
+        - $ref: '#/components/parameters/KeyId'
+      responses:
+        '200':
+          description: API key revoked.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteStatus'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /auth/api-keys/{keyId}/rotate:
+    post:
+      tags: [Workspace Auth]
+      summary: Rotate a workspace API key
+      description: >
+        Rotate a programmatic workspace token and return a new secret. Existing
+        non-expired keys retain their expiry window unless a new one is
+        supplied.
+      parameters:
+        - $ref: '#/components/parameters/KeyId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RotateWorkspaceApiKeyRequest'
+      responses:
+        '200':
+          description: API key rotated and new secret token returned.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateWorkspaceApiKeyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
 components:
   securitySchemes:
     bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: API key
+      description: >
+        Standard bearer token auth. Personal, service, and workspace-bound
+        tokens identify the caller and authorize access to the tenant/workspace
+        carried by the base URL.
   parameters:
     RequestId:
       name: requestId
@@ -1537,6 +2030,12 @@ components:
       schema:
         type: string
         format: uuid
+    KeyId:
+      name: keyId
+      in: path
+      required: true
+      schema:
+        type: string
     CatalogId:
       name: catalogId
       in: path
@@ -1561,12 +2060,6 @@ components:
       required: true
       schema:
         type: string
-    Namespace:
-      name: namespace
-      in: path
-      required: true
-      schema:
-        type: string
     AgentName:
       name: agentName
       in: path
@@ -1585,6 +2078,12 @@ components:
       required: true
       schema:
         type: string
+    DraftId:
+      name: draftId
+      in: path
+      required: true
+      schema:
+        type: string
   responses:
     BadRequest:
       description: Invalid request body or parameters.
@@ -1594,6 +2093,12 @@ components:
             $ref: '#/components/schemas/Error'
     Unauthorized:
       description: Missing or invalid API key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    Forbidden:
+      description: Authenticated caller cannot access this resource.
       content:
         application/json:
           schema:
@@ -2146,12 +2651,419 @@ components:
           type: string
         decision_reason:
           type: string
+    DeployDraftStatus:
+      type: string
+      enum:
+        - IN_PROGRESS
+        - COMPLETED
+        - ABANDONED
+    DeployDraftModelMapping:
+      type: object
+      required:
+        - provider
+        - model
+      properties:
+        provider:
+          type: string
+        model:
+          type: string
+        monthly_budget_usd:
+          type: number
+          format: double
+    DeployDraftAgentConfig:
+      type: object
+      properties:
+        agent_name:
+          type: string
+        namespace:
+          type: string
+        system_prompt:
+          type: string
+        use_custom_image:
+          type: boolean
+        custom_image:
+          type: string
+        access_mode:
+          type: string
+          enum:
+            - open
+            - authenticated
+        identity_provider:
+          type: string
+    DeployDraftInput:
+      type: object
+      properties:
+        artifact_id:
+          type: string
+        source_type:
+          type: string
+        runtime_family:
+          type: string
+        adapter:
+          type: string
+        step:
+          type: string
+        policies:
+          type: array
+          items:
+            type: string
+        required_tool_names:
+          type: array
+          items:
+            type: string
+        recommended_tool_names:
+          type: array
+          items:
+            type: string
+        tool_mappings:
+          type: object
+          additionalProperties:
+            type: string
+        tool_states:
+          type: object
+          additionalProperties:
+            type: string
+        model_mappings:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DeployDraftModelMapping'
+        agent_config:
+          $ref: '#/components/schemas/DeployDraftAgentConfig'
+    DeployDraftPatch:
+      allOf:
+        - $ref: '#/components/schemas/DeployDraftInput'
+        - type: object
+          properties:
+            expected_version:
+              type: integer
+            status:
+              $ref: '#/components/schemas/DeployDraftStatus'
+    DeployDraft:
+      type: object
+      required:
+        - id
+        - status
+        - version
+        - created_at
+        - updated_at
+      properties:
+        id:
+          type: string
+        namespace:
+          type: string
+        user_id:
+          type: string
+        status:
+          $ref: '#/components/schemas/DeployDraftStatus'
+        step:
+          type: string
+        artifact_id:
+          type: string
+        source_type:
+          type: string
+        runtime_family:
+          type: string
+        adapter:
+          type: string
+        policies:
+          type: array
+          items:
+            type: string
+        required_tool_names:
+          type: array
+          items:
+            type: string
+        recommended_tool_names:
+          type: array
+          items:
+            type: string
+        tool_mappings:
+          type: object
+          additionalProperties:
+            type: string
+        tool_states:
+          type: object
+          additionalProperties:
+            type: string
+        model_mappings:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DeployDraftModelMapping'
+        agent_config:
+          $ref: '#/components/schemas/DeployDraftAgentConfig'
+        version:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
     StarterKitResponse:
       type: object
       properties:
         tool_created:
           type: string
         model_provider_created:
+          type: string
+    DeployPreviewAdvancedDetails:
+      type: object
+      required:
+        - execution_mode
+        - build_required
+      properties:
+        execution_mode:
+          type: string
+        build_required:
+          type: boolean
+        build_profile:
+          type: string
+        decision_reason:
+          type: string
+        execution_kind:
+          type: string
+        support_level:
+          type: string
+    DeployPreviewResponse:
+      type: object
+      required:
+        - user_state
+        - state_label
+        - eta_range
+        - confidence
+        - short_reason
+        - advanced_details
+      properties:
+        user_state:
+          type: string
+          enum: [instant, preparing_runtime, compatibility_setup]
+        state_label:
+          type: string
+        eta_range:
+          type: string
+        confidence:
+          type: string
+          enum: [high, medium, low]
+        short_reason:
+          type: string
+        advanced_details:
+          $ref: '#/components/schemas/DeployPreviewAdvancedDetails'
+    ContextExportResponse:
+      type: object
+      required:
+        - generated_at
+        - namespace
+        - resources
+      properties:
+        generated_at:
+          type: string
+          format: date-time
+        namespace:
+          type: string
+        user_id:
+          type: string
+        resources:
+          type: object
+          additionalProperties: true
+        errors:
+          type: object
+          additionalProperties:
+            type: string
+        meta:
+          type: object
+          additionalProperties: true
+    ActionPlanRequest:
+      type: object
+      required: [actions]
+      additionalProperties: false
+      properties:
+        plan_id:
+          type: string
+        continue_on_error:
+          type: boolean
+        actions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ActionPlanAction'
+    ActionPlanAction:
+      type: object
+      required: [type, idempotency_key]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          enum:
+            - tool.upsert
+            - model_provider.upsert
+            - policy.upsert
+            - deploy_draft.create_or_patch
+            - deploy.execute
+            - starter_kit.seed
+        idempotency_key:
+          type: string
+          minLength: 1
+        params:
+          type: object
+          additionalProperties: true
+    ActionPlanValidationResponse:
+      type: object
+      required: [namespace, valid, results]
+      properties:
+        plan_id:
+          type: string
+        namespace:
+          type: string
+        valid:
+          type: boolean
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionPlanValidationResult'
+    ActionPlanValidationResult:
+      type: object
+      required: [id, type, valid]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        idempotency_key:
+          type: string
+        valid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        resource_ref:
+          type: string
+    ActionPlanApplyResponse:
+      type: object
+      required: [namespace, applied, applied_count, failed_count, results]
+      properties:
+        plan_id:
+          type: string
+        namespace:
+          type: string
+        applied:
+          type: boolean
+        applied_count:
+          type: integer
+          minimum: 0
+        failed_count:
+          type: integer
+          minimum: 0
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionPlanApplyResult'
+    ActionPlanApplyResult:
+      type: object
+      required: [id, type, status]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        idempotency_key:
+          type: string
+        status:
+          type: string
+          enum: [applied, failed, skipped, invalid]
+        resource_ref:
+          type: string
+        error:
+          type: string
+        output:
+          type: object
+          additionalProperties: true
+    AuthSettings:
+      type: object
+      required:
+        - sessionIdleTimeoutMinutes
+        - minSessionIdleTimeoutMinutes
+        - maxSessionIdleTimeoutMinutes
+        - programmaticHeader
+        - apiKeyPrefix
+        - apiKeyCount
+      properties:
+        sessionIdleTimeoutMinutes:
+          type: integer
+        minSessionIdleTimeoutMinutes:
+          type: integer
+        maxSessionIdleTimeoutMinutes:
+          type: integer
+        programmaticHeader:
+          type: string
+        apiKeyPrefix:
+          type: string
+        apiKeyCount:
+          type: integer
+        oauthCallbackUrl:
+          type: string
+    UpdateAuthSettingsRequest:
+      type: object
+      required: [sessionIdleTimeoutMinutes]
+      properties:
+        sessionIdleTimeoutMinutes:
+          type: integer
+    WorkspaceApiKey:
+      type: object
+      required:
+        - id
+        - name
+        - prefix
+        - last4
+        - createdAt
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        prefix:
+          type: string
+        last4:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        lastUsedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+    CreateWorkspaceApiKeyRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+        expiresInDays:
+          type: integer
+          minimum: 1
+    RotateWorkspaceApiKeyRequest:
+      type: object
+      properties:
+        expiresInDays:
+          type: integer
+          minimum: 1
+    CreateWorkspaceApiKeyResponse:
+      type: object
+      required: [key, token, header]
+      properties:
+        key:
+          $ref: '#/components/schemas/WorkspaceApiKey'
+        token:
+          type: string
+        header:
           type: string
     PolicyRule:
       type: object
@@ -2554,6 +3466,121 @@ components:
           $ref: '#/components/schemas/AgentSpec'
         status:
           $ref: '#/components/schemas/AgentStatus'
+    AgentConfigLLM:
+      type: object
+      required:
+        - model
+      properties:
+        role:
+          type: string
+          description: Model role, such as chat, embedding, classify, or reranking.
+        model_provider:
+          type: string
+          description: Registered RunAgents model provider name.
+        provider:
+          type: string
+          description: Underlying provider type, such as openai or anthropic.
+        model:
+          type: string
+        monthly_budget_usd:
+          type: number
+          format: double
+          minimum: 0
+          description: Optional monthly budget for this agent/model mapping.
+    AgentModelUsage:
+      type: object
+      required:
+        - label
+        - model
+        - estimated_spend_usd
+        - status
+      properties:
+        label:
+          type: string
+        role:
+          type: string
+        model_provider:
+          type: string
+        provider:
+          type: string
+        model:
+          type: string
+        monthly_budget_usd:
+          type: number
+          format: double
+        estimated_spend_usd:
+          type: number
+          format: double
+        remaining_budget_usd:
+          type: number
+          format: double
+        period_start:
+          type: string
+          format: date-time
+        period_end:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum:
+            - Active
+            - Near budget
+            - Budget reached
+            - Uncapped
+    AgentConfig:
+      type: object
+      required:
+        - agent_name
+        - namespace
+        - image
+      properties:
+        agent_name:
+          type: string
+        namespace:
+          type: string
+        image:
+          type: string
+        runtime:
+          type: string
+        system_prompt:
+          type: string
+        identity_provider:
+          type: string
+        llm_configs:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentConfigLLM'
+        model_usage:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentModelUsage'
+        required_tools:
+          type: array
+          items:
+            type: string
+        policies:
+          type: array
+          items:
+            type: string
+    AgentConfigUpdateRequest:
+      type: object
+      properties:
+        system_prompt:
+          type: string
+        identity_provider:
+          type: string
+        llm_configs:
+          type: array
+          items:
+            $ref: '#/components/schemas/AgentConfigLLM'
+        required_tools:
+          type: array
+          items:
+            type: string
+        policies:
+          type: array
+          items:
+            type: string
     ToolApiKeyConfig:
       type: object
       properties:
@@ -2763,6 +3790,70 @@ components:
           type: string
         spec:
           $ref: '#/components/schemas/ModelProviderSpec'
+    ModelSpendSummary:
+      type: object
+      required:
+        - total_estimated_spend_usd
+        - total_budget_usd
+        - remaining_budget_usd
+        - budgeted_model_count
+        - near_budget_count
+        - blocked_count
+        - uncapped_spend_usd
+      properties:
+        total_estimated_spend_usd:
+          type: number
+          format: double
+        total_budget_usd:
+          type: number
+          format: double
+        remaining_budget_usd:
+          type: number
+          format: double
+        budgeted_model_count:
+          type: integer
+        near_budget_count:
+          type: integer
+        blocked_count:
+          type: integer
+        uncapped_spend_usd:
+          type: number
+          format: double
+        period_start:
+          type: string
+          format: date-time
+        period_end:
+          type: string
+          format: date-time
+    ModelSpendItem:
+      allOf:
+        - $ref: '#/components/schemas/AgentModelUsage'
+        - type: object
+          required:
+            - agent_name
+            - agent_namespace
+          properties:
+            agent_name:
+              type: string
+            agent_namespace:
+              type: string
+    ModelSpendResponse:
+      type: object
+      required:
+        - summary
+        - warnings
+        - top_models
+      properties:
+        summary:
+          $ref: '#/components/schemas/ModelSpendSummary'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModelSpendItem'
+        top_models:
+          type: array
+          items:
+            $ref: '#/components/schemas/ModelSpendItem'
     ChatMessage:
       type: object
       required:

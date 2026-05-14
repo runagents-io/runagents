@@ -122,8 +122,7 @@ Stable, versioned APIs (e.g., `/v1/...`) are planned for general availability. S
 
 ## OpenAPI Contract
 
-The canonical machine-readable contract for the private programmatic API is now
-available:
+The canonical machine-readable contract for the public programmatic API is maintained at `openapi/openapi.yaml` and mirrored into the docs site:
 
 - [Full OpenAPI contract (`openapi.yaml`)](openapi.yaml)
 - [Focused action plans fragment (`action-plans-openapi.yaml`)](action-plans-openapi.yaml)

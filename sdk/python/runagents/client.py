@@ -418,19 +418,19 @@ class _ApprovalResource:
         self._c = client
 
     def list(self) -> list[ApprovalRequest]:
-        result = self._c.get("/approvals/requests")
+        result = self._c.get("/governance/requests")
         if isinstance(result, list):
             return [ApprovalRequest.from_dict(item) for item in result]
         return []
 
     def approve(self, request_id: str, scope: str = "", duration: str = "", reason: str = "") -> ApprovalRequest:
         body = _build_approval_decision(scope=scope, duration=duration, reason=reason)
-        result = self._c.post(f"/approvals/requests/{urllib.parse.quote(request_id, safe='')}/approve", body)
+        result = self._c.post(f"/governance/requests/{urllib.parse.quote(request_id, safe='')}/approve", body)
         return ApprovalRequest.from_dict(result if isinstance(result, dict) else {})
 
     def reject(self, request_id: str, reason: str = "") -> ApprovalRequest:
         body = {"reason": reason.strip()} if reason.strip() else None
-        path = f"/approvals/requests/{urllib.parse.quote(request_id, safe='')}/reject"
+        path = f"/governance/requests/{urllib.parse.quote(request_id, safe='')}/reject"
         result = self._c.post(path, body) if body else self._c.post(path)
         return ApprovalRequest.from_dict(result if isinstance(result, dict) else {})
 

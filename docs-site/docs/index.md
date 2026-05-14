@@ -193,7 +193,7 @@ hide:
 curl -fsSL https://runagents-releases.s3.amazonaws.com/cli/install.sh | sh
 
 # Configure
-runagents config set endpoint https://your-workspace.try.runagents.io
+runagents config set endpoint https://your-workspace.try.runagents.io/api/v1
 runagents config set api-key YOUR_API_KEY
 
 # Deploy with natural language

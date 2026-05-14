@@ -42,9 +42,8 @@ runagents version
 **3. Configure**
 
 ```bash
-runagents config set endpoint https://YOUR_WORKSPACE.try.runagents.io
+runagents config set endpoint https://YOUR_WORKSPACE.try.runagents.io/api/v1
 runagents config set api-key ra_YOUR_API_KEY
-runagents config set namespace default
 ```
 
 Your API key is in the console under **Settings → API Keys**, or ask the copilot:
@@ -317,7 +316,7 @@ Your agent code runs unchanged. No secrets, no API keys — all credentials are 
 
 ```bash
 # Status
-runagents agents get default support-agent
+runagents agents get support-agent
 
 # Tail recent runs
 runagents runs list --agent support-agent

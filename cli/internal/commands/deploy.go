@@ -51,7 +51,7 @@ Examples:
 				return err
 			}
 
-			data, err := c.Post("/api/deploy", payload)
+			data, err := c.Post("/deploy", payload)
 			if err != nil {
 				return err
 			}

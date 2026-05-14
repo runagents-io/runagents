@@ -44,7 +44,7 @@ Example:
 				return err
 			}
 
-			data, err := c.Post("/ingestion/analyze", payload)
+			data, err := c.Post("/analyze", payload)
 			if err != nil {
 				return err
 			}

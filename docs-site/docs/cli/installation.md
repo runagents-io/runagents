@@ -112,9 +112,8 @@ runagents version 1.4.1
 Configure the CLI with your API endpoint and key:
 
 ```bash
-runagents config set endpoint https://api.runagents.io
+runagents config set endpoint https://your-workspace.try.runagents.io/api/v1
 runagents config set api-key YOUR_API_KEY
-runagents config set namespace default
 runagents config set assistant-mode external
 ```
 
@@ -129,7 +128,7 @@ runagents config get
 ```
 
 ```
-Endpoint: https://api.runagents.io
+Endpoint: https://your-workspace.try.runagents.io/api/v1
 API Key:  sk-****...****1234
 ```
 
@@ -139,9 +138,9 @@ Configuration is stored in `~/.runagents/config.json`.
 
 | Variable | Description |
 |----------|-------------|
-| `RUNAGENTS_ENDPOINT` | API endpoint URL |
+| `RUNAGENTS_ENDPOINT` | API base URL with workspace context |
 | `RUNAGENTS_API_KEY` | API key for authentication |
-| `RUNAGENTS_NAMESPACE` | Workspace namespace header used by API requests |
+| `RUNAGENTS_NAMESPACE` | Legacy namespace override for older deployments |
 | `RUNAGENTS_ASSISTANT_MODE` | Assistant mode override: `external`, `runagents`, or `off` |
 
 ## Shell Completion

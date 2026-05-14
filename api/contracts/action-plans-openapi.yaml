@@ -1,0 +1,223 @@
+openapi: 3.1.0
+info:
+  title: RunAgents Action Plans API
+  version: v1alpha
+  summary: Validate and apply deterministic action plans through the governance API.
+  description: |
+    This OpenAPI fragment documents the HTTP surface behind RunAgents action plans.
+    These endpoints back the CLI `runagents action ...` flow, the Python SDK
+    `client.actions`, and assistant integrations such as MCP-based coding tools.
+    Tenant/workspace context is carried by the base URL; caller identity and
+    scopes are carried by the bearer token.
+servers:
+  - url: https://{trialId}.try.runagents.io/api/v1
+    description: Trial host with one default workspace.
+    variables:
+      trialId:
+        default: 1406e38143ac0e57
+  - url: https://{company}.runagents.io/api/v1/workspaces/{workspace}
+    description: Company host with an explicit workspace in the base URL.
+    variables:
+      company:
+        default: acme
+      workspace:
+        default: revops
+security:
+  - BearerAuth: []
+tags:
+  - name: Action Plans
+    description: Deterministic validate-then-apply workflows for assistant-driven changes.
+paths:
+  /actions/validate:
+    post:
+      tags: [Action Plans]
+      summary: Validate an action plan
+      description: Validates schema, idempotency keys, and action-level readiness without mutating resources.
+      operationId: validateActionPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionPlanRequest'
+      responses:
+        '200':
+          description: Validation result for the plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionPlanValidationResponse'
+        '400':
+          description: Malformed request body or empty actions list.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '405':
+          description: Method not allowed.
+          content:
+            text/plain:
+              schema:
+                type: string
+  /actions/apply:
+    post:
+      tags: [Action Plans]
+      summary: Apply an action plan
+      description: |
+        Validates the plan and, if valid, executes actions in order. Returns
+        per-action results with `applied`, `failed`, `skipped`, or `invalid`
+        statuses.
+      operationId: applyActionPlan
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ActionPlanRequest'
+      responses:
+        '200':
+          description: Apply result for the plan.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionPlanApplyResponse'
+        '400':
+          description: Validation failed before mutation.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ActionPlanApplyResponse'
+        '405':
+          description: Method not allowed.
+          content:
+            text/plain:
+              schema:
+                type: string
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: API key
+  schemas:
+    ErrorResponse:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+    ActionPlanRequest:
+      type: object
+      required: [actions]
+      additionalProperties: false
+      properties:
+        plan_id:
+          type: string
+          description: Optional correlation id for the plan.
+        continue_on_error:
+          type: boolean
+          description: Continue applying remaining actions after a failure.
+        actions:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/ActionPlanAction'
+    ActionPlanAction:
+      type: object
+      required: [type, idempotency_key]
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          description: Optional human-readable step id.
+        type:
+          type: string
+          enum:
+            - tool.upsert
+            - model_provider.upsert
+            - policy.upsert
+            - deploy_draft.create_or_patch
+            - deploy.execute
+            - starter_kit.seed
+        idempotency_key:
+          type: string
+          minLength: 1
+        params:
+          type: object
+          description: Action-specific payload. See the action plan schema for canonical per-type requirements.
+    ActionPlanValidationResponse:
+      type: object
+      required: [namespace, valid, results]
+      properties:
+        plan_id:
+          type: string
+        namespace:
+          type: string
+        valid:
+          type: boolean
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionPlanValidationResult'
+    ActionPlanValidationResult:
+      type: object
+      required: [id, type, valid]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        idempotency_key:
+          type: string
+        valid:
+          type: boolean
+        errors:
+          type: array
+          items:
+            type: string
+        warnings:
+          type: array
+          items:
+            type: string
+        resource_ref:
+          type: string
+    ActionPlanApplyResponse:
+      type: object
+      required: [namespace, applied, applied_count, failed_count, results]
+      properties:
+        plan_id:
+          type: string
+        namespace:
+          type: string
+        applied:
+          type: boolean
+        applied_count:
+          type: integer
+          minimum: 0
+        failed_count:
+          type: integer
+          minimum: 0
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionPlanApplyResult'
+    ActionPlanApplyResult:
+      type: object
+      required: [id, type, status]
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        idempotency_key:
+          type: string
+        status:
+          type: string
+          enum: [applied, failed, skipped, invalid]
+        resource_ref:
+          type: string
+        error:
+          type: string
+        output:
+          type: object
+          additionalProperties: true

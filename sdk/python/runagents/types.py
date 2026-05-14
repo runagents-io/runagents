@@ -32,6 +32,185 @@ class Agent:
 
 
 @dataclass
+class AgentConfigLLM:
+    role: str = ""
+    model_provider: str = ""
+    provider: str = ""
+    model: str = ""
+    monthly_budget_usd: float | None = None
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "AgentConfigLLM":
+        budget = d.get("monthly_budget_usd")
+        return cls(
+            role=d.get("role", ""),
+            model_provider=d.get("model_provider", ""),
+            provider=d.get("provider", ""),
+            model=d.get("model", ""),
+            monthly_budget_usd=float(budget) if budget is not None else None,
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        out: dict[str, Any] = {}
+        if self.role:
+            out["role"] = self.role
+        if self.model_provider:
+            out["model_provider"] = self.model_provider
+        if self.provider:
+            out["provider"] = self.provider
+        if self.model:
+            out["model"] = self.model
+        if self.monthly_budget_usd is not None:
+            out["monthly_budget_usd"] = self.monthly_budget_usd
+        return out
+
+
+@dataclass
+class AgentModelUsage:
+    label: str = ""
+    role: str = ""
+    model_provider: str = ""
+    provider: str = ""
+    model: str = ""
+    monthly_budget_usd: float | None = None
+    estimated_spend_usd: float = 0.0
+    remaining_budget_usd: float | None = None
+    period_start: str = ""
+    period_end: str = ""
+    status: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "AgentModelUsage":
+        budget = d.get("monthly_budget_usd")
+        remaining = d.get("remaining_budget_usd")
+        return cls(
+            label=d.get("label", ""),
+            role=d.get("role", ""),
+            model_provider=d.get("model_provider", ""),
+            provider=d.get("provider", ""),
+            model=d.get("model", ""),
+            monthly_budget_usd=float(budget) if budget is not None else None,
+            estimated_spend_usd=float(d.get("estimated_spend_usd", 0) or 0),
+            remaining_budget_usd=float(remaining) if remaining is not None else None,
+            period_start=str(d.get("period_start", "")),
+            period_end=str(d.get("period_end", "")),
+            status=d.get("status", ""),
+        )
+
+
+@dataclass
+class AgentConfig:
+    agent_name: str = ""
+    namespace: str = ""
+    image: str = ""
+    runtime: str = ""
+    system_prompt: str = ""
+    identity_provider: str = ""
+    llm_configs: list[AgentConfigLLM] = field(default_factory=list)
+    model_usage: list[AgentModelUsage] = field(default_factory=list)
+    required_tools: list[str] = field(default_factory=list)
+    policies: list[str] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "AgentConfig":
+        return cls(
+            agent_name=d.get("agent_name", ""),
+            namespace=d.get("namespace", ""),
+            image=d.get("image", ""),
+            runtime=d.get("runtime", ""),
+            system_prompt=d.get("system_prompt", ""),
+            identity_provider=d.get("identity_provider", ""),
+            llm_configs=[
+                AgentConfigLLM.from_dict(item)
+                for item in d.get("llm_configs", [])
+                if isinstance(item, dict)
+            ],
+            model_usage=[
+                AgentModelUsage.from_dict(item)
+                for item in d.get("model_usage", [])
+                if isinstance(item, dict)
+            ],
+            required_tools=list(d.get("required_tools", [])),
+            policies=list(d.get("policies", [])),
+        )
+
+
+@dataclass
+class ModelSpendSummary:
+    total_estimated_spend_usd: float = 0.0
+    total_budget_usd: float = 0.0
+    remaining_budget_usd: float = 0.0
+    budgeted_model_count: int = 0
+    near_budget_count: int = 0
+    blocked_count: int = 0
+    uncapped_spend_usd: float = 0.0
+    period_start: str = ""
+    period_end: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "ModelSpendSummary":
+        return cls(
+            total_estimated_spend_usd=float(d.get("total_estimated_spend_usd", 0) or 0),
+            total_budget_usd=float(d.get("total_budget_usd", 0) or 0),
+            remaining_budget_usd=float(d.get("remaining_budget_usd", 0) or 0),
+            budgeted_model_count=int(d.get("budgeted_model_count", 0) or 0),
+            near_budget_count=int(d.get("near_budget_count", 0) or 0),
+            blocked_count=int(d.get("blocked_count", 0) or 0),
+            uncapped_spend_usd=float(d.get("uncapped_spend_usd", 0) or 0),
+            period_start=str(d.get("period_start", "")),
+            period_end=str(d.get("period_end", "")),
+        )
+
+
+@dataclass
+class ModelSpendItem(AgentModelUsage):
+    agent_name: str = ""
+    agent_namespace: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "ModelSpendItem":
+        base = AgentModelUsage.from_dict(d)
+        return cls(
+            label=base.label,
+            role=base.role,
+            model_provider=base.model_provider,
+            provider=base.provider,
+            model=base.model,
+            monthly_budget_usd=base.monthly_budget_usd,
+            estimated_spend_usd=base.estimated_spend_usd,
+            remaining_budget_usd=base.remaining_budget_usd,
+            period_start=base.period_start,
+            period_end=base.period_end,
+            status=base.status,
+            agent_name=d.get("agent_name", ""),
+            agent_namespace=d.get("agent_namespace", ""),
+        )
+
+
+@dataclass
+class ModelSpendResponse:
+    summary: ModelSpendSummary = field(default_factory=ModelSpendSummary)
+    warnings: list[ModelSpendItem] = field(default_factory=list)
+    top_models: list[ModelSpendItem] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "ModelSpendResponse":
+        return cls(
+            summary=ModelSpendSummary.from_dict(d.get("summary", {})),
+            warnings=[
+                ModelSpendItem.from_dict(item)
+                for item in d.get("warnings", [])
+                if isinstance(item, dict)
+            ],
+            top_models=[
+                ModelSpendItem.from_dict(item)
+                for item in d.get("top_models", [])
+                if isinstance(item, dict)
+            ],
+        )
+
+
+@dataclass
 class Tool:
     name: str = ""
     description: str = ""
@@ -312,6 +491,98 @@ class AnalysisResult:
             detected_requirements=d.get("detected_requirements", []),
             entry_point=d.get("entry_point", ""),
             system_prompt_suggestion=d.get("system_prompt_suggestion", ""),
+        )
+
+
+@dataclass
+class ActionPlanValidationResult:
+    id: str = ""
+    type: str = ""
+    idempotency_key: str = ""
+    valid: bool = False
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+    resource_ref: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "ActionPlanValidationResult":
+        return cls(
+            id=d.get("id", ""),
+            type=d.get("type", ""),
+            idempotency_key=d.get("idempotency_key", ""),
+            valid=bool(d.get("valid", False)),
+            errors=list(d.get("errors", [])),
+            warnings=list(d.get("warnings", [])),
+            resource_ref=d.get("resource_ref", ""),
+        )
+
+
+@dataclass
+class ActionPlanValidationResponse:
+    plan_id: str = ""
+    namespace: str = ""
+    valid: bool = False
+    results: list[ActionPlanValidationResult] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "ActionPlanValidationResponse":
+        return cls(
+            plan_id=d.get("plan_id", ""),
+            namespace=d.get("namespace", ""),
+            valid=bool(d.get("valid", False)),
+            results=[
+                ActionPlanValidationResult.from_dict(item)
+                for item in d.get("results", [])
+                if isinstance(item, dict)
+            ],
+        )
+
+
+@dataclass
+class ActionPlanApplyResult:
+    id: str = ""
+    type: str = ""
+    idempotency_key: str = ""
+    status: str = ""
+    resource_ref: str = ""
+    error: str = ""
+    output: dict[str, Any] = field(default_factory=dict)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "ActionPlanApplyResult":
+        return cls(
+            id=d.get("id", ""),
+            type=d.get("type", ""),
+            idempotency_key=d.get("idempotency_key", ""),
+            status=d.get("status", ""),
+            resource_ref=d.get("resource_ref", ""),
+            error=d.get("error", ""),
+            output=d.get("output", {}) if isinstance(d.get("output", {}), dict) else {},
+        )
+
+
+@dataclass
+class ActionPlanApplyResponse:
+    plan_id: str = ""
+    namespace: str = ""
+    applied: bool = False
+    applied_count: int = 0
+    failed_count: int = 0
+    results: list[ActionPlanApplyResult] = field(default_factory=list)
+
+    @classmethod
+    def from_dict(cls, d: dict[str, Any]) -> "ActionPlanApplyResponse":
+        return cls(
+            plan_id=d.get("plan_id", ""),
+            namespace=d.get("namespace", ""),
+            applied=bool(d.get("applied", False)),
+            applied_count=int(d.get("applied_count", 0) or 0),
+            failed_count=int(d.get("failed_count", 0) or 0),
+            results=[
+                ActionPlanApplyResult.from_dict(item)
+                for item in d.get("results", [])
+                if isinstance(item, dict)
+            ],
         )
 
 

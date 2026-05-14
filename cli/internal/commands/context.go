@@ -60,7 +60,7 @@ func newContextExportCmd() *cobra.Command {
 				return err
 			}
 
-			serverPayload, serverErr := fetchJSONResource(c, "/api/context/export")
+			serverPayload, serverErr := fetchJSONResource(c, "/context/export")
 			if payloadMap, ok := serverPayload.(map[string]interface{}); ok && serverErr == nil {
 				if err := enrichContextExportPayload(
 					func(path string) (any, error) { return fetchJSONResource(c, path) },

@@ -10,16 +10,15 @@ Approval connectors let RunAgents route approval-required events into external s
 
 ## List Approval Connectors
 
-<span class="method-get">GET</span> <span class="endpoint">/api/settings/approval-connectors</span>
+<span class="method-get">GET</span> <span class="endpoint">/approval-connectors</span>
 
 Returns approval connectors configured in the current workspace.
 
 === "curl"
 
     ```bash
-    curl https://api.runagents.io/api/settings/approval-connectors \
+    curl https://acme.runagents.io/api/v1/approval-connectors \
       -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
-      -H "X-Workspace-Namespace: default"
     ```
 
 ### Response (200 OK)
@@ -47,7 +46,7 @@ Returns approval connectors configured in the current workspace.
 
 ## Create Approval Connector
 
-<span class="method-post">POST</span> <span class="endpoint">/api/settings/approval-connectors</span>
+<span class="method-post">POST</span> <span class="endpoint">/approval-connectors</span>
 
 Create a workspace-scoped approval connector.
 
@@ -66,9 +65,8 @@ Create a workspace-scoped approval connector.
 === "curl"
 
     ```bash
-    curl -X POST https://api.runagents.io/api/settings/approval-connectors \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
-      -H "X-Workspace-Namespace: default" \
+    curl -X POST https://acme.runagents.io/api/v1/approval-connectors \
+      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \ \
       -H "Content-Type: application/json" \
       -d '{
         "name": "secops-slack",
@@ -90,7 +88,7 @@ Returns the created connector.
 
 ## Get Approval Connector
 
-<span class="method-get">GET</span> <span class="endpoint">/api/settings/approval-connectors/:id</span>
+<span class="method-get">GET</span> <span class="endpoint">/approval-connectors/:id</span>
 
 Returns a single connector.
 
@@ -98,7 +96,7 @@ Returns a single connector.
 
 ## Update Approval Connector
 
-<span class="method-patch">PATCH</span> <span class="endpoint">/api/settings/approval-connectors/:id</span>
+<span class="method-patch">PATCH</span> <span class="endpoint">/approval-connectors/:id</span>
 
 Update one or more mutable connector fields.
 
@@ -121,7 +119,7 @@ Returns the updated connector.
 
 ## Delete Approval Connector
 
-<span class="method-delete">DELETE</span> <span class="endpoint">/api/settings/approval-connectors/:id</span>
+<span class="method-delete">DELETE</span> <span class="endpoint">/approval-connectors/:id</span>
 
 Deletes the named connector.
 
@@ -137,7 +135,7 @@ Deletes the named connector.
 
 ## Test Approval Connector
 
-<span class="method-post">POST</span> <span class="endpoint">/api/settings/approval-connectors/test</span>
+<span class="method-post">POST</span> <span class="endpoint">/approval-connectors/test</span>
 
 Validates connector configuration and attempts a live delivery test when possible.
 
@@ -188,7 +186,7 @@ A response can still be `200 OK` with `status: "unhealthy"` when the test ran su
 
 ## Get Connector Defaults
 
-<span class="method-get">GET</span> <span class="endpoint">/api/settings/approval-connectors/defaults</span>
+<span class="method-get">GET</span> <span class="endpoint">/approval-connectors/defaults</span>
 
 Returns workspace defaults used when an approval policy omits explicit connector delivery settings.
 
@@ -208,7 +206,7 @@ Returns workspace defaults used when an approval policy omits explicit connector
 
 ## Update Connector Defaults
 
-<span class="method-put">PUT</span> <span class="endpoint">/api/settings/approval-connectors/defaults</span>
+<span class="method-put">PUT</span> <span class="endpoint">/approval-connectors/defaults</span>
 
 Update one or more workspace defaults.
 
@@ -230,7 +228,7 @@ Returns the updated defaults.
 
 ## Get Connector Activity
 
-<span class="method-get">GET</span> <span class="endpoint">/api/settings/approval-connectors/activity</span>
+<span class="method-get">GET</span> <span class="endpoint">/approval-connectors/activity</span>
 
 Returns recent approval connector activity for the current workspace.
 

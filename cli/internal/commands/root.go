@@ -75,7 +75,7 @@ var versionCmd = &cobra.Command{
 func init() {
 	rootCmd.PersistentFlags().StringVar(&flagEndpoint, "endpoint", "", "API endpoint URL (overrides config)")
 	rootCmd.PersistentFlags().StringVar(&flagAPIKey, "api-key", "", "API key (overrides config)")
-	rootCmd.PersistentFlags().StringVar(&flagNamespace, "namespace", "", "Workspace namespace (overrides config)")
+	rootCmd.PersistentFlags().StringVar(&flagNamespace, "namespace", "", "Legacy workspace namespace override; prefer a workspace URL")
 	rootCmd.PersistentFlags().StringVarP(&flagOutput, "output", "o", "table", "Output format: table or json")
 
 	rootCmd.AddCommand(versionCmd)
@@ -113,10 +113,6 @@ func newAPIClient() (*client.Client, error) {
 	if endpoint == "" {
 		return nil, fmt.Errorf("no endpoint configured; run 'runagents config set endpoint <url>' or use --endpoint")
 	}
-	if namespace == "" {
-		return nil, fmt.Errorf("no namespace configured; run 'runagents config set namespace <name>' or use --namespace")
-	}
-
 	return client.NewClient(endpoint, apiKey, namespace), nil
 }
 

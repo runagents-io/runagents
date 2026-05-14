@@ -9,14 +9,16 @@ import urllib.parse
 import urllib.request
 from typing import Any
 
-from runagents.config import Config, load_config
+from runagents.config import load_config
 from runagents.types import (
-    Agent, Tool, ModelProvider, Run, Event, DeployResult, AnalysisResult,
+    Agent, AgentConfig, AgentConfigLLM, Tool, ModelProvider,
+    ModelSpendResponse, Run, Event, DeployResult, AnalysisResult,
     CatalogListResponse, CatalogManifest, CatalogVersionsResponse,
     Policy, PolicyRule, ApprovalConnector, ApprovalConnectorDefaults,
     ApprovalConnectorActivity, ApprovalConnectorTestResult,
     ApprovalRequest, IdentityProvider, IdentityProviderConfig, IdentityProviderSpec,
-    RunTimelineEntry, RunExport,
+    RunTimelineEntry, RunExport, ActionPlanValidationResponse,
+    ActionPlanApplyResponse,
 )
 
 
@@ -36,15 +38,17 @@ class Client:
         namespace: str | None = None,
     ):
         cfg = load_config()
-        self.endpoint = (endpoint or cfg.endpoint).rstrip("/")
+        self.endpoint = _normalize_endpoint(endpoint or cfg.endpoint)
         self.api_key = api_key if api_key is not None else cfg.api_key
         self.namespace = namespace if namespace is not None else cfg.namespace
 
         self.agents = _AgentResource(self)
         self.tools = _ToolResource(self)
         self.models = _ModelResource(self)
+        self.model_spend = _ModelSpendResource(self)
         self.runs = _RunResource(self)
         self.approvals = _ApprovalResource(self)
+        self.actions = _ActionPlanResource(self)
         self.catalog = _CatalogResource(self)
         self.policies = _PolicyResource(self)
         self.approval_connectors = _ApprovalConnectorResource(self)
@@ -53,16 +57,10 @@ class Client:
     def __repr__(self) -> str:
         return f"Client(endpoint={self.endpoint!r}, namespace={self.namespace!r})"
 
-    # --- Headers (matches cli/internal/client/client.go:158-168) ---
-
     def _headers(self) -> dict[str, str]:
         h: dict[str, str] = {"Content-Type": "application/json"}
-        if self.namespace:
-            h["X-Workspace-Namespace"] = self.namespace
         if self.api_key:
             h["Authorization"] = f"Bearer {self.api_key}"
-            if self.api_key.startswith("ra_ws_"):
-                h["X-RunAgents-API-Key"] = self.api_key
         return h
 
     # --- Low-level HTTP ---
@@ -70,7 +68,11 @@ class Client:
     def _request(
         self, method: str, path: str, body: dict | None = None
     ) -> Any:
-        url = self.endpoint + path
+        normalized_path = _normalize_path(path)
+        if normalized_path.startswith(("http://", "https://")):
+            url = normalized_path
+        else:
+            url = self.endpoint + normalized_path
         data = json.dumps(body).encode() if body is not None else None
         req = urllib.request.Request(url, data=data, headers=self._headers(), method=method)
         try:
@@ -104,6 +106,9 @@ class Client:
     def post(self, path: str, body: dict | None = None) -> Any:
         return self._request("POST", path, body)
 
+    def put(self, path: str, body: dict | None = None) -> Any:
+        return self._request("PUT", path, body)
+
     def patch(self, path: str, body: dict | None = None) -> Any:
         return self._request("PATCH", path, body)
 
@@ -114,16 +119,16 @@ class Client:
 
     def analyze(self, files: dict[str, str]) -> AnalysisResult:
         """Analyze source code for tools, models, secrets."""
-        result = self.post("/ingestion/analyze", {"files": files})
+        result = self.post("/analyze", {"files": files})
         return AnalysisResult.from_dict(result)
 
     def export_context(self) -> dict:
         """Export full workspace context."""
-        return self.get("/api/context/export")
+        return self.get("/context/export")
 
     def seed_starter_kit(self) -> dict:
         """Create demo starter resources (echo-tool + playground-llm)."""
-        return self.post("/api/starter-kit")
+        return self.post("/starter-kit")
 
 
 class APIError(Exception):
@@ -133,6 +138,76 @@ class APIError(Exception):
         self.status = status
         self.detail = detail
         super().__init__(f"HTTP {status}: {detail}")
+
+
+def _with_query(path: str, params: dict[str, Any]) -> str:
+    filtered: dict[str, Any] = {}
+    for key, value in params.items():
+        if value is None:
+            continue
+        if isinstance(value, str) and value == "":
+            continue
+        filtered[key] = value
+    if not filtered:
+        return path
+    return f"{path}?{urllib.parse.urlencode(filtered, doseq=True)}"
+
+
+def _normalize_endpoint(endpoint: str) -> str:
+    endpoint = endpoint.strip().rstrip("/")
+    parsed = urllib.parse.urlparse(endpoint)
+    if not parsed.scheme or not parsed.netloc:
+        return endpoint
+
+    path = parsed.path.rstrip("/")
+    if path == "/api/v1" or path.startswith("/api/v1/workspaces/"):
+        normalized_path = path
+    elif path.startswith("/workspaces/"):
+        normalized_path = "/api/v1" + path
+    else:
+        normalized_path = (path + "/api/v1").rstrip("/")
+
+    return urllib.parse.urlunparse(
+        (parsed.scheme, parsed.netloc, normalized_path, "", "", "")
+    ).rstrip("/")
+
+
+def _normalize_path(path: str) -> str:
+    if path.startswith(("http://", "https://")):
+        return path
+    path = "/" + path.strip().lstrip("/")
+    if path == "/":
+        return ""
+
+    if path == "/api/agents":
+        return "/agents"
+    if path.startswith("/api/agents/"):
+        parts = path.removeprefix("/api/agents/").split("/", 2)
+        if len(parts) >= 2 and parts[0] and parts[1]:
+            if len(parts) == 2:
+                return f"/agents/{parts[1]}"
+            return f"/agents/{parts[1]}/{parts[2]}"
+        return "/agents/" + path.removeprefix("/api/agents/")
+
+    mappings = {
+        "/governance/requests": "/approvals/requests",
+        "/api/settings/approval-connectors": "/approval-connectors",
+        "/api/actions/validate": "/actions/validate",
+        "/api/actions/apply": "/actions/apply",
+        "/api/context/export": "/context/export",
+        "/api/deploy": "/deploy",
+        "/api/deploy/preview": "/deploy/preview",
+        "/api/starter-kit": "/starter-kit",
+    }
+    for prefix, replacement in mappings.items():
+        if path == prefix:
+            return replacement
+        if path.startswith(prefix + "/"):
+            return replacement + path.removeprefix(prefix)
+
+    if path.startswith("/api/"):
+        return path.removeprefix("/api")
+    return path
 
 
 # ---------------------------------------------------------------------------
@@ -150,9 +225,44 @@ class _AgentResource:
             return [Agent.from_dict(a) for a in result]
         return []
 
-    def get(self, namespace: str, name: str) -> Agent:
-        result = self._c.get(f"/api/agents/{namespace}/{name}")
+    def get(self, namespace: str, name: str | None = None) -> Agent:
+        agent_name = name or namespace
+        result = self._c.get(f"/api/agents/{namespace}/{agent_name}" if name else f"/agents/{agent_name}")
         return Agent.from_dict(result)
+
+    def get_config(self, name: str, namespace: str | None = None) -> AgentConfig:
+        result = self._c.get(f"/agents/{name}/config")
+        return AgentConfig.from_dict(result if isinstance(result, dict) else {})
+
+    def update_config(
+        self,
+        name: str,
+        *,
+        system_prompt: str | None = None,
+        identity_provider: str | None = None,
+        llm_configs: list[dict[str, Any] | AgentConfigLLM] | None = None,
+        required_tools: list[str] | None = None,
+        policies: list[str] | None = None,
+        namespace: str | None = None,
+    ) -> AgentConfig:
+        body: dict[str, Any] = {}
+        if system_prompt is not None:
+            body["system_prompt"] = system_prompt
+        if identity_provider is not None:
+            body["identity_provider"] = identity_provider
+        if llm_configs is not None:
+            body["llm_configs"] = [
+                item.to_dict() if isinstance(item, AgentConfigLLM) else item
+                for item in llm_configs
+            ]
+        if required_tools is not None:
+            body["required_tools"] = required_tools
+        if policies is not None:
+            body["policies"] = policies
+        if not body:
+            raise ValueError("at least one field must be provided")
+        result = self._c.put(f"/agents/{name}/config", body)
+        return AgentConfig.from_dict(result if isinstance(result, dict) else {})
 
     def deploy(
         self,
@@ -240,6 +350,15 @@ class _ModelResource:
         return []
 
 
+class _ModelSpendResource:
+    def __init__(self, client: Client):
+        self._c = client
+
+    def get(self) -> ModelSpendResponse:
+        result = self._c.get("/model-spend")
+        return ModelSpendResponse.from_dict(result if isinstance(result, dict) else {})
+
+
 class _RunResource:
     def __init__(self, client: Client):
         self._c = client
@@ -299,19 +418,19 @@ class _ApprovalResource:
         self._c = client
 
     def list(self) -> list[ApprovalRequest]:
-        result = self._c.get("/governance/requests")
+        result = self._c.get("/approvals/requests")
         if isinstance(result, list):
             return [ApprovalRequest.from_dict(item) for item in result]
         return []
 
     def approve(self, request_id: str, scope: str = "", duration: str = "", reason: str = "") -> ApprovalRequest:
         body = _build_approval_decision(scope=scope, duration=duration, reason=reason)
-        result = self._c.post(f"/governance/requests/{urllib.parse.quote(request_id, safe='')}/approve", body)
+        result = self._c.post(f"/approvals/requests/{urllib.parse.quote(request_id, safe='')}/approve", body)
         return ApprovalRequest.from_dict(result if isinstance(result, dict) else {})
 
     def reject(self, request_id: str, reason: str = "") -> ApprovalRequest:
         body = {"reason": reason.strip()} if reason.strip() else None
-        path = f"/governance/requests/{urllib.parse.quote(request_id, safe='')}/reject"
+        path = f"/approvals/requests/{urllib.parse.quote(request_id, safe='')}/reject"
         result = self._c.post(path, body) if body else self._c.post(path)
         return ApprovalRequest.from_dict(result if isinstance(result, dict) else {})
 
@@ -491,6 +610,19 @@ class _IdentityProviderResource:
     def delete(self, name: str) -> dict[str, Any]:
         result = self._c.delete(f"/api/identity-providers/{urllib.parse.quote(name, safe='')}")
         return result if isinstance(result, dict) else {"status": result}
+
+
+class _ActionPlanResource:
+    def __init__(self, client: Client):
+        self._c = client
+
+    def validate(self, plan: dict[str, Any]) -> ActionPlanValidationResponse:
+        result = self._c.post("/actions/validate", plan)
+        return ActionPlanValidationResponse.from_dict(result if isinstance(result, dict) else {})
+
+    def apply(self, plan: dict[str, Any]) -> ActionPlanApplyResponse:
+        result = self._c.post("/actions/apply", plan)
+        return ActionPlanApplyResponse.from_dict(result if isinstance(result, dict) else {})
 
 
 def _catalog_list_query(

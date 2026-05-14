@@ -87,6 +87,19 @@ def get_agent(namespace: str, name: str) -> str:
 
 
 @mcp.tool()
+def get_agent_config(name: str, namespace: str = "") -> str:
+    """Get editable agent configuration, model budgets, and current model usage.
+
+    Args:
+        name: Agent name
+        namespace: Legacy namespace hint; workspace is normally carried by the base URL
+    """
+    def _call():
+        return _get_client().agents.get_config(name, namespace=namespace or None)
+    return _safe_call(_call)
+
+
+@mcp.tool()
 def list_tools() -> str:
     """List all registered tools with their base URLs, auth types, and access control settings."""
     return _safe_call(lambda: _get_client().tools.list())
@@ -96,6 +109,12 @@ def list_tools() -> str:
 def list_models() -> str:
     """List all model providers with their supported models and status."""
     return _safe_call(lambda: _get_client().models.list())
+
+
+@mcp.tool()
+def get_model_spend() -> str:
+    """Get current model spend, configured budgets, warnings, and top model usage."""
+    return _safe_call(lambda: _get_client().model_spend.get())
 
 
 @mcp.tool()
@@ -424,6 +443,33 @@ def apply_plan(plan: dict) -> str:
         plan: The action plan object to apply
     """
     return _safe_call(lambda: _get_client().post("/api/actions/apply", plan))
+
+
+@mcp.tool()
+def update_agent_config(
+    name: str,
+    config: dict,
+    namespace: str = "",
+) -> str:
+    """Update agent configuration, including model budgets.
+
+    Args:
+        name: Agent name
+        config: Partial config payload with keys such as llm_configs, required_tools,
+            policies, identity_provider, or system_prompt
+        namespace: Legacy namespace hint; workspace is normally carried by the base URL
+    """
+    def _call():
+        return _get_client().agents.update_config(
+            name,
+            system_prompt=config.get("system_prompt"),
+            identity_provider=config.get("identity_provider"),
+            llm_configs=config.get("llm_configs"),
+            required_tools=config.get("required_tools"),
+            policies=config.get("policies"),
+            namespace=namespace or None,
+        )
+    return _safe_call(_call)
 
 
 @mcp.tool()

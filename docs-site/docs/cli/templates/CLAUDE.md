@@ -17,9 +17,8 @@ This project deploys to **RunAgents** — a platform for orchestrating AI agents
 pip install runagents[mcp]
 
 # Configure CLI with your workspace
-runagents config set endpoint https://YOUR_WORKSPACE.try.runagents.io
+runagents config set endpoint https://YOUR_WORKSPACE.try.runagents.io/api/v1
 runagents config set api-key YOUR_API_KEY
-runagents config set namespace default
 ```
 
 ## Key Commands
@@ -35,6 +34,8 @@ runagents analyze --file agent.py
 runagents agents list
 runagents tools list
 runagents models list
+runagents models spend
+runagents agents config get my-agent
 
 # Monitor runs
 runagents runs list --agent my-agent

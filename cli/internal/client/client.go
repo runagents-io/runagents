@@ -22,7 +22,7 @@ type Client struct {
 // NewClient creates a new API client with the given endpoint and API key.
 func NewClient(endpoint, apiKey, namespace string) *Client {
 	return &Client{
-		endpoint:  endpoint,
+		endpoint:  normalizeEndpoint(endpoint),
 		apiKey:    apiKey,
 		namespace: namespace,
 		httpClient: &http.Client{
@@ -109,11 +109,18 @@ func (c *Client) buildURL(path string, query url.Values) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("invalid endpoint: %w", err)
 	}
-	ref, err := url.Parse(path)
+	normalizedPath := normalizePath(path)
+	ref, err := url.Parse(normalizedPath)
 	if err != nil {
 		return "", fmt.Errorf("invalid path: %w", err)
 	}
-	target = target.ResolveReference(ref)
+	if ref.IsAbs() {
+		target = ref
+	} else if ref.Path != "" {
+		basePath := strings.TrimRight(target.Path, "/")
+		target.Path = basePath + "/" + strings.TrimLeft(ref.Path, "/")
+		target.RawQuery = ref.RawQuery
+	}
 	if len(query) > 0 {
 		values := target.Query()
 		for key, items := range query {
@@ -158,13 +165,81 @@ func (c *Client) do(req *http.Request) ([]byte, error) {
 
 // setHeaders adds common headers to the request.
 func (c *Client) setHeaders(req *http.Request) {
-	if c.namespace != "" {
-		req.Header.Set("X-Workspace-Namespace", c.namespace)
-	}
 	if c.apiKey != "" {
 		req.Header.Set("Authorization", "Bearer "+c.apiKey)
-		if strings.HasPrefix(c.apiKey, "ra_ws_") {
-			req.Header.Set("X-RunAgents-API-Key", c.apiKey)
+	}
+}
+
+func normalizeEndpoint(endpoint string) string {
+	endpoint = strings.TrimRight(strings.TrimSpace(endpoint), "/")
+	if endpoint == "" {
+		return ""
+	}
+	u, err := url.Parse(endpoint)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return endpoint
+	}
+	path := strings.TrimRight(u.Path, "/")
+	switch {
+	case path == "/api/v1" || strings.HasPrefix(path, "/api/v1/workspaces/"):
+		u.Path = path
+	case strings.HasPrefix(path, "/workspaces/"):
+		u.Path = "/api/v1" + path
+	default:
+		u.Path = strings.TrimRight(path+"/api/v1", "/")
+	}
+	u.RawQuery = ""
+	u.Fragment = ""
+	return strings.TrimRight(u.String(), "/")
+}
+
+func normalizePath(path string) string {
+	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
+		return path
+	}
+	path = "/" + strings.TrimLeft(strings.TrimSpace(path), "/")
+	if path == "/" {
+		return ""
+	}
+
+	switch {
+	case path == "/api/agents":
+		return "/agents"
+	case strings.HasPrefix(path, "/api/agents/"):
+		parts := strings.SplitN(strings.TrimPrefix(path, "/api/agents/"), "/", 3)
+		if len(parts) >= 2 && parts[0] != "" && parts[1] != "" {
+			if len(parts) == 2 {
+				return "/agents/" + parts[1]
+			}
+			return "/agents/" + parts[1] + "/" + parts[2]
 		}
+		return "/agents/" + strings.TrimPrefix(path, "/api/agents/")
+
+	case path == "/governance/requests":
+		return "/approvals/requests"
+	case strings.HasPrefix(path, "/governance/requests/"):
+		return "/approvals/requests/" + strings.TrimPrefix(path, "/governance/requests/")
+
+	case path == "/api/settings/approval-connectors":
+		return "/approval-connectors"
+	case strings.HasPrefix(path, "/api/settings/approval-connectors/"):
+		return "/approval-connectors/" + strings.TrimPrefix(path, "/api/settings/approval-connectors/")
+
+	case path == "/api/actions/validate":
+		return "/actions/validate"
+	case path == "/api/actions/apply":
+		return "/actions/apply"
+	case path == "/api/context/export":
+		return "/context/export"
+	case path == "/api/deploy":
+		return "/deploy"
+	case path == "/api/deploy/preview":
+		return "/deploy/preview"
+	case path == "/api/starter-kit":
+		return "/starter-kit"
+	case strings.HasPrefix(path, "/api/"):
+		return strings.TrimPrefix(path, "/api")
+	default:
+		return path
 	}
 }

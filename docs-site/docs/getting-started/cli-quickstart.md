@@ -21,9 +21,8 @@ runagents version
 ## Step 2: Configure
 
 ```bash
-runagents config set endpoint https://your-workspace.try.runagents.io
+runagents config set endpoint https://your-workspace.try.runagents.io/api/v1
 runagents config set api-key ra_ws_your_workspace_key
-runagents config set namespace default
 runagents config get
 ```
 
@@ -58,14 +57,13 @@ runagents deploy \
   --name hello-world \
   --file agent.py \
   --tool echo-tool \
-  --model openai/gpt-4o-mini \
-  --policy echo-read-policy
+  --model openai/gpt-4o-mini
 ```
 
 Notes:
 
-- `runagents deploy` maps to `POST /api/deploy`.
-- You can bind policies and identity providers directly in the CLI with `--policy` and `--identity-provider`.
+- `runagents deploy` maps to `POST /deploy` on your configured API base URL.
+- For tool-call authorization, bind policies via console deploy flow, API (`policies` field), or action plans.
 
 ---
 
@@ -73,7 +71,7 @@ Notes:
 
 ```bash
 runagents agents list
-runagents agents get default hello-world
+runagents agents get hello-world
 ```
 
 ---
@@ -94,45 +92,10 @@ If a policy rule returns `approval_required`, use:
 
 ```bash
 runagents approvals list
-runagents approvals approve <request-id> --scope once
-# or approve the current run for one hour
-runagents approvals approve <request-id> --scope window --duration 1h
+runagents approvals approve <request-id>
 # or
 runagents approvals reject <request-id>
 ```
-
----
-
-## Production-oriented path: deploy from the catalog
-
-The quickest first-run path is still Hello World, but many teams want to validate a real workflow next.
-
-A strong next step is deploying a catalog agent such as the Google Workspace assistant. That path is better when you want to test:
-
-- delegated-user OAuth
-- policy-controlled writes
-- approval-required operations
-- pause and resume behavior across real tools
-
-Example:
-
-```bash
-runagents catalog list --search google
-runagents catalog show google-workspace-assistant-agent
-runagents catalog deploy google-workspace-assistant-agent \
-  --name google-workspace-assistant-agent \
-  --tool email \
-  --tool calendar \
-  --tool drive \
-  --tool docs \
-  --tool sheets \
-  --tool tasks \
-  --tool keep \
-  --policy workspace-write-approval \
-  --identity-provider google-oidc
-```
-
-See [Agent Catalog](../platform/agent-catalog.md) for the recommended production-style path.
 
 ---
 
@@ -143,8 +106,6 @@ runagents tools list
 runagents tools get echo-tool
 runagents models list
 runagents context export -o json
-runagents identity-providers list
-runagents policies list
 ```
 
 ---

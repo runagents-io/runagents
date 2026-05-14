@@ -28,16 +28,18 @@ Install: `npm install -g @runagents/cli` or `brew install runagents-io/tap/runag
 | `runagents tools list` | List registered tools |
 | `runagents tools create --file tool.json` | Register a new tool |
 | `runagents models list` | List model providers |
+| `runagents models spend` | Inspect model spend and budget posture |
+| `runagents agents config get NAME` | Inspect agent model budgets and usage |
 | `runagents runs list --agent NAME` | List runs for an agent |
 | `runagents approvals list` | List pending access requests |
-| `runagents approvals approve ID --scope once` | Approve one blocked action |
+| `runagents approvals approve ID` | Approve an access request |
 | `runagents starter-kit` | Seed demo tools and model provider |
 
 ### RunAgents MCP Server (`runagents-mcp`)
 
-Install: `pip install runagents[mcp]`
+Install: `pip install runagents-mcp`
 
-Provides direct platform tools for workspace inspection, deployment, catalog access, policies, approval connectors, and approvals via `runagents-mcp`.
+Provides tools for direct platform access: `list_agents`, `get_agent`, `get_agent_config`, `list_tools`, `list_models`, `get_model_spend`, `list_runs`, `get_run_events`, `export_context`, `analyze_code`, `deploy_agent`, `create_tool`, `validate_plan`, `apply_plan`, `update_agent_config`, `approve_request`, `seed_starter_kit`.
 
 ## Workflows
 
@@ -55,8 +57,7 @@ Provides direct platform tools for workspace inspection, deployment, catalog acc
 ### Handle approvals
 1. Check: `runagents approvals list`
 2. Review the request details
-3. Approve: `runagents approvals approve <request-id> --scope once`
-4. For a temporary work window: `runagents approvals approve <request-id> --scope window --duration 1h`
+3. Approve: `runagents approvals approve <request-id>`
 
 ## References
 

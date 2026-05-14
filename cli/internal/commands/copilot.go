@@ -407,15 +407,14 @@ func runCopilotDoctor() error {
 	if namespaceTrimmed == "" {
 		checks = append(checks, copilotDoctorCheck{
 			Name:    "config.namespace",
-			Status:  "fail",
-			Details: "Namespace is not configured. Set via 'runagents config set namespace <name>' or --namespace.",
+			Status:  "pass",
+			Details: "Workspace scope is resolved from the endpoint URL.",
 		})
-		failures++
 	} else {
 		checks = append(checks, copilotDoctorCheck{
 			Name:    "config.namespace",
 			Status:  "pass",
-			Details: namespaceTrimmed,
+			Details: "Legacy namespace override configured: " + namespaceTrimmed,
 		})
 	}
 
@@ -452,21 +451,21 @@ func runCopilotDoctor() error {
 		}
 	}
 
-	if endpointTrimmed != "" && namespaceTrimmed != "" && apiKeyTrimmed != "" {
+	if endpointTrimmed != "" && apiKeyTrimmed != "" {
 		c := client.NewClient(endpointTrimmed, apiKeyTrimmed, namespaceTrimmed)
-		if _, getErr := c.Get("/api/tools"); getErr != nil {
+		if _, getErr := c.Get("/tools"); getErr != nil {
 			statusCode := extractHTTPStatus(getErr)
 			status := "warn"
 			if statusCode == 0 || statusCode >= 500 || statusCode == 401 || statusCode == 403 || statusCode == 404 {
 				status = "fail"
 				failures++
 			}
-			details := fmt.Sprintf("GET /api/tools failed: %v", getErr)
+			details := fmt.Sprintf("GET /tools failed: %v", getErr)
 			if statusCode == 401 || statusCode == 403 {
-				details = "Authentication/authorization failed for GET /api/tools. Check api key and namespace."
+				details = "Authentication/authorization failed for GET /tools. Check the API token and workspace URL."
 			}
 			if statusCode == 404 {
-				details = "GET /api/tools returned 404. Verify endpoint points to RunAgents governance API."
+				details = "GET /tools returned 404. Verify endpoint points to RunAgents governance API."
 			}
 			checks = append(checks, copilotDoctorCheck{
 				Name:    "api.auth_probe",
@@ -477,7 +476,7 @@ func runCopilotDoctor() error {
 			checks = append(checks, copilotDoctorCheck{
 				Name:    "api.auth_probe",
 				Status:  "pass",
-				Details: "GET /api/tools succeeded with current credentials and namespace.",
+				Details: "GET /tools succeeded with the current token and workspace URL.",
 			})
 		}
 	}
@@ -774,7 +773,7 @@ func copilotCommandContext() (*client.Client, string, *config.ProjectState, erro
 }
 
 func callCopilot(c *client.Client, req copilotChatRequestPayload) ([]byte, copilotChatResponsePayload, error) {
-	data, err := c.Post("/api/copilot/chat", req)
+	data, err := c.Post("/copilot/chat", req)
 	if err != nil {
 		return nil, copilotChatResponsePayload{}, err
 	}
@@ -933,7 +932,7 @@ func maybePrepareDeployDraftFromCurrentFolder(c *client.Client, prompt, cwd stri
 		"build_mode":   "native",
 		"source_files": files,
 	}
-	artifactRaw, err := c.Post("/api/workflow-artifacts", artifactPayload)
+	artifactRaw, err := c.Post("/workflow-artifacts", artifactPayload)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to create workflow artifact from local folder: %w", err)
 	}
@@ -950,7 +949,7 @@ func maybePrepareDeployDraftFromCurrentFolder(c *client.Client, prompt, cwd stri
 		"source_type": "code",
 		"step":        "deploy",
 	}
-	draftRaw, err := c.Post("/api/deploy-drafts", draftPayload)
+	draftRaw, err := c.Post("/deploy-drafts", draftPayload)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to create deploy draft from artifact %s: %w", artifact.ID, err)
 	}

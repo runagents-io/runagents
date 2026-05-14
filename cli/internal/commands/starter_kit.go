@@ -17,7 +17,7 @@ func newStarterKitCmd() *cobra.Command {
 				return err
 			}
 
-			data, err := c.Post("/api/starter-kit", nil)
+			data, err := c.Post("/starter-kit", nil)
 			if err != nil {
 				return err
 			}

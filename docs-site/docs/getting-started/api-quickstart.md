@@ -7,7 +7,7 @@ description: Deploy your first agent programmatically with the RunAgents API.
 
 This quickstart deploys a simple agent via API and wires policy explicitly so tool calls are authorized from day one.
 
-Base URL examples below use `https://api.runagents.io`.
+Base URL examples below use a workspace-scoped API URL.
 
 ---
 
@@ -15,7 +15,7 @@ Base URL examples below use `https://api.runagents.io`.
 
 ```bash
 export RUNAGENTS_API_KEY="ra_ws_your_workspace_key"
-export API="https://api.runagents.io"
+export API="https://your-workspace.try.runagents.io/api/v1"
 ```
 
 ---
@@ -23,7 +23,7 @@ export API="https://api.runagents.io"
 ## Step 2: Seed Starter Resources
 
 ```bash
-curl -X POST "$API/api/starter-kit" \
+curl -X POST "$API/starter-kit" \
   -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json"
 ```
@@ -42,7 +42,7 @@ Example response (`201`):
 ## Step 3: Create A Simple Policy
 
 ```bash
-curl -X POST "$API/api/policies" \
+curl -X POST "$API/policies" \
   -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -64,7 +64,7 @@ curl -X POST "$API/api/policies" \
 ## Step 4: Deploy Agent With Policy Binding
 
 ```bash
-curl -X POST "$API/api/deploy" \
+curl -X POST "$API/deploy" \
   -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
@@ -98,7 +98,7 @@ Example response (`201`):
 ## Step 5: Verify Deployment
 
 ```bash
-curl -s "$API/api/agents" \
+curl -s "$API/agents" \
   -H "Authorization: Bearer $RUNAGENTS_API_KEY" | jq .
 ```
 
@@ -127,10 +127,10 @@ Run states you will commonly see:
 If a policy rule resolves to `approval_required`, approve via:
 
 ```bash
-curl -s "$API/governance/requests?status=PENDING" \
+curl -s "$API/approvals/requests?status=PENDING" \
   -H "Authorization: Bearer $RUNAGENTS_API_KEY" | jq .
 
-curl -X POST "$API/governance/requests/<request-id>/approve" \
+curl -X POST "$API/approvals/requests/<request-id>/approve" \
   -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{}'

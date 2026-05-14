@@ -2,32 +2,11 @@
 
 > RunAgents is a platform for deploying and orchestrating AI agents with secure, policy-driven access to external tools and services. It handles identity propagation, credential injection, approval workflows, and access control so agent developers can focus on logic instead of security plumbing.
 
-The same governed runtime can sit behind many interfaces, including a web app, WhatsApp, Slack, an internal portal, or a custom client. RunAgents keeps execution, identity propagation, policy enforcement, approval workflows, and outbound tool security consistent regardless of the user-facing surface.
-
----
-
-## What's New
-
-Recent updates are published in the public `What's New` section:
-
-- Scoped approvals for governed writes
-- Clearer approval-versus-consent operations UX
-- Google Workspace calendar writes under policy control
-- Stronger pause-and-resume behavior for messaging surfaces such as WhatsApp
-
-See:
-
-- https://docs.runagents.io/whats-new/
-- https://docs.runagents.io/whats-new/releases/2026-04-09-cli-v1-2-0-governance-and-operations/
-- https://docs.runagents.io/whats-new/releases/2026-04-09-scoped-approvals-console-messaging/
-
 ---
 
 ## Architecture
 
 RunAgents processes every agent interaction through three stages: Ingress, Runtime, and Egress.
-
-The initiating surface can live anywhere: a traditional web app, WhatsApp, Slack, an internal operator UI, or a custom client.
 
 ```
 Client App --JWT--> [RunAgents Ingress] --X-End-User-ID--> Agent
@@ -91,22 +70,6 @@ Prerequisites: A RunAgents account. Sign up at try.runagents.io.
 
 The platform analyzes the sample code, wires tools and LLM, creates access policies, and deploys the agent. The agent is live and all requests to the Echo Tool are automatically policy-checked, credential-enriched, and identity-forwarded.
 
-For a more production-shaped starting point, use the Agent Catalog instead of starting only with Hello World.
-
----
-
-## Agent Catalog
-
-The Agent Catalog gives teams maintained starting points for real workflows.
-
-Use it when you want:
-
-- a richer example than Hello World
-- policy, approval, and OAuth behavior to be part of the starting point
-- a production-shaped blueprint instead of a pure demo
-
-One strong example is the Google Workspace assistant, which combines Gmail, Calendar, Drive, Docs, Sheets, Tasks, and Keep with policy-controlled writes and delegated-user OAuth.
-
 ---
 
 ## Writing Agents
@@ -162,7 +125,7 @@ if __name__ == "__main__":
     answer = ask_llm("Summarize what RunAgents does in one sentence.")
 ```
 
-Deploy: `runagents deploy --name hello-world --file agent.py --policy echo-read-policy`
+Deploy: `runagents deploy --files agent.py --name hello-world`
 
 ### Tier 2: Custom Handler
 
@@ -297,7 +260,7 @@ POST /api/starter-kit — create demo echo-tool and playground-llm (idempotent).
 Install: `pip install runagents` (zero dependencies, Python 3.10+)
 MCP server: `pip install runagents[mcp]`
 Local dev hot-reload: `pip install runagents[dev]`
-PyPI: https://pypi.org/project/runagents/ (v1.4.1)
+PyPI: https://pypi.org/project/runagents/ (v1.4.0)
 
 ### Client — manage platform resources
 
@@ -318,7 +281,7 @@ runs   = client.runs.list(agent="name") # → list[Run]
 events = client.runs.events(run_id)     # → list[Event]
 
 approvals = client.approvals.list()
-client.approvals.approve(request_id, scope="run")
+client.approvals.approve(request_id)
 client.approvals.reject(request_id)
 
 result = client.analyze({"agent.py": code})  # → AnalysisResult
@@ -375,22 +338,16 @@ Install: `pip install runagents` (recommended — includes CLI, SDK, and runtime
 
 | Command | Description |
 |---------|-------------|
-| runagents deploy | Deploy agent from source files, drafts, or artifacts |
-| runagents catalog | Discover and deploy maintained catalog agents |
-| runagents policies | Manage policy rules and approval routing |
-| runagents identity-providers | Manage end-user identity providers |
-| runagents approval-connectors | Manage approval delivery integrations |
-| runagents context export | Export workspace state for external assistants |
+| runagents deploy | Deploy agent from source or image |
 | runagents agents list | List agents |
 | runagents agents get | Get agent details |
 | runagents tools list | List tools |
 | runagents tools create | Register a tool |
 | runagents models list | List model providers |
+| runagents models spend | Inspect model spend and budgets |
+| runagents agents config get | Inspect agent model budgets and usage |
 | runagents runs list | List runs |
 | runagents runs get | Get run details |
-| runagents runs timeline | Show a readable per-run timeline |
-| runagents runs wait | Block until a run reaches a terminal state |
-| runagents runs export | Export a run with events for debugging |
 | runagents approvals list | List access requests |
 | runagents approvals approve | Approve access request |
 | runagents analyze | Analyze source code |
@@ -413,7 +370,7 @@ Config stored at ~/.runagents/config.json. Environment variables override: RUNAG
 
 Install: `pip install runagents[mcp]`
 
-Expanded toolset covering workspace inspection, deploy flows, catalog manifests, policies, identity providers, approval connectors, richer runs, and scoped approvals.
+Tools include: list_agents, get_agent, get_agent_config, list_tools, list_models, get_model_spend, list_runs, get_run_events, export_context, analyze_code, deploy_agent, create_tool, validate_plan, apply_plan, update_agent_config, approve_request, seed_starter_kit.
 
 Claude Code config:
 ```json
@@ -430,10 +387,6 @@ Claude Code config:
   }
 }
 ```
-
-Public skills library: https://docs.runagents.io/cli/skills/
-
-Use it when you want reusable workflows for Codex, Claude Code, Cursor, and similar assistants across catalog deployment, tool onboarding, approvals, run debugging, or anywhere-interface design such as WhatsApp and Slack.
 
 ---
 

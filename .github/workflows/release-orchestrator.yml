@@ -1,0 +1,169 @@
+name: Release Orchestrator
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Semantic version to release, without the leading v.
+        required: true
+        type: string
+      ref:
+        description: Git ref to validate and tag.
+        required: true
+        default: main
+        type: string
+      publish:
+        description: Push the release tag after validation. Leave false for a dry run.
+        required: true
+        default: false
+        type: boolean
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: release-${{ inputs.version }}
+  cancel-in-progress: false
+
+jobs:
+  validate-and-tag:
+    name: Validate release surfaces
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Check out release ref
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.13"
+
+      - name: Set up Go
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.22"
+          cache-dependency-path: cli/go.sum
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: "24"
+          package-manager-cache: false
+
+      - name: Resolve release input
+        id: release
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="$(printf '%s' '${{ inputs.version }}' | xargs)"
+          ref="$(printf '%s' '${{ inputs.ref }}' | xargs)"
+
+          if [[ ! "${version}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Expected semantic version like 1.4.2, got: ${version}" >&2
+            exit 1
+          fi
+
+          if [[ "${{ inputs.publish }}" == "true" && "${ref}" != "main" ]]; then
+            echo "Publishing is only allowed from ref=main. Use publish=false for branch dry runs." >&2
+            exit 1
+          fi
+
+          tag="v${version}"
+          if [[ -n "$(git ls-remote --tags origin "refs/tags/${tag}")" ]]; then
+            echo "Release tag already exists: ${tag}" >&2
+            exit 1
+          fi
+
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "tag=${tag}" >> "${GITHUB_OUTPUT}"
+          echo "ref=${ref}" >> "${GITHUB_OUTPUT}"
+
+          {
+            echo "## Release orchestration"
+            echo
+            echo "- version: \`${version}\`"
+            echo "- tag: \`${tag}\`"
+            echo "- ref: \`${ref}\`"
+            echo "- publish: \`${{ inputs.publish }}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Verify version surfaces
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ steps.release.outputs.version }}"
+          python3 scripts/sync_release_versions.py "${version}"
+          if ! git diff --quiet; then
+            echo "Version surfaces are not synchronized for ${version}." >&2
+            git diff --stat >&2
+            git diff >&2
+            exit 1
+          fi
+
+      - name: Verify release note coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          version="${{ steps.release.outputs.version }}"
+          grep -R "RunAgents v${version}" README.md docs-site/docs/whats-new docs-site/docs-rtd/releases/index.md >/dev/null
+          grep -R "RunAgents v${version}" docs-site/docs/whats-new/releases >/dev/null
+
+      - name: Install validation dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install pyyaml==6.0.2 openapi-spec-validator==0.7.2
+
+      - name: Check repo consistency and OpenAPI artifacts
+        run: |
+          python scripts/check_repo_consistency.py
+          python scripts/check_surface_parity.py
+          python scripts/sync_openapi_artifacts.py --check
+          openapi-spec-validator openapi/openapi.yaml
+          openapi-spec-validator api/contracts/action-plans-openapi.yaml
+
+      - name: Test Python SDK
+        working-directory: sdk/python
+        run: python -m unittest discover -s tests -t .
+
+      - name: Test Go CLI
+        working-directory: cli
+        run: go test ./...
+
+      - name: Build docs
+        working-directory: docs-site
+        run: |
+          python -m pip install -r requirements.txt
+          mkdocs build --strict
+
+      - name: Dry-run summary
+        if: ${{ inputs.publish == false }}
+        run: |
+          {
+            echo
+            echo "Validation completed. Re-run with \`publish=true\` to push \`${{ steps.release.outputs.tag }}\`."
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Push release tag
+        if: ${{ inputs.publish == true }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          tag="${{ steps.release.outputs.tag }}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${tag}" -m "${tag}"
+          git push origin "${tag}"
+
+          {
+            echo
+            echo "Pushed \`${tag}\`. The existing \`Release RunAgents\` workflow will publish the release assets."
+          } >> "${GITHUB_STEP_SUMMARY}"

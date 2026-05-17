@@ -88,7 +88,7 @@ result = client.agents.deploy(
     system_prompt="You are a payment assistant.",
     required_tools=["stripe-api"],
     llm_configs=[{"provider": "openai", "model": "gpt-4o-mini", "role": "default"}],
-    requirements="runagents>=1.4.1\n",
+    requirements="runagents>=1.4.2\n",
     entry_point="agent.py",
 )
 print(result.status)  # "created" | "updated"
@@ -451,6 +451,6 @@ See [Agent Runtime](../platform/agent-runtime.md) for full documentation.
 ## PyPI
 
 - Package: [`runagents`](https://pypi.org/project/runagents/)
-- Current repo version: `1.4.1`
+- Current repo version: `1.4.2`
 - Source: [github.com/runagents-io/runagents](https://github.com/runagents-io/runagents)
 - License: Apache 2.0

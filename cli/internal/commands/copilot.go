@@ -406,7 +406,7 @@ func runCopilotDoctor() error {
 	checks = append(checks, copilotDoctorCheck{
 		Name:    "workspace.routing",
 		Status:  "pass",
-		Details: "Workspace scope is resolved from the endpoint URL and bearer token.",
+		Details: "Workspace scope is resolved from the endpoint URL and workspace API key.",
 	})
 
 	apiKeyTrimmed := strings.TrimSpace(apiKey)

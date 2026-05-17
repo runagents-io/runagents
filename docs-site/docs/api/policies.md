@@ -22,7 +22,7 @@ Returns policies in the current workspace, including bound-agent usage when avai
 
     ```bash
     curl https://acme.runagents.io/api/v1/policies \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -160,7 +160,7 @@ Translate a natural-language description into structured policy rules.
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/policies/translate \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"text":"Allow Google Workspace reads and require approval for writes"}'
     ```

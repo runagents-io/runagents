@@ -16,7 +16,7 @@ Returns all registered tools.
 
     ```bash
     curl https://acme.runagents.io/api/v1/tools \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -89,7 +89,7 @@ Register a new tool. Idempotent -- creating a tool with an existing name updates
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/tools \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "google-drive",
@@ -246,7 +246,7 @@ Register a new tool. Idempotent -- creating a tool with an existing name updates
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/tools \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "stripe-api",
@@ -304,7 +304,7 @@ Retrieve details for a specific tool.
 
     ```bash
     curl https://acme.runagents.io/api/v1/tools/stripe-api \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -335,7 +335,7 @@ Delete a registered tool.
 
     ```bash
     curl -X DELETE https://acme.runagents.io/api/v1/tools/stripe-api \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -370,7 +370,7 @@ Test connectivity to a URL before registering it as a tool. Returns reachability
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/tools/probe \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"url": "https://api.stripe.com"}'
     ```
@@ -400,7 +400,7 @@ Probe a registered tool's base URL and update its status with the result.
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/tools/stripe-api/test \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)

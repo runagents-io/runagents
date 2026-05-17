@@ -57,7 +57,7 @@ Supported action types:
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/workspaces/revops/actions/validate \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d @plan.json
     ```
@@ -105,7 +105,7 @@ Validates the plan and, if valid, executes actions in order.
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/workspaces/revops/actions/apply \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d @plan.json
     ```

@@ -27,7 +27,7 @@ class Client:
 
     Args:
         endpoint: Platform API URL (default: from config).
-        api_key: API key or workspace token (default: from config).
+        api_key: API key, workspace key, or bearer token (default: from config).
     """
 
     def __init__(
@@ -56,8 +56,13 @@ class Client:
 
     def _headers(self) -> dict[str, str]:
         h: dict[str, str] = {"Content-Type": "application/json"}
-        if self.api_key:
-            h["Authorization"] = f"Bearer {self.api_key}"
+        api_key = (self.api_key or "").strip()
+        if not api_key:
+            return h
+        if api_key.startswith("ra_ws_"):
+            h["X-RunAgents-API-Key"] = api_key
+        else:
+            h["Authorization"] = f"Bearer {api_key}"
         return h
 
     # --- Low-level HTTP ---

@@ -30,15 +30,16 @@ internal to RunAgents.
 
 ## Authentication
 
-Every API request should include a bearer token:
+Every programmatic control-plane API request should include a workspace API key:
 
 ```http
-Authorization: Bearer <token>
+X-RunAgents-API-Key: <ra_ws_...>
 ```
 
-Tokens identify the caller and authorize access to the tenant/workspace in the
-base URL. Tokens may be personal, service, or workspace-bound depending on how
-they are created.
+Workspace API keys authorize access to the tenant/workspace carried by the base
+URL. Do not send `ra_ws_...` keys as `Authorization: Bearer` tokens on hosted
+trial or company URLs; that header is reserved for connected OIDC/JWT identity
+flows.
 
 You can create and rotate workspace API keys from **Settings** in the [RunAgents Console](https://console.runagents.io) or programmatically through the auth endpoints documented in the canonical OpenAPI contract.
 
@@ -46,7 +47,7 @@ You can create and rotate workspace API keys from **Settings** in the [RunAgents
 
     ```bash
     curl https://acme.runagents.io/api/v1/workspaces/revops/agents \
-      -H "Authorization: Bearer ra_ws_abc123..."
+      -H "X-RunAgents-API-Key: ra_ws_abc123..."
     ```
 
 === "Python"
@@ -54,7 +55,7 @@ You can create and rotate workspace API keys from **Settings** in the [RunAgents
     ```python
     import requests
 
-    headers = {"Authorization": "Bearer ra_ws_abc123..."}
+    headers = {"X-RunAgents-API-Key": "ra_ws_abc123..."}
     resp = requests.get(
         "https://acme.runagents.io/api/v1/workspaces/revops/agents",
         headers=headers,

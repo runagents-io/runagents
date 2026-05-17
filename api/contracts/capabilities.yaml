@@ -913,7 +913,7 @@ capabilities:
         coverage: partial
         evidence:
           - path: docs-site/docs/api/overview.md
-            contains: 'Authorization: Bearer <token>'
+            contains: 'X-RunAgents-API-Key: <ra_ws_...>'
       assistant_workflows:
         required: false
         coverage: planned

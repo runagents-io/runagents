@@ -21,8 +21,8 @@ class TestClientHeaders(unittest.TestCase):
         with mock.patch.dict(os.environ, {"RUNAGENTS_ENDPOINT": "http://test:8092"}, clear=True):
             c = Client(api_key="ra_ws_abc123")
         h = c._headers()
-        self.assertEqual(h["Authorization"], "Bearer ra_ws_abc123")
-        self.assertNotIn("X-RunAgents-API-Key", h)
+        self.assertEqual(h["X-RunAgents-API-Key"], "ra_ws_abc123")
+        self.assertNotIn("Authorization", h)
 
     def test_no_auth(self):
         with mock.patch.dict(os.environ, {"RUNAGENTS_ENDPOINT": "http://test:8092"}, clear=True):

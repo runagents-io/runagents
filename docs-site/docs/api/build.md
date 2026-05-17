@@ -26,7 +26,7 @@ Start an asynchronous build from source files. Returns immediately with a build 
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/builds \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "my-agent",
@@ -114,7 +114,7 @@ Poll the status of a build.
 
     ```bash
     curl https://acme.runagents.io/api/v1/builds/build-a1b2c3d4 \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response: Build in progress (200 OK)
@@ -241,7 +241,7 @@ For most workflows, you do not need to call the Build API directly. The [Deploy 
     ```bash
     # This automatically triggers a build + deploy
     curl -X POST https://acme.runagents.io/api/v1/deploy \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "agent_name": "my-agent",

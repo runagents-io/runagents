@@ -208,7 +208,7 @@ Wait for `status: Running` (usually ~30 seconds for the first deploy).
 ```bash
 # Replace with your workspace URL
 curl -X POST https://<your-id>.try.runagents.io/api/agents/default/product-assistant/invoke \
-  -H "Authorization: Bearer ra_ws_YOUR_KEY_HERE" \
+  -H "X-RunAgents-API-Key: ra_ws_YOUR_KEY_HERE" \
   -H "Content-Type: application/json" \
   -d '{"message": "Do you have the wireless headphones in stock? And what is the price for 10 units?"}'
 ```
@@ -245,7 +245,7 @@ with urllib.request.urlopen(req) as resp:
 
 ```bash
 curl -X POST https://<your-id>.try.runagents.io/api/agents/default/product-assistant/invoke/stream \
-  -H "Authorization: Bearer ra_ws_YOUR_KEY_HERE" \
+  -H "X-RunAgents-API-Key: ra_ws_YOUR_KEY_HERE" \
   -H "Content-Type: application/json" \
   -d '{"message": "Check inventory for SKU-001 and quote 5 units"}' \
   --no-buffer

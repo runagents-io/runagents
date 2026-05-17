@@ -82,7 +82,7 @@ These policies bind access to ServiceAccount `hr-assistant`.
 
 ```bash
 curl -X POST https://<workspace>.try.runagents.io/api/agents/default/hr-assistant/invoke \
-  -H "Authorization: Bearer ra_ws_<your_key>" \
+  -H "X-RunAgents-API-Key: ra_ws_<your_key>" \
   -H "Content-Type: application/json" \
   -d '{"message": "Look up employee EMP-042"}'
 ```

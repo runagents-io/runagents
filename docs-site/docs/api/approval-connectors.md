@@ -18,7 +18,7 @@ Returns approval connectors configured in the current workspace.
 
     ```bash
     curl https://acme.runagents.io/api/v1/approval-connectors \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
     ```
 
 ### Response (200 OK)
@@ -66,7 +66,7 @@ Create a workspace-scoped approval connector.
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/approval-connectors \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \ \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \ \
       -H "Content-Type: application/json" \
       -d '{
         "name": "secops-slack",

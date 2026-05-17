@@ -16,7 +16,7 @@ Returns all deployed agents in the workspace carried by the base URL.
 
     ```bash
     curl https://acme.runagents.io/api/v1/agents \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 === "Python"
@@ -26,7 +26,7 @@ Returns all deployed agents in the workspace carried by the base URL.
 
     resp = requests.get(
         "https://acme.runagents.io/api/v1/agents",
-        headers={"Authorization": f"Bearer {api_key}"},
+        headers={"X-RunAgents-API-Key": api_key},
     )
     agents = resp.json()
     ```
@@ -82,7 +82,7 @@ Retrieve details for a specific agent.
 
     ```bash
     curl https://acme.runagents.io/api/v1/agents/payment-agent \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -138,7 +138,7 @@ Delete an agent and its associated resources.
 
     ```bash
     curl -X DELETE https://acme.runagents.io/api/v1/agents/payment-agent \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -184,7 +184,7 @@ The request body is forwarded directly to the agent. The format depends on the a
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/agents/payment-agent/invoke \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"message": "What are the recent charges?"}'
     ```

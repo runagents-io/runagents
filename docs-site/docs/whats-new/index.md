@@ -11,6 +11,16 @@ Use it to:
 
 ## Latest releases
 
+### May 17, 2026
+
+[RunAgents v1.4.2: Workspace API Key Auth for Public API Clients](releases/2026-05-17-v1-4-2-workspace-api-key-auth.md)
+
+Highlights:
+
+- Swagger UI now uses `X-RunAgents-API-Key` for workspace keys
+- the public OpenAPI contract, generated docs, Python SDK, and Go CLI now agree on workspace API-key auth
+- deploy examples no longer print configured API keys into generated curl commands
+
 ### May 12, 2026
 
 [RunAgents v1.4.1: CLI Install Path Fixes](releases/2026-05-12-v1-4-1-cli-install-path-fixes.md)

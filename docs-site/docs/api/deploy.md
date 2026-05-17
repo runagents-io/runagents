@@ -87,7 +87,7 @@ curl -X POST https://acme.runagents.io/api/v1/deploy \
     "llm_configs": [{"provider": "openai", "model": "gpt-4o-mini", "role": "chat"}],
     "policies": ["billing-stripe-policy"],
     "entry_point": "agent.py",
-    "requirements": "runagents>=1.4.1\n"
+    "requirements": "runagents>=1.4.2\n"
   }'
 ```
 

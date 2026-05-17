@@ -12,6 +12,7 @@ Bring your own interface: a web app, WhatsApp, Slack, an internal portal, or a c
 
 ## What's New
 
+- **RunAgents v1.4.2** — workspace API keys now use the public `X-RunAgents-API-Key` header across Swagger, OpenAPI, SDK, CLI, and examples
 - **RunAgents v1.4.1** — patch release for npm and PyPI CLI install-path reliability
 - **RunAgents v1.4.0** — model budgets, safer console edit flows, faster inventory operations, and smoother deployment/runtime handling
 - **RunAgents v1.3.1** — release pipeline hardening for the public SDK and MCP line, with Trusted Publishing wired for PyPI
@@ -21,6 +22,7 @@ Bring your own interface: a web app, WhatsApp, Slack, an internal portal, or a c
 Read the latest release notes:
 
 - [What's New](https://docs.runagents.io/whats-new/)
+- [RunAgents v1.4.2 release notes](https://docs.runagents.io/whats-new/releases/2026-05-17-v1-4-2-workspace-api-key-auth/)
 - [RunAgents v1.4.1 release notes](https://docs.runagents.io/whats-new/releases/2026-05-12-v1-4-1-cli-install-path-fixes/)
 - [RunAgents v1.4.0 release notes](https://docs.runagents.io/whats-new/releases/2026-05-12-v1-4-0-model-budgets-safer-edits-and-smoother-operations/)
 - [RunAgents v1.3.1 release notes](https://docs.runagents.io/whats-new/releases/2026-04-10-v1-3-1-release-pipeline-hardening/)

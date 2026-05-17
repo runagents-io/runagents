@@ -85,6 +85,16 @@ def sync(version: str) -> None:
         r'^- Current repo version: `.*`$',
         f"- Current repo version: `{version}`",
     )
+    _replace_regex(
+        REPO_ROOT / "docs-site" / "docs" / "cli" / "installation.md",
+        r'^Current version: \*\*.*\*\*$',
+        f"Current version: **{version}**",
+    )
+    _replace_regex(
+        REPO_ROOT / "docs-site" / "docs" / "cli" / "installation.md",
+        r'^runagents version .*$',
+        f"runagents version {version}",
+    )
     for path in [
         REPO_ROOT / "docs-site" / "docs" / "sdk" / "index.md",
         REPO_ROOT / "docs-site" / "docs" / "api" / "deploy.md",

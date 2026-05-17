@@ -4,5 +4,5 @@ from runagents.client import Client
 from runagents.agent import Agent, ToolNotConfigured, tool
 from runagents.runtime import RunContext
 
-__version__ = "1.4.1"
+__version__ = "1.4.2"
 __all__ = ["Client", "Agent", "ToolNotConfigured", "tool", "RunContext"]

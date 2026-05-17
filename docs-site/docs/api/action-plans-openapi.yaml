@@ -7,8 +7,8 @@ info:
     This OpenAPI fragment documents the HTTP surface behind RunAgents action plans.
     These endpoints back the CLI `runagents action ...` flow, the Python SDK
     `client.actions`, and assistant integrations such as MCP-based coding tools.
-    Tenant/workspace context is carried by the base URL; caller identity and
-    scopes are carried by the bearer token.
+    Tenant/workspace context is carried by the base URL; workspace API keys
+    are sent with the X-RunAgents-API-Key header.
 servers:
   - url: https://{trialId}.try.runagents.io/api/v1
     description: Trial host with one default workspace.
@@ -23,7 +23,7 @@ servers:
       workspace:
         default: revops
 security:
-  - BearerAuth: []
+  - WorkspaceApiKey: []
 tags:
   - name: Action Plans
     description: Deterministic validate-then-apply workflows for assistant-driven changes.
@@ -95,10 +95,10 @@ paths:
                 type: string
 components:
   securitySchemes:
-    BearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: API key
+    WorkspaceApiKey:
+      type: apiKey
+      in: header
+      name: X-RunAgents-API-Key
   schemas:
     ErrorResponse:
       type: object

@@ -7,6 +7,7 @@ import json
 import re
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -25,6 +26,7 @@ API_LINK_PAGES = (
     "runs",
     "tools",
 )
+DISALLOWED_EXTERNAL_ASSET_HOSTS = frozenset({"cdn.jsdelivr.net"})
 
 
 def _fail(errors: list[str], message: str) -> None:
@@ -58,6 +60,16 @@ def _expect_contains(errors: list[str], path: Path, needle: str) -> None:
     text = _read_text(path)
     if needle not in text:
         _fail(errors, f"{path}: missing expected text {needle!r}")
+
+
+def _external_url_hosts(text: str) -> set[str]:
+    """Return exact hostnames for absolute URLs embedded in a text asset."""
+    hosts: set[str] = set()
+    for match in re.finditer(r"https?://[^\s\"'<>`]+", text):
+        hostname = urlparse(match.group(0)).hostname
+        if hostname:
+            hosts.add(hostname.lower())
+    return hosts
 
 
 def _check_release_sync(errors: list[str], version: str) -> None:
@@ -123,7 +135,7 @@ def _check_contract_artifacts(errors: list[str]) -> None:
     _expect_contains(errors, openapi_loader, 'const SWAGGER_STYLESHEET = "../stylesheets/vendor/swagger-ui.css";')
     _expect_contains(errors, openapi_loader, "window.document$.subscribe")
     _expect_contains(errors, openapi_loader, "openApiSpecUrl")
-    if "cdn.jsdelivr.net" in openapi_loader.read_text():
+    if _external_url_hosts(openapi_loader.read_text()) & DISALLOWED_EXTERNAL_ASSET_HOSTS:
         _fail(errors, "docs-site/docs/javascripts/openapi-docs.js: external jsDelivr dependency should not be present")
     if not redoc_bundle.exists():
         _fail(errors, "docs-site/docs/javascripts/vendor/redoc.standalone.js: bundled Redoc asset is missing")

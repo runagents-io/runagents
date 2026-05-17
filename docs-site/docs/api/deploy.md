@@ -76,7 +76,7 @@ Idempotent by `agent_name` within the workspace carried by the base URL.
 
 ```bash
 curl -X POST https://acme.runagents.io/api/v1/deploy \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "agent_name": "billing-agent",
@@ -97,7 +97,7 @@ curl -X POST https://acme.runagents.io/api/v1/deploy \
 
 ```bash
 curl -X POST https://acme.runagents.io/api/v1/deploy \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "agent_name": "my-agent",

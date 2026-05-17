@@ -35,7 +35,7 @@ Returns paginated catalog entries.
 
     ```bash
     curl "https://acme.runagents.io/api/v1/catalog?search=google&integration=calendar" \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -86,7 +86,7 @@ Returns the latest manifest for a catalog agent, or a specific version when `ver
 
     ```bash
     curl "https://acme.runagents.io/api/v1/catalog/google-workspace-assistant-agent" \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -126,7 +126,7 @@ Returns the published versions for a catalog agent in descending semantic-versio
 
     ```bash
     curl "https://acme.runagents.io/api/v1/catalog/google-workspace-assistant-agent/versions" \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)

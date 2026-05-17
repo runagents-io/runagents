@@ -200,7 +200,7 @@ def main():
     print()
     print("Test it:")
     print(f'  curl -X POST {invoke_url} \\')
-    print(f'    -H "Authorization: Bearer {cfg.api_key or "YOUR_API_KEY"}" \\')
+    print('    -H "X-RunAgents-API-Key: YOUR_API_KEY" \\')
     print(f'    -H "Content-Type: application/json" \\')
     print(f'    -d \'{{"message": "What products do you have?"}}\' ')
     print("=" * 60)

@@ -16,7 +16,7 @@ Returns all registered identity providers.
 
     ```bash
     curl https://acme.runagents.io/api/v1/identity-providers \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -61,7 +61,7 @@ Register a new identity provider. Idempotent -- creating with an existing name u
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/identity-providers \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "google-oidc",
@@ -128,7 +128,7 @@ Register a new identity provider. Idempotent -- creating with an existing name u
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/identity-providers \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "auth0-prod",
@@ -151,7 +151,7 @@ Register a new identity provider. Idempotent -- creating with an existing name u
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/identity-providers \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "okta-corp",
@@ -185,7 +185,7 @@ Retrieve details for a specific identity provider.
 
     ```bash
     curl https://acme.runagents.io/api/v1/identity-providers/google-oidc \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -216,7 +216,7 @@ Delete an identity provider.
 
     ```bash
     curl -X DELETE https://acme.runagents.io/api/v1/identity-providers/google-oidc \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)

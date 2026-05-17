@@ -41,7 +41,7 @@ func TestNormalizePathPreservesCleanResourcePath(t *testing.T) {
 	}
 }
 
-func TestClientUsesBearerOnlyAndTargetPath(t *testing.T) {
+func TestClientUsesWorkspaceAPIKeyHeaderAndTargetPath(t *testing.T) {
 	var capturedPath string
 	var workspaceHeader string
 	var apiKeyHeader string
@@ -70,10 +70,36 @@ func TestClientUsesBearerOnlyAndTargetPath(t *testing.T) {
 	if workspaceHeader != "" {
 		t.Fatalf("expected no workspace header, got %q", workspaceHeader)
 	}
-	if apiKeyHeader != "" {
-		t.Fatalf("expected no API key header, got %q", apiKeyHeader)
+	if apiKeyHeader != "ra_ws_test" {
+		t.Fatalf("expected workspace API key header, got %q", apiKeyHeader)
 	}
-	if authHeader != "Bearer ra_ws_test" {
+	if authHeader != "" {
+		t.Fatalf("expected no bearer auth for workspace key, got %q", authHeader)
+	}
+}
+
+func TestClientUsesBearerForNonWorkspaceToken(t *testing.T) {
+	var apiKeyHeader string
+	var authHeader string
+	c := NewClient("https://acme.runagents.io", "jwt-like-token")
+	c.httpClient = &http.Client{
+		Transport: roundTripperFunc(func(r *http.Request) (*http.Response, error) {
+			apiKeyHeader = r.Header.Get("X-RunAgents-API-Key")
+			authHeader = r.Header.Get("Authorization")
+			return &http.Response{
+				StatusCode: http.StatusOK,
+				Body:       io.NopCloser(strings.NewReader(`[]`)),
+				Header:     make(http.Header),
+			}, nil
+		}),
+	}
+	if _, err := c.Get("/tools"); err != nil {
+		t.Fatalf("get tools: %v", err)
+	}
+	if apiKeyHeader != "" {
+		t.Fatalf("expected no workspace API key header, got %q", apiKeyHeader)
+	}
+	if authHeader != "Bearer jwt-like-token" {
 		t.Fatalf("expected bearer auth, got %q", authHeader)
 	}
 }

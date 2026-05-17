@@ -373,7 +373,7 @@ export RUNAGENTS_API_KEY="ra_ws_your_workspace_key"
 
 ```bash
 curl -X POST "$API/api/starter-kit" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json"
 ```
 
@@ -381,7 +381,7 @@ curl -X POST "$API/api/starter-kit" \
 
 ```bash
 curl -X POST "$API/api/policies" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "hello-echo-policy",
@@ -401,7 +401,7 @@ curl -X POST "$API/api/policies" \
 
 ```bash
 curl -X POST "$API/api/deploy" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "agent_name": "hello-world",
@@ -421,14 +421,14 @@ curl -X POST "$API/api/deploy" \
 
 ```bash
 curl https://api.runagents.io/api/agents \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
 ```
 
 ### Invoke an agent
 
 ```bash
 curl -X POST https://api.runagents.io/api/agents/agent-system/payment-agent/invoke \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"message": "What are the recent charges?"}'
 ```
@@ -437,7 +437,7 @@ curl -X POST https://api.runagents.io/api/agents/agent-system/payment-agent/invo
 
 ```bash
 curl -X POST https://api.runagents.io/runs \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "agent_id": "payment-agent",
@@ -447,28 +447,28 @@ curl -X POST https://api.runagents.io/runs \
   }'
 
 curl "https://api.runagents.io/runs?agent_id=payment-agent" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
 
 curl https://api.runagents.io/runs/<run-id> \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
 
 curl https://api.runagents.io/runs/<run-id>/events \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
 ```
 
 ### Handle approvals through the public API
 
 ```bash
 curl "$API/governance/requests?status=PENDING" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
 
 curl -X POST "$API/governance/requests/<request-id>/approve" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{}'
 
 curl -X POST "$API/governance/requests/<request-id>/reject" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{"reason": "Not approved for production writes"}'
 ```
@@ -479,7 +479,7 @@ For delegated-user tools such as Google Workspace, the Tools API remains the pub
 
 ```bash
 curl -X POST https://api.runagents.io/api/tools \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "google-drive",

@@ -16,7 +16,7 @@ Returns all registered model providers.
 
     ```bash
     curl https://acme.runagents.io/api/v1/model-providers \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -72,7 +72,7 @@ Register a new model provider. Idempotent -- creating with an existing name upda
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/model-providers \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "openai-prod",
@@ -162,7 +162,7 @@ Register a new model provider. Idempotent -- creating with an existing name upda
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/model-providers \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "bedrock-us-east",
@@ -192,7 +192,7 @@ Register a new model provider. Idempotent -- creating with an existing name upda
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/model-providers \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "anthropic-prod",
@@ -218,7 +218,7 @@ Register a new model provider. Idempotent -- creating with an existing name upda
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/model-providers \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "name": "ollama-local",
@@ -251,7 +251,7 @@ Retrieve details for a specific model provider.
 
     ```bash
     curl https://acme.runagents.io/api/v1/model-providers/openai-prod \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -282,7 +282,7 @@ Delete a model provider.
 
     ```bash
     curl -X DELETE https://acme.runagents.io/api/v1/model-providers/openai-prod \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 ### Response (200 OK)
@@ -394,7 +394,7 @@ The request body follows the [OpenAI Chat Completions API](https://platform.open
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/chat/completions \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "model": "gpt-4o-mini",
@@ -484,7 +484,7 @@ The gateway automatically translates between OpenAI and Anthropic formats:
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/chat/completions \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "model": "claude-3-5-sonnet-20241022",
@@ -503,7 +503,7 @@ The response is returned in OpenAI format even though the backend is Anthropic.
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/chat/completions \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "model": "anthropic.claude-3-5-sonnet-20241022-v2:0",

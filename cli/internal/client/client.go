@@ -163,9 +163,15 @@ func (c *Client) do(req *http.Request) ([]byte, error) {
 
 // setHeaders adds common headers to the request.
 func (c *Client) setHeaders(req *http.Request) {
-	if c.apiKey != "" {
-		req.Header.Set("Authorization", "Bearer "+c.apiKey)
+	apiKey := strings.TrimSpace(c.apiKey)
+	if apiKey == "" {
+		return
 	}
+	if strings.HasPrefix(apiKey, "ra_ws_") {
+		req.Header.Set("X-RunAgents-API-Key", apiKey)
+		return
+	}
+	req.Header.Set("Authorization", "Bearer "+apiKey)
 }
 
 func normalizeEndpoint(endpoint string) string {

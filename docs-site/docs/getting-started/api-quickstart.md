@@ -24,7 +24,7 @@ export API="https://your-workspace.try.runagents.io/api/v1"
 
 ```bash
 curl -X POST "$API/starter-kit" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json"
 ```
 
@@ -43,7 +43,7 @@ Example response (`201`):
 
 ```bash
 curl -X POST "$API/policies" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "name": "hello-echo-policy",
@@ -65,7 +65,7 @@ curl -X POST "$API/policies" \
 
 ```bash
 curl -X POST "$API/deploy" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "agent_name": "hello-world",
@@ -99,7 +99,7 @@ Example response (`201`):
 
 ```bash
 curl -s "$API/agents" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" | jq .
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" | jq .
 ```
 
 Look for your agent transitioning to `Running`.
@@ -110,7 +110,7 @@ Look for your agent transitioning to `Running`.
 
 ```bash
 curl -s "$API/runs" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" | jq .
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" | jq .
 ```
 
 Run states you will commonly see:
@@ -128,10 +128,10 @@ If a policy rule resolves to `approval_required`, approve via:
 
 ```bash
 curl -s "$API/approvals/requests?status=PENDING" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" | jq .
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" | jq .
 
 curl -X POST "$API/approvals/requests/<request-id>/approve" \
-  -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+  -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{}'
 ```

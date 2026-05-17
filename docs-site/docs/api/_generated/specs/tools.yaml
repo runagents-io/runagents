@@ -6,9 +6,10 @@ info:
   description: 'This OpenAPI document is the target machine-readable contract for
     the RunAgents programmatic API. It is the source contract for generated SDK, CLI,
     and assistant-facing integrations where coverage exists. Tenant and workspace
-    context are carried by the base URL. Caller identity, scopes, and optional default
-    workspace are carried by the bearer token. Kubernetes namespaces are an internal
-    implementation detail and are not part of this public contract.
+    context are carried by the base URL. Workspace API keys are sent with the X-RunAgents-API-Key
+    header. Connected identity-provider JWTs remain bearer tokens for end-user agent/runtime
+    flows. Kubernetes namespaces are an internal implementation detail and are not
+    part of this public contract.
 
     '
 servers:
@@ -34,7 +35,7 @@ servers:
       default: revops
       description: Workspace slug inside the company tenant.
 security:
-- bearerAuth: []
+- workspaceApiKey: []
 tags:
 - name: Tools
   description: External tool registration and probing.
@@ -159,13 +160,14 @@ paths:
       operationId: postToolsByToolNameTest
 components:
   securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: API key
-      description: 'Standard bearer token auth. Personal, service, and workspace-bound
-        tokens identify the caller and authorize access to the tenant/workspace carried
-        by the base URL.
+    workspaceApiKey:
+      type: apiKey
+      in: header
+      name: X-RunAgents-API-Key
+      description: 'Workspace API key for programmatic control-plane access. Use this
+        header for tokens with the ra_ws_ prefix. Do not send workspace keys as Authorization
+        bearer tokens on hosted trial or company URLs; bearer Authorization is reserved
+        for connected OIDC/JWT identity flows.
 
         '
   parameters:

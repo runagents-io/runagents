@@ -16,7 +16,7 @@ Returns the current billing status for the workspace, including plan state, usag
 
     ```bash
     curl https://acme.runagents.io/api/v1/billing \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 === "Python"
@@ -69,7 +69,7 @@ Returns daily action usage for the last 30 days. Useful for rendering usage char
 
     ```bash
     curl https://acme.runagents.io/api/v1/billing/usage/daily \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 === "Python"
@@ -113,7 +113,7 @@ Creates a Stripe SetupIntent for securely collecting a payment method. Use the r
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/billing/setup-intent \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 === "Python"
@@ -163,7 +163,7 @@ Attaches a payment method to the workspace after a SetupIntent has been confirme
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/billing/payment-method \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"payment_method_id": "pm_1N4k8q2eZvKYlo2CkFz7Ob3E"}'
     ```
@@ -217,7 +217,7 @@ Creates a Stripe Checkout session for subscribing to a paid plan. Redirects the 
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/billing/subscribe \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{
         "success_url": "https://app.runagents.io/settings?billing=success",
@@ -273,7 +273,7 @@ Creates a Stripe Billing Portal session. The portal allows users to manage their
 
     ```bash
     curl -X POST https://acme.runagents.io/api/v1/billing/portal \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY" \
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY" \
       -H "Content-Type: application/json" \
       -d '{"return_url": "https://app.runagents.io/settings"}'
     ```
@@ -317,7 +317,7 @@ Returns the Stripe publishable key for initializing Stripe Elements on the front
 
     ```bash
     curl https://acme.runagents.io/api/v1/billing/publishable-key \
-      -H "Authorization: Bearer $RUNAGENTS_API_KEY"
+      -H "X-RunAgents-API-Key: $RUNAGENTS_API_KEY"
     ```
 
 === "Python"

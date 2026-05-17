@@ -1,0 +1,141 @@
+name: Deploy Docs
+
+on:
+  workflow_run:
+    workflows:
+      - Verify Released RunAgents
+    types:
+      - completed
+  workflow_dispatch:
+    inputs:
+      source_version:
+        description: Git ref for the docs CodeBuild source.
+        required: true
+        default: main
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-docs
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy docs with CodeBuild
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1
+      DOCS_CODEBUILD_PROJECT: runagents-docs
+    steps:
+      - name: Resolve docs source version
+        id: source
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            source_version="$(printf '%s' '${{ inputs.source_version }}' | xargs)"
+          else
+            source_version="main"
+          fi
+
+          if [[ -z "${source_version}" ]]; then
+            echo "Docs source version cannot be empty." >&2
+            exit 1
+          fi
+
+          echo "source_version=${source_version}" >> "${GITHUB_OUTPUT}"
+          {
+            echo "## Docs deployment"
+            echo
+            echo "- CodeBuild project: \`${DOCS_CODEBUILD_PROJECT}\`"
+            echo "- source version: \`${source_version}\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Start docs CodeBuild
+        id: codebuild
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          aws --version
+          build_id="$(
+            aws codebuild start-build \
+              --project-name "${DOCS_CODEBUILD_PROJECT}" \
+              --source-version "${{ steps.source.outputs.source_version }}" \
+              --query 'build.id' \
+              --output text
+          )"
+
+          if [[ -z "${build_id}" || "${build_id}" == "None" ]]; then
+            echo "Unable to start docs CodeBuild." >&2
+            exit 1
+          fi
+
+          echo "build_id=${build_id}" >> "${GITHUB_OUTPUT}"
+          echo "- CodeBuild build: \`${build_id}\`" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Wait for docs CodeBuild
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          build_id="${{ steps.codebuild.outputs.build_id }}"
+          deadline=$((SECONDS + 25 * 60))
+
+          while true; do
+            build_status="$(
+              aws codebuild batch-get-builds \
+                --ids "${build_id}" \
+                --query 'builds[0].buildStatus' \
+                --output text
+            )"
+            build_phase="$(
+              aws codebuild batch-get-builds \
+                --ids "${build_id}" \
+                --query 'builds[0].currentPhase' \
+                --output text
+            )"
+            echo "CodeBuild status=${build_status} phase=${build_phase}"
+
+            if [[ "${build_status}" != "IN_PROGRESS" ]]; then
+              if [[ "${build_status}" != "SUCCEEDED" ]]; then
+                echo "Docs CodeBuild failed with status ${build_status}." >&2
+                exit 1
+              fi
+              break
+            fi
+
+            if (( SECONDS > deadline )); then
+              echo "Timed out waiting for docs CodeBuild ${build_id}." >&2
+              exit 1
+            fi
+
+            sleep 20
+          done
+
+          echo "- CodeBuild status: \`${build_status}\`" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Verify live OpenAPI auth surface
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for attempt in {1..12}; do
+            if curl -fsSL https://docs.runagents.io/api/openapi.yaml > openapi.yaml &&
+              grep -F "workspaceApiKey:" openapi.yaml >/dev/null &&
+              grep -F "name: X-RunAgents-API-Key" openapi.yaml >/dev/null; then
+              echo "- Live OpenAPI auth surface verified." >> "${GITHUB_STEP_SUMMARY}"
+              exit 0
+            fi
+            sleep 10
+          done
+
+          echo "Live docs did not expose the expected workspace API-key auth surface." >&2
+          exit 1

@@ -163,6 +163,10 @@ nav:
     - Data handling: security/data-handling.md
     - Audit logs: security/audit-logs.md
     - Workspace controls: security/workspace-controls.md
+  - Resources:
+    - AgentOps Intelligence:
+      - Overview: resources/agentops-intelligence/index.md
+      - "Issue #1: Spend is the first control surface": resources/agentops-intelligence/issues/001-spend-is-the-first-control-surface.md
   - Reference:
     - API overview: api/overview.md
     - OpenAPI contract: api/openapi.md

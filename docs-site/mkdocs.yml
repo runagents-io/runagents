@@ -166,6 +166,7 @@ nav:
   - Resources:
     - AgentOps Intelligence:
       - Overview: resources/agentops-intelligence/index.md
+      - "Issue #2: Autonomy still needs the hard work": resources/agentops-intelligence/issues/002-autonomy-still-needs-the-hard-work.md
       - "Issue #1: Spend is the first control surface": resources/agentops-intelligence/issues/001-spend-is-the-first-control-surface.md
   - Reference:
     - API overview: api/overview.md

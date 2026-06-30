@@ -6,14 +6,15 @@ Each issue focuses on one operating question: what changed this week that affect
 
 ## Latest issue
 
-[Issue #1: Spend is the first control surface](issues/001-spend-is-the-first-control-surface.md)
+[Issue #2: Autonomy still needs the hard work](issues/002-autonomy-still-needs-the-hard-work.md)
 
-Agentic AI is moving from seat-based experimentation to usage-based operations. Once agents run longer, call tools, switch models, and work across teams, AI spend becomes more than a finance line item. It becomes a control surface.
+Agentic AI is starting to look less like a better assistant and more like a new way work gets delegated. OpenAI's recent Codex research shows longer-running work, parallel execution, reusable instructions, and agents operating closer to real systems.
 
 ## All issues
 
 | Issue | Date | Theme | Read |
 | --- | --- | --- | --- |
+| #2 | June 30, 2026 | Autonomy and workflow readiness | [Autonomy still needs the hard work](issues/002-autonomy-still-needs-the-hard-work.md) |
 | #1 | June 23, 2026 | Spend controls and agent sprawl | [Spend is the first control surface](issues/001-spend-is-the-first-control-surface.md) |
 
 ## What we track
